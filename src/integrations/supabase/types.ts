@@ -14,7 +14,114 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          email: string | null
+          id: string
+          preferred_watch_time: string | null
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id: string
+          preferred_watch_time?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          email?: string | null
+          id?: string
+          preferred_watch_time?: string | null
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      watchlist: {
+        Row: {
+          added_at: string
+          genres: string[] | null
+          id: string
+          is_watched: boolean | null
+          media_type: string
+          poster_path: string | null
+          release_year: number | null
+          streaming_platforms: string[] | null
+          title: string
+          tmdb_id: number
+          user_id: string
+          watched_at: string | null
+        }
+        Insert: {
+          added_at?: string
+          genres?: string[] | null
+          id?: string
+          is_watched?: boolean | null
+          media_type: string
+          poster_path?: string | null
+          release_year?: number | null
+          streaming_platforms?: string[] | null
+          title: string
+          tmdb_id: number
+          user_id: string
+          watched_at?: string | null
+        }
+        Update: {
+          added_at?: string
+          genres?: string[] | null
+          id?: string
+          is_watched?: boolean | null
+          media_type?: string
+          poster_path?: string | null
+          release_year?: number | null
+          streaming_platforms?: string[] | null
+          title?: string
+          tmdb_id?: number
+          user_id?: string
+          watched_at?: string | null
+        }
+        Relationships: []
+      }
+      wish_usage: {
+        Row: {
+          created_at: string
+          id: string
+          updated_at: string
+          usage_date: string
+          user_id: string
+          wish_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          usage_date?: string
+          user_id: string
+          wish_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          updated_at?: string
+          usage_date?: string
+          user_id?: string
+          wish_count?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
