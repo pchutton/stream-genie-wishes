@@ -45,9 +45,9 @@ export function MediaCard({
     : null;
 
   return (
-    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-card p-4 transition-all hover:ring-2 hover:ring-primary/50">
+    <div className="group relative animate-fade-in flex flex-col overflow-hidden rounded-xl bg-card transition-all hover:ring-2 hover:ring-primary/50">
       {/* Poster */}
-      <div className="relative aspect-[2/3] w-28 shrink-0 overflow-hidden rounded-lg bg-muted">
+      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
@@ -61,53 +61,55 @@ export function MediaCard({
           />
         ) : (
           <div className="flex h-full items-center justify-center">
-            <span className="text-2xl">🎬</span>
+            <span className="text-4xl">🎬</span>
           </div>
         )}
 
         {/* Watched overlay */}
         {isWatched && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-              <Check className="h-4 w-4 text-primary-foreground" />
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
+              <Check className="h-6 w-6 text-primary-foreground" />
             </div>
           </div>
         )}
+
+        {/* Streaming Icons overlay - bottom right */}
+        <div className="absolute bottom-2 right-2">
+          <StreamingIcons 
+            platforms={item.streaming_platforms} 
+            rentPlatforms={item.rent_platforms}
+            buyPlatforms={item.buy_platforms}
+            size="sm" 
+          />
+        </div>
       </div>
 
       {/* Info */}
-      <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
+      <div className="flex flex-1 flex-col p-3">
         <div className="space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-sm font-semibold leading-tight">{item.title}</h3>
+          <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{item.title}</h3>
+          
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
+            </span>
             {item.release_year && (
-              <span className="shrink-0 text-xs text-muted-foreground">{item.release_year}</span>
+              <span className="text-xs text-muted-foreground">{item.release_year}</span>
             )}
           </div>
-
-          {/* Genres */}
-          {item.genres && item.genres.length > 0 && (
-            <p className="line-clamp-1 text-xs text-muted-foreground">
-              {item.genres.slice(0, 2).join(' • ')}
-            </p>
-          )}
-
-          {/* Media type badge */}
-          <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
-          </span>
         </div>
 
         {/* Actions */}
         {showActions && (
-          <div className="mt-2 flex gap-2">
+          <div className="mt-3 flex gap-2">
             {isInWatchlist ? (
               <>
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={onToggleWatched}
-                  className="h-7 text-xs"
+                  className="h-8 flex-1 text-xs"
                 >
                   {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
                   {isWatched ? 'Unwatch' : 'Watched'}
@@ -116,7 +118,7 @@ export function MediaCard({
                   size="sm"
                   variant="outline"
                   onClick={onRemoveFromWatchlist}
-                  className="h-7 text-xs"
+                  className="h-8 text-xs"
                 >
                   Remove
                 </Button>
@@ -124,24 +126,14 @@ export function MediaCard({
             ) : (
               <Button
                 size="sm"
-                className="genie-glow h-7 whitespace-nowrap text-xs"
+                className="genie-glow h-8 w-full text-xs"
                 onClick={onAddToWatchlist}
               >
-                <Plus className="mr-1 h-3 w-3" /> Add
+                <Plus className="mr-1 h-3 w-3" /> Add to List
               </Button>
             )}
           </div>
         )}
-      </div>
-
-      {/* Streaming Icons - Right side */}
-      <div className="flex w-32 shrink-0 items-center justify-center border-l border-border pl-3">
-        <StreamingIcons 
-          platforms={item.streaming_platforms} 
-          rentPlatforms={item.rent_platforms}
-          buyPlatforms={item.buy_platforms}
-          size="lg" 
-        />
       </div>
     </div>
   );
