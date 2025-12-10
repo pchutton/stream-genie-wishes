@@ -92,31 +92,37 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Vudu'
   },
   'fubotv': {
-    logo: 'https://images.justwatch.com/icon/143702918/s100/fubotv.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/41/FuboTV_Logo.svg',
     color: '#FF6B00',
     url: 'https://www.fubo.tv',
     shortName: 'FuboTV'
   },
   'fubo tv': {
-    logo: 'https://images.justwatch.com/icon/143702918/s100/fubotv.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/41/FuboTV_Logo.svg',
     color: '#FF6B00',
     url: 'https://www.fubo.tv',
     shortName: 'FuboTV'
   },
   'youtube tv': {
-    logo: 'https://images.justwatch.com/icon/158154639/s100/youtube-tv.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/YouTube_TV_logo.svg',
     color: '#FF0000',
     url: 'https://tv.youtube.com',
     shortName: 'YouTube TV'
   },
   'fx': {
-    logo: 'https://images.justwatch.com/icon/116305489/s100/fx.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/FX_International_logo.svg',
+    color: '#000000',
+    url: 'https://www.fxnetworks.com',
+    shortName: 'FX'
+  },
+  'fxnow': {
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/FX_International_logo.svg',
     color: '#000000',
     url: 'https://www.fxnetworks.com',
     shortName: 'FX'
   },
   'fx now': {
-    logo: 'https://images.justwatch.com/icon/116305489/s100/fx.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/FX_International_logo.svg',
     color: '#000000',
     url: 'https://www.fxnetworks.com',
     shortName: 'FX'
