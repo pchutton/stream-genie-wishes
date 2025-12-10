@@ -125,3 +125,63 @@ export function useToggleWatched() {
     },
   });
 }
+
+// Mark as seen - adds to watchlist if not present, then marks as watched
+export function useMarkAsSeen() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (item: Omit<WatchlistItem, 'id' | 'user_id' | 'added_at' | 'watched_at' | 'is_watched'>) => {
+      if (!user) throw new Error('Not authenticated');
+
+      // Try to insert with is_watched = true, or update if exists
+      const { data: existing } = await supabase
+        .from('watchlist')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('tmdb_id', item.tmdb_id)
+        .eq('media_type', item.media_type)
+        .maybeSingle();
+
+      if (existing) {
+        // Already in watchlist, mark as watched
+        const { data, error } = await supabase
+          .from('watchlist')
+          .update({
+            is_watched: true,
+            watched_at: new Date().toISOString(),
+          })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      } else {
+        // Add to watchlist and mark as watched
+        const { data, error } = await supabase
+          .from('watchlist')
+          .insert({
+            ...item,
+            user_id: user.id,
+            is_watched: true,
+            watched_at: new Date().toISOString(),
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['watchlist', user?.id] });
+      toast({ title: 'Marked as Seen', description: 'This title will no longer appear in results.' });
+    },
+    onError: () => {
+      toast({ title: 'Error', description: 'Failed to mark as seen.', variant: 'destructive' });
+    },
+  });
+}
