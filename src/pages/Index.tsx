@@ -178,7 +178,7 @@ export default function Home() {
           onOpenChange={setDetailsOpen}
           isInWatchlist={selectedItem ? isInWatchlist(selectedItem.tmdb_id, selectedItem.media_type) : false}
           isWatched={selectedItem ? getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type)?.is_watched ?? false : false}
-          rating={selectedItem ? getRating(selectedItem.tmdb_id, selectedItem.media_type) : null}
+          userRating={selectedItem ? getRating(selectedItem.tmdb_id, selectedItem.media_type) : null}
           onAddToWatchlist={() => selectedItem && addToWatchlist.mutate(selectedItem)}
           onRemoveFromWatchlist={() => {
             const wlItem = selectedItem && getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type);

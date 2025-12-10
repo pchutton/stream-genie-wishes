@@ -1,4 +1,4 @@
-import { Plus, Check, ThumbsUp, ThumbsDown, X } from 'lucide-react';
+import { Plus, Check, ThumbsUp, ThumbsDown, X, Calendar, Clock, Globe, Star, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -9,6 +9,7 @@ import {
 import { cn } from '@/lib/utils';
 import { StreamingBadges } from './StreamingBadges';
 import { MediaItem } from './MediaCard';
+import { Badge } from '@/components/ui/badge';
 
 interface MediaDetailsDialogProps {
   item: MediaItem | null;
@@ -16,7 +17,7 @@ interface MediaDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   isInWatchlist?: boolean;
   isWatched?: boolean;
-  rating?: 'like' | 'dislike' | null;
+  userRating?: 'like' | 'dislike' | null;
   onAddToWatchlist?: () => void;
   onRemoveFromWatchlist?: () => void;
   onToggleWatched?: () => void;
@@ -31,7 +32,7 @@ export function MediaDetailsDialog({
   onOpenChange,
   isInWatchlist = false,
   isWatched = false,
-  rating = null,
+  userRating = null,
   onAddToWatchlist,
   onRemoveFromWatchlist,
   onToggleWatched,
@@ -45,10 +46,10 @@ export function MediaDetailsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl overflow-hidden bg-zinc-800 p-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-zinc-800 p-0">
         <div className="flex flex-col sm:flex-row">
           {/* Poster */}
-          <div className="relative aspect-[2/3] w-full shrink-0 sm:w-64">
+          <div className="relative aspect-[2/3] w-full shrink-0 sm:w-72">
             {posterUrl ? (
               <img
                 src={posterUrl}
@@ -62,42 +63,98 @@ export function MediaDetailsDialog({
             )}
             {/* Watched badge */}
             {isWatched && (
-              <div className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-                <Check className="h-4 w-4 text-primary-foreground" />
+              <div className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary">
+                <Check className="h-5 w-5 text-primary-foreground" />
               </div>
             )}
           </div>
 
           {/* Content */}
           <div className="flex flex-1 flex-col p-6">
-            <DialogHeader className="mb-4">
-              <DialogTitle className="text-xl font-bold">{item.title}</DialogTitle>
-              <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                {item.release_year && <span>{item.release_year}</span>}
-                {item.genres && item.genres.length > 0 && (
-                  <>
-                    <span>•</span>
-                    <span>{item.genres.join(', ')}</span>
-                  </>
+            {/* Type Badge */}
+            <div className="mb-2 flex items-center gap-2">
+              <Badge variant="secondary" className="text-xs">
+                {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
+              </Badge>
+            </div>
+
+            <DialogHeader className="mb-4 text-left">
+              <DialogTitle className="text-2xl font-bold">{item.title}</DialogTitle>
+              
+              {/* Meta info row */}
+              <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground mt-2">
+                {item.release_year && (
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-4 w-4" />
+                    {item.release_year}
+                  </span>
                 )}
-                <span>•</span>
-                <span className="capitalize">
-                  {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
-                </span>
+                {item.runtime && (
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-4 w-4" />
+                    {item.runtime}
+                  </span>
+                )}
+                {item.origin_country && item.origin_country.length > 0 && (
+                  <span className="flex items-center gap-1">
+                    <Globe className="h-4 w-4" />
+                    {item.origin_country.join(', ')}
+                  </span>
+                )}
+                {item.genres && item.genres.length > 0 && (
+                  <span>{item.genres.join(', ')}</span>
+                )}
               </div>
             </DialogHeader>
+
+            {/* Rating Box */}
+            {item.rating && (
+              <div className="mb-4 rounded-lg bg-zinc-700/50 p-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Star className="h-4 w-4" />
+                  <span>TMDB Rating</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-green-400">{item.rating}</span>
+                  <span className="text-sm text-muted-foreground">/ 10</span>
+                </div>
+              </div>
+            )}
 
             {/* Overview */}
             {item.overview && (
               <div className="mb-4">
-                <h4 className="mb-2 text-sm font-medium text-muted-foreground">Overview</h4>
-                <p className="text-sm leading-relaxed">{item.overview}</p>
+                <p className="text-sm leading-relaxed text-zinc-300">{item.overview}</p>
+              </div>
+            )}
+
+            {/* Director */}
+            {item.director && (
+              <div className="mb-2 flex items-start gap-2 text-sm">
+                <User className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div>
+                  <span className="text-muted-foreground">
+                    {item.media_type === 'movie' ? 'Director: ' : 'Creator: '}
+                  </span>
+                  <span className="text-zinc-200">{item.director}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Cast */}
+            {item.cast && item.cast.length > 0 && (
+              <div className="mb-4 flex items-start gap-2 text-sm">
+                <Users className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+                <div>
+                  <span className="text-muted-foreground">Cast: </span>
+                  <span className="text-zinc-200">{item.cast.join(', ')}</span>
+                </div>
               </div>
             )}
 
             {/* Streaming Platforms */}
             <div className="mb-6">
-              <h4 className="mb-2 text-sm font-medium text-muted-foreground">Available on</h4>
+              <h4 className="mb-2 text-sm font-medium text-muted-foreground">Where to Watch</h4>
               <StreamingBadges
                 platforms={item.streaming_platforms}
                 rentPlatforms={item.rent_platforms}
@@ -123,50 +180,48 @@ export function MediaDetailsDialog({
                   className="genie-glow gap-1"
                   onClick={onAddToWatchlist}
                 >
-                  <Plus className="h-4 w-4" /> Add to List
+                  <Plus className="h-4 w-4" /> Add to Watchlist
                 </Button>
               )}
 
-              {/* Watched Toggle */}
+              {/* Like Button */}
               <Button
-                variant={isWatched ? 'secondary' : 'outline'}
+                variant="outline"
                 size="sm"
-                onClick={onToggleWatched}
-                className="gap-1"
+                className={cn(
+                  'gap-1',
+                  userRating === 'like' && 'bg-green-600 border-green-600 hover:bg-green-700'
+                )}
+                onClick={() => onRate?.(userRating === 'like' ? null : 'like')}
               >
-                <Check className="h-4 w-4" />
-                {isWatched ? 'Watched' : 'Mark Watched'}
+                <ThumbsUp className="h-4 w-4" /> Like
               </Button>
 
-              {/* Rating Buttons */}
-              <div className="flex items-center gap-1">
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={cn(
-                    'h-9 w-9 rounded-full',
-                    rating === 'like'
-                      ? 'bg-green-600 hover:bg-green-700'
-                      : 'bg-zinc-700 hover:bg-zinc-600'
-                  )}
-                  onClick={() => onRate?.(rating === 'like' ? null : 'like')}
-                >
-                  <ThumbsUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className={cn(
-                    'h-9 w-9 rounded-full',
-                    rating === 'dislike'
-                      ? 'bg-red-600 hover:bg-red-700'
-                      : 'bg-zinc-700 hover:bg-zinc-600'
-                  )}
-                  onClick={() => onRate?.(rating === 'dislike' ? null : 'dislike')}
-                >
-                  <ThumbsDown className="h-4 w-4" />
-                </Button>
-              </div>
+              {/* Mark as Seen */}
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'gap-1',
+                  isWatched && 'bg-primary border-primary hover:bg-primary/80'
+                )}
+                onClick={onToggleWatched}
+              >
+                <Check className="h-4 w-4" /> Mark as Seen
+              </Button>
+
+              {/* Dislike Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className={cn(
+                  'gap-1',
+                  userRating === 'dislike' && 'bg-red-600 border-red-600 hover:bg-red-700'
+                )}
+                onClick={() => onRate?.(userRating === 'dislike' ? null : 'dislike')}
+              >
+                <ThumbsDown className="h-4 w-4" /> Dislike
+              </Button>
             </div>
           </div>
         </div>

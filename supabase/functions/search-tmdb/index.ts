@@ -18,6 +18,7 @@ interface TMDBSearchResult {
   genre_ids: number[];
   media_type: string;
   overview: string;
+  vote_average?: number;
 }
 
 interface TMDBWatchProvider {
@@ -38,6 +39,16 @@ interface WatchProviderResult {
   streaming: string[];
   rent: string[];
   buy: string[];
+}
+
+interface CastMember {
+  name: string;
+  character: string;
+}
+
+interface CrewMember {
+  name: string;
+  job: string;
 }
 
 // Genre mappings from TMDB
@@ -98,9 +109,75 @@ async function getWatchProviders(mediaType: string, id: number, region: string =
   }
 }
 
+async function getDetails(mediaType: string, id: number): Promise<{
+  runtime: number | null;
+  director: string | null;
+  cast: string[];
+  vote_average: number | null;
+  origin_country: string[];
+}> {
+  try {
+    // Fetch details and credits in parallel
+    const [detailsRes, creditsRes] = await Promise.all([
+      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${TMDB_API_KEY}`),
+      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}/credits?api_key=${TMDB_API_KEY}`)
+    ]);
+
+    const details = detailsRes.ok ? await detailsRes.json() : null;
+    const credits = creditsRes.ok ? await creditsRes.json() : null;
+
+    // Get runtime (movies have runtime, TV shows have episode_run_time array)
+    let runtime: number | null = null;
+    if (mediaType === 'movie' && details?.runtime) {
+      runtime = details.runtime;
+    } else if (mediaType === 'tv' && details?.episode_run_time?.length > 0) {
+      runtime = details.episode_run_time[0];
+    }
+
+    // Get director (movies) or creator (TV shows)
+    let director: string | null = null;
+    if (mediaType === 'movie' && credits?.crew) {
+      const directorData = (credits.crew as CrewMember[]).find(c => c.job === 'Director');
+      director = directorData?.name || null;
+    } else if (mediaType === 'tv' && details?.created_by?.length > 0) {
+      director = details.created_by[0]?.name || null;
+    }
+
+    // Get top 5 cast members
+    const cast: string[] = credits?.cast
+      ? (credits.cast as CastMember[]).slice(0, 5).map(c => c.name)
+      : [];
+
+    // Get origin country
+    const origin_country: string[] = details?.origin_country || 
+      (details?.production_countries?.map((c: { iso_3166_1: string }) => c.iso_3166_1) || []);
+
+    return {
+      runtime,
+      director,
+      cast,
+      vote_average: details?.vote_average || null,
+      origin_country: origin_country.slice(0, 2),
+    };
+  } catch (error) {
+    console.error(`Error fetching details for ${mediaType}/${id}:`, error);
+    return { runtime: null, director: null, cast: [], vote_average: null, origin_country: [] };
+  }
+}
+
 function getGenreNames(genreIds: number[], mediaType: string): string[] {
   const genreMap = mediaType === 'movie' ? movieGenres : tvGenres;
   return genreIds.map(id => genreMap[id]).filter(Boolean);
+}
+
+function formatRuntime(minutes: number | null): string | null {
+  if (!minutes) return null;
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  if (hours > 0) {
+    return `${hours}h ${mins}m`;
+  }
+  return `${mins}m`;
 }
 
 serve(async (req) => {
@@ -140,10 +217,13 @@ serve(async (req) => {
 
     console.log(`Found ${mediaResults.length} results`);
 
-    // Fetch watch providers for each result in parallel
+    // Fetch watch providers and details for each result in parallel
     const resultsWithProviders = await Promise.all(
       mediaResults.map(async (item) => {
-        const watchProviders = await getWatchProviders(item.media_type, item.id, region);
+        const [watchProviders, details] = await Promise.all([
+          getWatchProviders(item.media_type, item.id, region),
+          getDetails(item.media_type, item.id)
+        ]);
         const releaseDate = item.release_date || item.first_air_date;
         
         return {
@@ -157,6 +237,11 @@ serve(async (req) => {
           rent_platforms: watchProviders.rent,
           buy_platforms: watchProviders.buy,
           overview: item.overview,
+          runtime: formatRuntime(details.runtime),
+          director: details.director,
+          cast: details.cast,
+          rating: details.vote_average ? Math.round(details.vote_average * 10) / 10 : null,
+          origin_country: details.origin_country,
         };
       })
     );

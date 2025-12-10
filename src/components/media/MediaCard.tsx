@@ -15,6 +15,11 @@ export interface MediaItem {
   rent_platforms?: string[] | null;
   buy_platforms?: string[] | null;
   overview?: string;
+  runtime?: string | null;
+  director?: string | null;
+  cast?: string[];
+  rating?: number | null;
+  origin_country?: string[];
 }
 
 interface MediaCardProps {
