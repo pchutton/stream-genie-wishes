@@ -75,12 +75,12 @@ export function MediaCard({
         )}
 
         {/* Streaming Icons overlay - bottom right */}
-        <div className="absolute bottom-2 right-2">
+        <div className="absolute bottom-2 right-2 rounded-lg bg-background/80 p-1.5">
           <StreamingIcons 
             platforms={item.streaming_platforms} 
             rentPlatforms={item.rent_platforms}
             buyPlatforms={item.buy_platforms}
-            size="sm" 
+            size="md" 
           />
         </div>
       </div>
