@@ -10,6 +10,8 @@ export interface TMDBSearchResult {
   release_year: number | null;
   genres: string[];
   streaming_platforms: string[];
+  rent_platforms: string[];
+  buy_platforms: string[];
   overview: string;
 }
 

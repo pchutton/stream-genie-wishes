@@ -12,6 +12,8 @@ export interface MediaItem {
   release_year: number | null;
   genres: string[] | null;
   streaming_platforms: string[] | null;
+  rent_platforms?: string[] | null;
+  buy_platforms?: string[] | null;
 }
 
 interface MediaCardProps {
@@ -134,7 +136,12 @@ export function MediaCard({
 
       {/* Streaming Icons - Right side */}
       <div className="flex shrink-0 items-center border-l border-border pl-3">
-        <StreamingIcons platforms={item.streaming_platforms} size="md" />
+        <StreamingIcons 
+          platforms={item.streaming_platforms} 
+          rentPlatforms={item.rent_platforms}
+          buyPlatforms={item.buy_platforms}
+          size="md" 
+        />
       </div>
     </div>
   );

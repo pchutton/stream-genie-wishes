@@ -30,6 +30,14 @@ interface TMDBWatchProviders {
   flatrate?: TMDBWatchProvider[];
   free?: TMDBWatchProvider[];
   ads?: TMDBWatchProvider[];
+  rent?: TMDBWatchProvider[];
+  buy?: TMDBWatchProvider[];
+}
+
+interface WatchProviderResult {
+  streaming: string[];
+  rent: string[];
+  buy: string[];
 }
 
 // Genre mappings from TMDB
@@ -47,7 +55,7 @@ const tvGenres: Record<number, string> = {
   10767: 'Talk', 10768: 'War & Politics', 37: 'Western'
 };
 
-async function getWatchProviders(mediaType: string, id: number, region: string = 'US'): Promise<string[]> {
+async function getWatchProviders(mediaType: string, id: number, region: string = 'US'): Promise<WatchProviderResult> {
   try {
     const response = await fetch(
       `${TMDB_BASE_URL}/${mediaType}/${id}/watch/providers?api_key=${TMDB_API_KEY}`
@@ -55,26 +63,38 @@ async function getWatchProviders(mediaType: string, id: number, region: string =
     
     if (!response.ok) {
       console.log(`Watch providers request failed for ${mediaType}/${id}`);
-      return [];
+      return { streaming: [], rent: [], buy: [] };
     }
     
     const data = await response.json();
     const regionData = data.results?.[region] as TMDBWatchProviders | undefined;
     
-    if (!regionData) return [];
+    if (!regionData) return { streaming: [], rent: [], buy: [] };
     
-    const providers = new Set<string>();
+    const streaming = new Set<string>();
+    const rent = new Set<string>();
+    const buy = new Set<string>();
     
     // Get streaming services (flatrate = subscription services)
-    regionData.flatrate?.forEach(p => providers.add(p.provider_name));
-    // Also include free and ad-supported options
-    regionData.free?.forEach(p => providers.add(p.provider_name));
-    regionData.ads?.forEach(p => providers.add(p.provider_name));
+    regionData.flatrate?.forEach(p => streaming.add(p.provider_name));
+    // Also include free and ad-supported options as streaming
+    regionData.free?.forEach(p => streaming.add(p.provider_name));
+    regionData.ads?.forEach(p => streaming.add(p.provider_name));
     
-    return Array.from(providers);
+    // Get rental options
+    regionData.rent?.forEach(p => rent.add(p.provider_name));
+    
+    // Get purchase options
+    regionData.buy?.forEach(p => buy.add(p.provider_name));
+    
+    return {
+      streaming: Array.from(streaming),
+      rent: Array.from(rent),
+      buy: Array.from(buy),
+    };
   } catch (error) {
     console.error(`Error fetching watch providers for ${mediaType}/${id}:`, error);
-    return [];
+    return { streaming: [], rent: [], buy: [] };
   }
 }
 
@@ -123,7 +143,7 @@ serve(async (req) => {
     // Fetch watch providers for each result in parallel
     const resultsWithProviders = await Promise.all(
       mediaResults.map(async (item) => {
-        const streamingPlatforms = await getWatchProviders(item.media_type, item.id, region);
+        const watchProviders = await getWatchProviders(item.media_type, item.id, region);
         const releaseDate = item.release_date || item.first_air_date;
         
         return {
@@ -133,7 +153,9 @@ serve(async (req) => {
           poster_path: item.poster_path,
           release_year: releaseDate ? parseInt(releaseDate.split('-')[0]) : null,
           genres: getGenreNames(item.genre_ids, item.media_type),
-          streaming_platforms: streamingPlatforms,
+          streaming_platforms: watchProviders.streaming,
+          rent_platforms: watchProviders.rent,
+          buy_platforms: watchProviders.buy,
           overview: item.overview,
         };
       })
