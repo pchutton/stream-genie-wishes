@@ -26,6 +26,42 @@ interface MediaDetailsDialogProps {
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
+// Calculate blended score from available ratings
+function calculateBlendedScore(
+  tmdb: number | null | undefined,
+  imdb: string | null | undefined,
+  rt: string | null | undefined,
+  meta: string | null | undefined
+): string {
+  const scores: number[] = [];
+  
+  // TMDB is already 0-10
+  if (tmdb) scores.push(tmdb);
+  
+  // IMDb is 0-10
+  if (imdb) {
+    const parsed = parseFloat(imdb);
+    if (!isNaN(parsed)) scores.push(parsed);
+  }
+  
+  // Rotten Tomatoes is percentage, convert to 0-10
+  if (rt) {
+    const parsed = parseInt(rt.replace('%', ''));
+    if (!isNaN(parsed)) scores.push(parsed / 10);
+  }
+  
+  // Metacritic is 0-100, convert to 0-10
+  if (meta) {
+    const parsed = parseInt(meta);
+    if (!isNaN(parsed)) scores.push(parsed / 10);
+  }
+  
+  if (scores.length === 0) return '—';
+  
+  const average = scores.reduce((a, b) => a + b, 0) / scores.length;
+  return average.toFixed(1);
+}
+
 export function MediaDetailsDialog({
   item,
   open,
@@ -108,7 +144,7 @@ export function MediaDetailsDialog({
             </DialogHeader>
 
             {/* Blended Score Box */}
-            {item.rating && (
+            {(item.tmdb_rating || item.imdb_rating || item.rotten_tomatoes || item.metacritic) && (
               <div className="mb-4 rounded-lg border border-zinc-600 bg-zinc-700/30 p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
                   <Trophy className="h-4 w-4" />
@@ -117,7 +153,9 @@ export function MediaDetailsDialog({
                 <div className="flex items-center gap-6">
                   {/* Combined Score */}
                   <div className="text-center">
-                    <span className="text-3xl font-bold text-green-400">{item.rating}</span>
+                    <span className="text-3xl font-bold text-green-400">
+                      {calculateBlendedScore(item.tmdb_rating, item.imdb_rating, item.rotten_tomatoes, item.metacritic)}
+                    </span>
                     <p className="text-xs text-muted-foreground mt-1">Combined</p>
                   </div>
                   
@@ -127,19 +165,27 @@ export function MediaDetailsDialog({
                   {/* Individual Scores */}
                   <div className="flex items-center gap-6">
                     <div className="text-center">
-                      <span className="text-lg font-semibold text-zinc-200">{item.rating}</span>
+                      <span className={cn("text-lg font-semibold", item.tmdb_rating ? "text-zinc-200" : "text-zinc-400")}>
+                        {item.tmdb_rating ?? '—'}
+                      </span>
                       <p className="text-xs text-muted-foreground">TMDB</p>
                     </div>
                     <div className="text-center">
-                      <span className="text-lg font-semibold text-zinc-400">—</span>
+                      <span className={cn("text-lg font-semibold", item.imdb_rating ? "text-zinc-200" : "text-zinc-400")}>
+                        {item.imdb_rating ?? '—'}
+                      </span>
                       <p className="text-xs text-muted-foreground">IMDb</p>
                     </div>
                     <div className="text-center">
-                      <span className="text-lg font-semibold text-zinc-400">—</span>
+                      <span className={cn("text-lg font-semibold", item.rotten_tomatoes ? "text-zinc-200" : "text-zinc-400")}>
+                        {item.rotten_tomatoes ?? '—'}
+                      </span>
                       <p className="text-xs text-muted-foreground">RT</p>
                     </div>
                     <div className="text-center">
-                      <span className="text-lg font-semibold text-zinc-400">—</span>
+                      <span className={cn("text-lg font-semibold", item.metacritic ? "text-zinc-200" : "text-zinc-400")}>
+                        {item.metacritic ?? '—'}
+                      </span>
                       <p className="text-xs text-muted-foreground">Meta</p>
                     </div>
                   </div>

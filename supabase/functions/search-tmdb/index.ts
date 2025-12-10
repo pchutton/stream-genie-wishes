@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const TMDB_API_KEY = Deno.env.get('TMDB_API_KEY');
+const OMDB_API_KEY = Deno.env.get('OMDB_API_KEY');
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const OMDB_BASE_URL = 'https://www.omdbapi.com';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -109,22 +111,68 @@ async function getWatchProviders(mediaType: string, id: number, region: string =
   }
 }
 
+interface OMDBRatings {
+  imdb_rating: string | null;
+  rotten_tomatoes: string | null;
+  metacritic: string | null;
+}
+
+async function getOMDBRatings(imdbId: string | null): Promise<OMDBRatings> {
+  if (!imdbId || !OMDB_API_KEY) {
+    return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+  }
+
+  try {
+    const response = await fetch(`${OMDB_BASE_URL}/?apikey=${OMDB_API_KEY}&i=${imdbId}`);
+    if (!response.ok) {
+      return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+    }
+
+    const data = await response.json();
+    if (data.Response === 'False') {
+      return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+    }
+
+    let rotten_tomatoes: string | null = null;
+    if (data.Ratings) {
+      const rtRating = data.Ratings.find((r: { Source: string; Value: string }) => 
+        r.Source === 'Rotten Tomatoes'
+      );
+      if (rtRating) {
+        rotten_tomatoes = rtRating.Value;
+      }
+    }
+
+    return {
+      imdb_rating: data.imdbRating !== 'N/A' ? data.imdbRating : null,
+      rotten_tomatoes,
+      metacritic: data.Metascore !== 'N/A' ? data.Metascore : null,
+    };
+  } catch (error) {
+    console.error(`Error fetching OMDB ratings for ${imdbId}:`, error);
+    return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+  }
+}
+
 async function getDetails(mediaType: string, id: number): Promise<{
   runtime: number | null;
   director: string | null;
   cast: string[];
   vote_average: number | null;
   origin_country: string[];
+  imdb_id: string | null;
 }> {
   try {
-    // Fetch details and credits in parallel
-    const [detailsRes, creditsRes] = await Promise.all([
+    // Fetch details, credits, and external IDs in parallel
+    const [detailsRes, creditsRes, externalIdsRes] = await Promise.all([
       fetch(`${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${TMDB_API_KEY}`),
-      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}/credits?api_key=${TMDB_API_KEY}`)
+      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}/credits?api_key=${TMDB_API_KEY}`),
+      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}/external_ids?api_key=${TMDB_API_KEY}`)
     ]);
 
     const details = detailsRes.ok ? await detailsRes.json() : null;
     const credits = creditsRes.ok ? await creditsRes.json() : null;
+    const externalIds = externalIdsRes.ok ? await externalIdsRes.json() : null;
 
     // Get runtime (movies have runtime, TV shows have episode_run_time array)
     let runtime: number | null = null;
@@ -158,10 +206,11 @@ async function getDetails(mediaType: string, id: number): Promise<{
       cast,
       vote_average: details?.vote_average || null,
       origin_country: origin_country.slice(0, 2),
+      imdb_id: externalIds?.imdb_id || null,
     };
   } catch (error) {
     console.error(`Error fetching details for ${mediaType}/${id}:`, error);
-    return { runtime: null, director: null, cast: [], vote_average: null, origin_country: [] };
+    return { runtime: null, director: null, cast: [], vote_average: null, origin_country: [], imdb_id: null };
   }
 }
 
@@ -217,13 +266,17 @@ serve(async (req) => {
 
     console.log(`Found ${mediaResults.length} results`);
 
-    // Fetch watch providers and details for each result in parallel
+    // Fetch watch providers, details, and OMDB ratings for each result in parallel
     const resultsWithProviders = await Promise.all(
       mediaResults.map(async (item) => {
         const [watchProviders, details] = await Promise.all([
           getWatchProviders(item.media_type, item.id, region),
           getDetails(item.media_type, item.id)
         ]);
+        
+        // Fetch OMDB ratings if we have an IMDB ID
+        const omdbRatings = await getOMDBRatings(details.imdb_id);
+        
         const releaseDate = item.release_date || item.first_air_date;
         
         return {
@@ -240,7 +293,10 @@ serve(async (req) => {
           runtime: formatRuntime(details.runtime),
           director: details.director,
           cast: details.cast,
-          rating: details.vote_average ? Math.round(details.vote_average * 10) / 10 : null,
+          tmdb_rating: details.vote_average ? Math.round(details.vote_average * 10) / 10 : null,
+          imdb_rating: omdbRatings.imdb_rating,
+          rotten_tomatoes: omdbRatings.rotten_tomatoes,
+          metacritic: omdbRatings.metacritic,
           origin_country: details.origin_country,
         };
       })
