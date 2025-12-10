@@ -45,7 +45,7 @@ export function MediaCard({
     : null;
 
   return (
-    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-800 p-4 transition-all hover:ring-2 hover:ring-primary/50">
+    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all hover:ring-2 hover:ring-primary/50">
       {/* Poster */}
       <div className="relative aspect-[2/3] w-32 shrink-0 overflow-hidden rounded-lg bg-muted">
         {posterUrl && !imageError ? (
