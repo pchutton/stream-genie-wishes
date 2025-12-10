@@ -390,9 +390,9 @@ export function StreamingIcons({ platforms, rentPlatforms, buyPlatforms, size = 
   const uniqueRent = hasRent ? getUniquePlatforms(rentPlatforms) : [];
   const uniqueBuy = hasBuy ? getUniquePlatforms(buyPlatforms) : [];
 
+  // Show max 3 streaming icons total in a single row
   return (
-    <div className="grid grid-cols-3 gap-1.5">
-      {/* Streaming platforms */}
+    <div className="grid grid-cols-3 gap-2">
       {uniqueStreaming.slice(0, 3).map((platform) => (
         <StreamingIcon 
           key={`stream-${platform}`} 
@@ -402,45 +402,20 @@ export function StreamingIcons({ platforms, rentPlatforms, buyPlatforms, size = 
         />
       ))}
       
-      {/* Rent platforms (only show if not already in streaming) */}
-      {uniqueRent
+      {/* Fill remaining slots with rent/buy if less than 3 streaming */}
+      {uniqueStreaming.length < 3 && uniqueRent
         .filter(p => !uniqueStreaming.some(s => {
           const sData = PLATFORM_DATA[normalizeplatformName(s)];
           const pData = PLATFORM_DATA[normalizeplatformName(p)];
           return (sData?.shortName || s) === (pData?.shortName || p);
         }))
-        .slice(0, 2)
+        .slice(0, 3 - uniqueStreaming.length)
         .map((platform) => (
           <StreamingIcon 
             key={`rent-${platform}`} 
             platform={platform} 
             size={size}
             type="rent"
-          />
-        ))}
-      
-      {/* Buy platforms (only show if not in streaming or rent) */}
-      {uniqueBuy
-        .filter(p => {
-          const pData = PLATFORM_DATA[normalizeplatformName(p)];
-          const pName = pData?.shortName || p;
-          const inStreaming = uniqueStreaming.some(s => {
-            const sData = PLATFORM_DATA[normalizeplatformName(s)];
-            return (sData?.shortName || s) === pName;
-          });
-          const inRent = uniqueRent.some(r => {
-            const rData = PLATFORM_DATA[normalizeplatformName(r)];
-            return (rData?.shortName || r) === pName;
-          });
-          return !inStreaming && !inRent;
-        })
-        .slice(0, 2)
-        .map((platform) => (
-          <StreamingIcon 
-            key={`buy-${platform}`} 
-            platform={platform} 
-            size={size}
-            type="buy"
           />
         ))}
     </div>
