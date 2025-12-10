@@ -86,10 +86,8 @@ export function MediaCard({
         )}
 
         {/* Hover Overlay with Actions */}
-        <div className={cn(
-          'absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 transition-opacity duration-200',
-          isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
-        )}>
+        {isHovered && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80">
           {/* Details Button */}
           <Button
             size="sm"
@@ -136,6 +134,7 @@ export function MediaCard({
             </Button>
           </div>
         </div>
+        )}
 
         {/* Watched overlay (when not hovering) */}
         {isWatched && !isHovered && (
