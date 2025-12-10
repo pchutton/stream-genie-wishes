@@ -87,12 +87,18 @@ export function MediaCard({
 
         {/* Hover Overlay with Actions */}
         {isHovered && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80">
+        <div 
+          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/80"
+          onMouseEnter={() => setIsHovered(true)}
+        >
           {/* Details Button */}
           <Button
             size="sm"
             className="w-24 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-xs"
-            onClick={onShowDetails}
+            onClick={(e) => {
+              e.stopPropagation();
+              onShowDetails?.();
+            }}
           >
             <Play className="mr-1 h-3 w-3" /> Details
           </Button>
@@ -106,7 +112,10 @@ export function MediaCard({
                 'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
                 rating === 'like' && 'bg-green-600 hover:bg-green-700'
               )}
-              onClick={() => onRate?.(rating === 'like' ? null : 'like')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRate?.(rating === 'like' ? null : 'like');
+              }}
             >
               <ThumbsUp className="h-4 w-4" />
             </Button>
@@ -117,7 +126,10 @@ export function MediaCard({
                 'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
                 isWatched && 'bg-primary hover:bg-primary/80'
               )}
-              onClick={onToggleWatched}
+              onClick={(e) => {
+                e.stopPropagation();
+                onToggleWatched?.();
+              }}
             >
               <Eye className="h-4 w-4" />
             </Button>
@@ -128,7 +140,10 @@ export function MediaCard({
                 'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
                 rating === 'dislike' && 'bg-red-600 hover:bg-red-700'
               )}
-              onClick={() => onRate?.(rating === 'dislike' ? null : 'dislike')}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRate?.(rating === 'dislike' ? null : 'dislike');
+              }}
             >
               <ThumbsDown className="h-4 w-4" />
             </Button>
