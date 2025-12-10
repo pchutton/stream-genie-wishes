@@ -13,6 +13,11 @@ export interface TMDBSearchResult {
   rent_platforms: string[];
   buy_platforms: string[];
   overview: string;
+  runtime: string | null;
+  director: string | null;
+  cast: string[];
+  rating: number | null;
+  origin_country: string[];
 }
 
 export function useTMDBSearch() {
