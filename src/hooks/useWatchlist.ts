@@ -133,10 +133,18 @@ export function useMarkAsSeen() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (item: Omit<WatchlistItem, 'id' | 'user_id' | 'added_at' | 'watched_at' | 'is_watched'>) => {
+    mutationFn: async (item: {
+      tmdb_id: number;
+      media_type: 'movie' | 'tv';
+      title: string;
+      poster_path: string | null;
+      release_year: number | null;
+      genres: string[] | null;
+      streaming_platforms: string[] | null;
+    }) => {
       if (!user) throw new Error('Not authenticated');
 
-      // Try to insert with is_watched = true, or update if exists
+      // Try to find existing entry
       const { data: existing } = await supabase
         .from('watchlist')
         .select('id')
@@ -160,11 +168,17 @@ export function useMarkAsSeen() {
         if (error) throw error;
         return data;
       } else {
-        // Add to watchlist and mark as watched
+        // Add to watchlist with only the columns that exist in the table
         const { data, error } = await supabase
           .from('watchlist')
           .insert({
-            ...item,
+            tmdb_id: item.tmdb_id,
+            media_type: item.media_type,
+            title: item.title,
+            poster_path: item.poster_path,
+            release_year: item.release_year,
+            genres: item.genres,
+            streaming_platforms: item.streaming_platforms,
             user_id: user.id,
             is_watched: true,
             watched_at: new Date().toISOString(),
