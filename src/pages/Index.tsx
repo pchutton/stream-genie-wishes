@@ -58,6 +58,14 @@ export default function Home() {
     return watchlist?.some(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
   };
 
+  const isWatched = (tmdbId: number, mediaType: 'movie' | 'tv') => {
+    return watchlist?.some(item => item.tmdb_id === tmdbId && item.media_type === mediaType && item.is_watched);
+  };
+
+  // Filter out watched titles from results
+  const filteredSearchResults = searchResults.filter(item => !isWatched(item.tmdb_id, item.media_type));
+  const filteredWishResults = wishResults.filter(item => !isWatched(item.tmdb_id, item.media_type));
+
   // Landing page for non-authenticated users
   if (!user) {
     return (
@@ -117,11 +125,11 @@ export default function Home() {
           <TabsContent value="wish" className="space-y-6">
             <WishInput onSubmit={handleWish} isLoading={isWishing} />
 
-            {wishResults.length > 0 && (
+            {filteredWishResults.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Your Wish Results</h2>
                 <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                  {wishResults.map((item) => (
+                  {filteredWishResults.map((item) => (
                     <MediaCard
                       key={`${item.media_type}-${item.tmdb_id}`}
                       item={item}
@@ -147,9 +155,9 @@ export default function Home() {
           </TabsContent>
 
           <TabsContent value="search" className="space-y-4">
-            {searchResults.length > 0 ? (
+            {filteredSearchResults.length > 0 ? (
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {searchResults.map((item) => (
+                {filteredSearchResults.map((item) => (
                   <MediaCard
                     key={`${item.media_type}-${item.tmdb_id}`}
                     item={item}
