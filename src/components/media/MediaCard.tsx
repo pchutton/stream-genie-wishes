@@ -76,7 +76,7 @@ export function MediaCard({
       </div>
 
       {/* Info */}
-      <div className="flex flex-1 flex-col justify-between py-1">
+      <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
         <div className="space-y-1">
           <div className="flex items-start justify-between gap-2">
             <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{item.title}</h3>
@@ -135,12 +135,12 @@ export function MediaCard({
       </div>
 
       {/* Streaming Icons - Right side */}
-      <div className="flex shrink-0 items-center border-l border-border pl-4">
+      <div className="flex w-24 shrink-0 items-center justify-center border-l border-border pl-3">
         <StreamingIcons 
           platforms={item.streaming_platforms} 
           rentPlatforms={item.rent_platforms}
           buyPlatforms={item.buy_platforms}
-          size="lg" 
+          size="md" 
         />
       </div>
     </div>

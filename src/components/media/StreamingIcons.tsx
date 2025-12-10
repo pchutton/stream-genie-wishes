@@ -391,9 +391,9 @@ export function StreamingIcons({ platforms, rentPlatforms, buyPlatforms, size = 
   const uniqueBuy = hasBuy ? getUniquePlatforms(buyPlatforms) : [];
 
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="grid grid-cols-2 gap-1.5">
       {/* Streaming platforms */}
-      {uniqueStreaming.map((platform) => (
+      {uniqueStreaming.slice(0, 4).map((platform) => (
         <StreamingIcon 
           key={`stream-${platform}`} 
           platform={platform} 
