@@ -45,13 +45,27 @@ export function useAddToWatchlist() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (item: Omit<WatchlistItem, 'id' | 'user_id' | 'added_at' | 'watched_at' | 'is_watched'>) => {
+    mutationFn: async (item: {
+      tmdb_id: number;
+      media_type: 'movie' | 'tv';
+      title: string;
+      poster_path: string | null;
+      release_year: number | null;
+      genres: string[] | null;
+      streaming_platforms: string[] | null;
+    }) => {
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
         .from('watchlist')
         .insert({
-          ...item,
+          tmdb_id: item.tmdb_id,
+          media_type: item.media_type,
+          title: item.title,
+          poster_path: item.poster_path,
+          release_year: item.release_year,
+          genres: item.genres,
+          streaming_platforms: item.streaming_platforms,
           user_id: user.id,
         })
         .select()
