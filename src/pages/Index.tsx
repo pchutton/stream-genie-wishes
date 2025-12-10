@@ -135,8 +135,17 @@ export default function Home() {
                       key={`${item.media_type}-${item.tmdb_id}`}
                       item={item}
                       isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
+                      isWatched={isWatched(item.tmdb_id, item.media_type)}
                       rating={getRating(item.tmdb_id, item.media_type)}
                       onAddToWatchlist={() => addToWatchlist.mutate(item)}
+                      onToggleWatched={() => {
+                        const wlItem = getWatchlistItem(item.tmdb_id, item.media_type);
+                        if (wlItem) {
+                          toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
+                        } else {
+                          markAsSeen.mutate(item);
+                        }
+                      }}
                       onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
                       onShowDetails={() => handleShowDetails(item)}
                     />
@@ -163,8 +172,17 @@ export default function Home() {
                     key={`${item.media_type}-${item.tmdb_id}`}
                     item={item}
                     isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
+                    isWatched={isWatched(item.tmdb_id, item.media_type)}
                     rating={getRating(item.tmdb_id, item.media_type)}
                     onAddToWatchlist={() => addToWatchlist.mutate(item)}
+                    onToggleWatched={() => {
+                      const wlItem = getWatchlistItem(item.tmdb_id, item.media_type);
+                      if (wlItem) {
+                        toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
+                      } else {
+                        markAsSeen.mutate(item);
+                      }
+                    }}
                     onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
                     onShowDetails={() => handleShowDetails(item)}
                   />
