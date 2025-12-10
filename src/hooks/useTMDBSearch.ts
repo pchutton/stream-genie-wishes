@@ -43,7 +43,13 @@ export function useTMDBSearch() {
         throw new Error(data.error);
       }
 
-      setResults(data.results || []);
+      // Sort by release year, newest first
+      const sortedResults = (data.results || []).sort((a: TMDBSearchResult, b: TMDBSearchResult) => {
+        const yearA = a.release_year || 0;
+        const yearB = b.release_year || 0;
+        return yearB - yearA;
+      });
+      setResults(sortedResults);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to search';
       setError(message);
