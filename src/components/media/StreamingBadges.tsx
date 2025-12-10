@@ -1,4 +1,7 @@
 import { cn } from '@/lib/utils';
+import fubotvLogo from '@/assets/logos/fubotv.png';
+import youtubeTvLogo from '@/assets/logos/youtube-tv.png';
+import fxLogo from '@/assets/logos/fx.png';
 
 interface StreamingBadgesProps {
   platforms: string[] | null;
@@ -92,37 +95,37 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Vudu'
   },
   'fubotv': {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/41/FuboTV_Logo.svg',
+    logo: fubotvLogo,
     color: '#FF6B00',
     url: 'https://www.fubo.tv',
     shortName: 'FuboTV'
   },
   'fubo tv': {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/4/41/FuboTV_Logo.svg',
+    logo: fubotvLogo,
     color: '#FF6B00',
     url: 'https://www.fubo.tv',
     shortName: 'FuboTV'
   },
   'youtube tv': {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/f/f7/YouTube_TV_logo.svg',
+    logo: youtubeTvLogo,
     color: '#FF0000',
     url: 'https://tv.youtube.com',
     shortName: 'YouTube TV'
   },
   'fx': {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/FX_International_logo.svg',
+    logo: fxLogo,
     color: '#000000',
     url: 'https://www.fxnetworks.com',
     shortName: 'FX'
   },
   'fxnow': {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/FX_International_logo.svg',
+    logo: fxLogo,
     color: '#000000',
     url: 'https://www.fxnetworks.com',
     shortName: 'FX'
   },
   'fx now': {
-    logo: 'https://upload.wikimedia.org/wikipedia/commons/1/11/FX_International_logo.svg',
+    logo: fxLogo,
     color: '#000000',
     url: 'https://www.fxnetworks.com',
     shortName: 'FX'
@@ -179,7 +182,7 @@ export function StreamingBadges({ platforms, rentPlatforms, buyPlatforms }: Stre
               <img 
                 src={data.logo} 
                 alt={data.shortName} 
-                className="h-6 w-6 rounded-sm object-contain"
+                className="h-7 w-7 rounded-sm object-contain"
               />
             ) : null}
             <span>{data?.shortName || name}</span>
