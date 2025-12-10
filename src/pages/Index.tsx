@@ -4,8 +4,9 @@ import { Layout } from '@/components/layout/Layout';
 import { SearchBar } from '@/components/search/SearchBar';
 import { WishInput } from '@/components/wish/WishInput';
 import { MediaCard, MediaItem } from '@/components/media/MediaCard';
+import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
 import { useAuth } from '@/lib/auth';
-import { useAddToWatchlist, useWatchlist, useToggleWatched } from '@/hooks/useWatchlist';
+import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
 import { useIncrementWishUsage } from '@/hooks/useWishUsage';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
 import { useRatings } from '@/hooks/useRatings';
@@ -18,13 +19,25 @@ export default function Home() {
   const [wishResults, setWishResults] = useState<MediaItem[]>([]);
   const [isWishing, setIsWishing] = useState(false);
   const [activeTab, setActiveTab] = useState('wish');
+  const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
 
   const { results: searchResults, isLoading: isSearching, search } = useTMDBSearch();
   const { data: watchlist } = useWatchlist();
   const addToWatchlist = useAddToWatchlist();
+  const removeFromWatchlist = useRemoveFromWatchlist();
   const toggleWatched = useToggleWatched();
   const incrementWishUsage = useIncrementWishUsage();
   const { getRating, setRating } = useRatings();
+
+  const handleShowDetails = (item: MediaItem) => {
+    setSelectedItem(item);
+    setDetailsOpen(true);
+  };
+
+  const getWatchlistItem = (tmdbId: number, mediaType: string) => {
+    return watchlist?.find(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
+  };
 
   const handleSearch = async (query: string) => {
     setActiveTab('search');
@@ -116,6 +129,7 @@ export default function Home() {
                       rating={getRating(item.tmdb_id, item.media_type)}
                       onAddToWatchlist={() => addToWatchlist.mutate(item)}
                       onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
+                      onShowDetails={() => handleShowDetails(item)}
                     />
                   ))}
                 </div>
@@ -143,6 +157,7 @@ export default function Home() {
                     rating={getRating(item.tmdb_id, item.media_type)}
                     onAddToWatchlist={() => addToWatchlist.mutate(item)}
                     onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
+                    onShowDetails={() => handleShowDetails(item)}
                   />
                 ))}
               </div>
@@ -156,6 +171,25 @@ export default function Home() {
             )}
           </TabsContent>
         </Tabs>
+        {/* Details Dialog */}
+        <MediaDetailsDialog
+          item={selectedItem}
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          isInWatchlist={selectedItem ? isInWatchlist(selectedItem.tmdb_id, selectedItem.media_type) : false}
+          isWatched={selectedItem ? getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type)?.is_watched ?? false : false}
+          rating={selectedItem ? getRating(selectedItem.tmdb_id, selectedItem.media_type) : null}
+          onAddToWatchlist={() => selectedItem && addToWatchlist.mutate(selectedItem)}
+          onRemoveFromWatchlist={() => {
+            const wlItem = selectedItem && getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type);
+            if (wlItem) removeFromWatchlist.mutate(wlItem.id);
+          }}
+          onToggleWatched={() => {
+            const wlItem = selectedItem && getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type);
+            if (wlItem) toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
+          }}
+          onRate={(rating) => selectedItem && setRating(selectedItem.tmdb_id, selectedItem.media_type, rating)}
+        />
       </div>
     </Layout>
   );
