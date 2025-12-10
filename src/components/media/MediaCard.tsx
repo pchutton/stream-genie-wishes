@@ -45,102 +45,106 @@ export function MediaCard({
     : null;
 
   return (
-    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-card p-4 transition-all hover:ring-2 hover:ring-primary/50">
-      {/* Poster */}
-      <div className="relative aspect-[2/3] w-28 shrink-0 overflow-hidden rounded-lg bg-muted">
-        {posterUrl && !imageError ? (
-          <img
-            src={posterUrl}
-            alt={item.title}
-            className={cn(
-              'h-full w-full object-cover transition-all duration-300',
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            )}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <span className="text-2xl">🎬</span>
-          </div>
-        )}
-
-        {/* Watched overlay */}
-        {isWatched && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
-              <Check className="h-4 w-4 text-primary-foreground" />
+    <div className="group relative animate-fade-in flex flex-col overflow-hidden rounded-xl bg-card p-4 transition-all hover:ring-2 hover:ring-primary/50">
+      {/* Top row: Poster + Info */}
+      <div className="flex gap-4">
+        {/* Poster */}
+        <div className="relative aspect-[2/3] w-20 shrink-0 overflow-hidden rounded-lg bg-muted">
+          {posterUrl && !imageError ? (
+            <img
+              src={posterUrl}
+              alt={item.title}
+              className={cn(
+                'h-full w-full object-cover transition-all duration-300',
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              )}
+              onLoad={() => setImageLoaded(true)}
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="flex h-full items-center justify-center">
+              <span className="text-2xl">🎬</span>
             </div>
-          </div>
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
-        <div className="space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{item.title}</h3>
-            {item.release_year && (
-              <span className="shrink-0 text-xs text-muted-foreground">{item.release_year}</span>
-            )}
-          </div>
-
-          {/* Genres */}
-          {item.genres && item.genres.length > 0 && (
-            <p className="line-clamp-1 text-xs text-muted-foreground">
-              {item.genres.slice(0, 2).join(' • ')}
-            </p>
           )}
 
-          {/* Media type badge */}
-          <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-            {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
-          </span>
+          {/* Watched overlay */}
+          {isWatched && (
+            <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
+                <Check className="h-4 w-4 text-primary-foreground" />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Actions */}
-        {showActions && (
-          <div className="mt-2 flex gap-2">
-            {isInWatchlist ? (
-              <>
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={onToggleWatched}
-                  className="h-7 text-xs"
-                >
-                  {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
-                  {isWatched ? 'Unwatch' : 'Watched'}
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={onRemoveFromWatchlist}
-                  className="h-7 text-xs"
-                >
-                  Remove
-                </Button>
-              </>
-            ) : (
-              <Button
-                size="sm"
-                className="genie-glow h-7 text-xs"
-                onClick={onAddToWatchlist}
-              >
-                <Plus className="mr-1 h-3 w-3" /> Add to List
-              </Button>
+        {/* Info */}
+        <div className="flex min-w-0 flex-1 flex-col justify-between py-1">
+          <div className="space-y-1">
+            <div className="flex items-start justify-between gap-2">
+              <h3 className="text-sm font-semibold leading-tight">{item.title}</h3>
+              {item.release_year && (
+                <span className="shrink-0 text-xs text-muted-foreground">{item.release_year}</span>
+              )}
+            </div>
+
+            {/* Genres */}
+            {item.genres && item.genres.length > 0 && (
+              <p className="line-clamp-1 text-xs text-muted-foreground">
+                {item.genres.slice(0, 2).join(' • ')}
+              </p>
             )}
+
+            {/* Media type badge */}
+            <span className="inline-block rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+              {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
+            </span>
           </div>
-        )}
+
+          {/* Actions */}
+          {showActions && (
+            <div className="mt-2 flex gap-2">
+              {isInWatchlist ? (
+                <>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={onToggleWatched}
+                    className="h-7 text-xs"
+                  >
+                    {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
+                    {isWatched ? 'Unwatch' : 'Watched'}
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={onRemoveFromWatchlist}
+                    className="h-7 text-xs"
+                  >
+                    Remove
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  size="sm"
+                  className="genie-glow h-7 text-xs"
+                  onClick={onAddToWatchlist}
+                >
+                  <Plus className="mr-1 h-3 w-3" /> Add to List
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Streaming Icons - Right side */}
-      <div className="flex w-28 shrink-0 items-center justify-center border-l border-border pl-2">
+      {/* Streaming Icons - Bottom row */}
+      <div className="mt-3 flex items-center gap-2 border-t border-border pt-3">
+        <span className="shrink-0 text-xs text-muted-foreground">Watch on:</span>
         <StreamingIcons 
           platforms={item.streaming_platforms} 
           rentPlatforms={item.rent_platforms}
           buyPlatforms={item.buy_platforms}
-          size="md" 
+          size="sm" 
         />
       </div>
     </div>
