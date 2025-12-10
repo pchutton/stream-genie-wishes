@@ -135,7 +135,7 @@ export function MediaCard({
       </div>
 
       {/* Streaming Icons - Right side */}
-      <div className="flex w-24 shrink-0 items-center justify-center border-l border-border pl-3">
+      <div className="flex w-28 shrink-0 items-center justify-center border-l border-border pl-2">
         <StreamingIcons 
           platforms={item.streaming_platforms} 
           rentPlatforms={item.rent_platforms}
