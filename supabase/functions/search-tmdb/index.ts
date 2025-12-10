@@ -118,18 +118,31 @@ interface OMDBRatings {
 }
 
 async function getOMDBRatings(imdbId: string | null): Promise<OMDBRatings> {
-  if (!imdbId || !OMDB_API_KEY) {
+  if (!imdbId) {
+    console.log('No IMDB ID provided, skipping OMDB lookup');
+    return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
+  }
+  
+  if (!OMDB_API_KEY) {
+    console.log('OMDB_API_KEY not configured');
     return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
   }
 
   try {
-    const response = await fetch(`${OMDB_BASE_URL}/?apikey=${OMDB_API_KEY}&i=${imdbId}`);
+    const url = `${OMDB_BASE_URL}/?apikey=${OMDB_API_KEY}&i=${imdbId}`;
+    console.log(`Fetching OMDB data for: ${imdbId}`);
+    
+    const response = await fetch(url);
     if (!response.ok) {
+      console.log(`OMDB request failed: ${response.status}`);
       return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
     }
 
     const data = await response.json();
+    console.log(`OMDB response for ${imdbId}:`, JSON.stringify(data).slice(0, 200));
+    
     if (data.Response === 'False') {
+      console.log(`OMDB returned False for ${imdbId}: ${data.Error}`);
       return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
     }
 
@@ -143,11 +156,14 @@ async function getOMDBRatings(imdbId: string | null): Promise<OMDBRatings> {
       }
     }
 
-    return {
+    const result = {
       imdb_rating: data.imdbRating !== 'N/A' ? data.imdbRating : null,
       rotten_tomatoes,
       metacritic: data.Metascore !== 'N/A' ? data.Metascore : null,
     };
+    
+    console.log(`OMDB ratings for ${imdbId}:`, result);
+    return result;
   } catch (error) {
     console.error(`Error fetching OMDB ratings for ${imdbId}:`, error);
     return { imdb_rating: null, rotten_tomatoes: null, metacritic: null };
@@ -199,6 +215,8 @@ async function getDetails(mediaType: string, id: number): Promise<{
     // Get origin country
     const origin_country: string[] = details?.origin_country || 
       (details?.production_countries?.map((c: { iso_3166_1: string }) => c.iso_3166_1) || []);
+
+    console.log(`External IDs for ${mediaType}/${id}:`, externalIds);
 
     return {
       runtime,
