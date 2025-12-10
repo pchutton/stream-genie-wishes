@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, Check, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { StreamingIcons } from './StreamingIcons';
+import { StreamingBadges } from './StreamingBadges';
 
 export interface MediaItem {
   tmdb_id: number;
@@ -45,9 +45,9 @@ export function MediaCard({
     : null;
 
   return (
-    <div className="group relative animate-fade-in flex flex-col overflow-hidden rounded-xl bg-card transition-all hover:ring-2 hover:ring-primary/50">
+    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-card p-4 transition-all hover:ring-2 hover:ring-primary/50">
       {/* Poster */}
-      <div className="relative aspect-[2/3] w-full overflow-hidden bg-muted">
+      <div className="relative aspect-[2/3] w-32 shrink-0 overflow-hidden rounded-lg bg-muted">
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
@@ -68,48 +68,49 @@ export function MediaCard({
         {/* Watched overlay */}
         {isWatched && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
-            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary">
-              <Check className="h-6 w-6 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
+              <Check className="h-5 w-5 text-primary-foreground" />
             </div>
           </div>
         )}
-
-        {/* Streaming Icons overlay - bottom right */}
-        <div className="absolute bottom-2 right-2 rounded-lg bg-background/80 p-1.5">
-          <StreamingIcons 
-            platforms={item.streaming_platforms} 
-            rentPlatforms={item.rent_platforms}
-            buyPlatforms={item.buy_platforms}
-            size="md" 
-          />
-        </div>
       </div>
 
       {/* Info */}
-      <div className="flex flex-1 flex-col p-3">
-        <div className="space-y-1">
-          <h3 className="line-clamp-2 text-sm font-semibold leading-tight">{item.title}</h3>
-          
-          <div className="flex items-center gap-2">
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-              {item.media_type === 'movie' ? 'Movie' : 'TV Show'}
-            </span>
-            {item.release_year && (
-              <span className="text-xs text-muted-foreground">{item.release_year}</span>
-            )}
-          </div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <h3 className="text-base font-semibold leading-tight">{item.title}</h3>
+        
+        <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+          {item.release_year && <span>{item.release_year}</span>}
+          {item.genres && item.genres.length > 0 && (
+            <>
+              <span>•</span>
+              <span>{item.genres.slice(0, 2).join(', ')}</span>
+            </>
+          )}
+          <span>•</span>
+          <span className="capitalize">{item.media_type === 'movie' ? 'Movie' : 'TV Show'}</span>
+        </div>
+
+        {/* Streaming Services */}
+        <div className="mt-3">
+          <p className="mb-2 text-xs text-muted-foreground">Available on:</p>
+          <StreamingBadges 
+            platforms={item.streaming_platforms} 
+            rentPlatforms={item.rent_platforms}
+            buyPlatforms={item.buy_platforms}
+          />
         </div>
 
         {/* Actions */}
         {showActions && (
-          <div className="mt-3 flex gap-2">
+          <div className="mt-auto flex gap-2 pt-3">
             {isInWatchlist ? (
               <>
                 <Button
                   size="sm"
                   variant="secondary"
                   onClick={onToggleWatched}
-                  className="h-8 flex-1 text-xs"
+                  className="h-8 text-xs"
                 >
                   {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
                   {isWatched ? 'Unwatch' : 'Watched'}
@@ -126,7 +127,7 @@ export function MediaCard({
             ) : (
               <Button
                 size="sm"
-                className="genie-glow h-8 w-full text-xs"
+                className="genie-glow h-8 text-xs"
                 onClick={onAddToWatchlist}
               >
                 <Plus className="mr-1 h-3 w-3" /> Add to List
