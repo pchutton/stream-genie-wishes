@@ -134,7 +134,7 @@ export function StreamingBadges({ platforms, rentPlatforms, buyPlatforms }: Stre
             target="_blank"
             rel="noopener noreferrer"
             className={cn(
-              'flex items-center gap-1.5 rounded-md border border-border bg-muted/50 px-2 py-1 text-xs transition-colors hover:bg-muted',
+              'flex items-center gap-2 rounded-md border border-border bg-zinc-700 px-2.5 py-1.5 text-xs transition-colors hover:bg-zinc-600',
               type === 'rent' && 'border-yellow-500/30',
               type === 'buy' && 'border-green-500/30'
             )}
@@ -143,7 +143,7 @@ export function StreamingBadges({ platforms, rentPlatforms, buyPlatforms }: Stre
               <img 
                 src={data.logo} 
                 alt={data.shortName} 
-                className="h-4 w-4 rounded-sm object-contain"
+                className="h-6 w-6 rounded-sm object-contain"
               />
             ) : null}
             <span>{data?.shortName || name}</span>
