@@ -1,13 +1,17 @@
 import { cn } from '@/lib/utils';
+import { DollarSign, ShoppingCart } from 'lucide-react';
 
 interface StreamingIconProps {
   platform: string;
   onClick?: () => void;
   size?: 'sm' | 'md' | 'lg';
+  type?: 'stream' | 'rent' | 'buy';
 }
 
 interface StreamingIconsProps {
   platforms: string[] | null;
+  rentPlatforms?: string[] | null;
+  buyPlatforms?: string[] | null;
   size?: 'sm' | 'md' | 'lg';
 }
 
@@ -41,6 +45,12 @@ const PLATFORM_DATA: Record<string, {
     color: 'bg-[#00A8E1]',
     url: 'https://primevideo.com',
     shortName: 'Prime',
+  },
+  'amazon video': {
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazonprimevideo.webp',
+    color: 'bg-[#00A8E1]',
+    url: 'https://primevideo.com',
+    shortName: 'Amazon',
   },
   'disney+': {
     logo: 'https://images.justwatch.com/icon/147638351/s100/disneyplus.webp',
@@ -144,19 +154,49 @@ const PLATFORM_DATA: Record<string, {
     url: 'https://kanopy.com',
     shortName: 'Kanopy',
   },
+  'vudu': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: 'bg-[#3399FF]',
+    url: 'https://vudu.com',
+    shortName: 'Vudu',
+  },
+  'google play movies': {
+    logo: 'https://images.justwatch.com/icon/169478387/s100/play.webp',
+    color: 'bg-[#4285F4]',
+    url: 'https://play.google.com/store/movies',
+    shortName: 'Google Play',
+  },
+  'youtube': {
+    logo: 'https://images.justwatch.com/icon/59562423/s100/youtube.webp',
+    color: 'bg-[#FF0000]',
+    url: 'https://youtube.com',
+    shortName: 'YouTube',
+  },
+  'microsoft store': {
+    logo: 'https://images.justwatch.com/icon/820542/s100/microsoftstore.webp',
+    color: 'bg-[#0078D4]',
+    url: 'https://microsoft.com/store',
+    shortName: 'Microsoft',
+  },
+  'fandango at home': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: 'bg-[#FF6600]',
+    url: 'https://fandangoathome.com',
+    shortName: 'Fandango',
+  },
 };
 
 const SIZE_CLASSES = {
-  sm: 'h-7 w-7',
-  md: 'h-9 w-9',
-  lg: 'h-11 w-11',
+  sm: 'h-6 w-6',
+  md: 'h-8 w-8',
+  lg: 'h-10 w-10',
 };
 
 function normalizeplatformName(platform: string): string {
   return platform.toLowerCase().trim();
 }
 
-export function StreamingIcon({ platform, onClick, size = 'md' }: StreamingIconProps) {
+export function StreamingIcon({ platform, onClick, size = 'md', type = 'stream' }: StreamingIconProps) {
   const normalized = normalizeplatformName(platform);
   const data = PLATFORM_DATA[normalized];
   
@@ -167,6 +207,16 @@ export function StreamingIcon({ platform, onClick, size = 'md' }: StreamingIconP
     onClick?.();
   };
 
+  const typeIndicator = type === 'rent' ? (
+    <div className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-amber-500 text-[8px] font-bold text-white" title="Rent">
+      <DollarSign className="h-2.5 w-2.5" />
+    </div>
+  ) : type === 'buy' ? (
+    <div className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-green-500 text-[8px] font-bold text-white" title="Buy">
+      <ShoppingCart className="h-2.5 w-2.5" />
+    </div>
+  ) : null;
+
   // If we have logo data, show the logo
   if (data) {
     return (
@@ -176,17 +226,17 @@ export function StreamingIcon({ platform, onClick, size = 'md' }: StreamingIconP
           'group/icon relative flex items-center justify-center rounded-lg overflow-hidden transition-all hover:scale-110 hover:ring-2 hover:ring-primary/50',
           SIZE_CLASSES[size]
         )}
-        title={`Watch on ${data.shortName}`}
+        title={`${type === 'rent' ? 'Rent on' : type === 'buy' ? 'Buy on' : 'Watch on'} ${data.shortName}`}
       >
         <img 
           src={data.logo} 
           alt={data.shortName}
           className="h-full w-full object-cover"
           onError={(e) => {
-            // Fallback to text if image fails
             (e.target as HTMLImageElement).style.display = 'none';
           }}
         />
+        {typeIndicator}
       </button>
     );
   }
@@ -196,52 +246,100 @@ export function StreamingIcon({ platform, onClick, size = 'md' }: StreamingIconP
     <button
       onClick={handleClick}
       className={cn(
-        'flex items-center justify-center rounded-lg bg-muted text-[10px] font-medium text-muted-foreground transition-all hover:scale-110 hover:bg-muted/80',
+        'relative flex items-center justify-center rounded-lg bg-muted text-[10px] font-medium text-muted-foreground transition-all hover:scale-110 hover:bg-muted/80',
         SIZE_CLASSES[size]
       )}
-      title={platform}
+      title={`${type === 'rent' ? 'Rent on' : type === 'buy' ? 'Buy on' : 'Watch on'} ${platform}`}
     >
       {platform.slice(0, 2).toUpperCase()}
+      {typeIndicator}
     </button>
   );
 }
 
-export function StreamingIcons({ platforms, size = 'md' }: StreamingIconsProps) {
-  if (!platforms || platforms.length === 0) {
+export function StreamingIcons({ platforms, rentPlatforms, buyPlatforms, size = 'md' }: StreamingIconsProps) {
+  const hasStreaming = platforms && platforms.length > 0;
+  const hasRent = rentPlatforms && rentPlatforms.length > 0;
+  const hasBuy = buyPlatforms && buyPlatforms.length > 0;
+
+  if (!hasStreaming && !hasRent && !hasBuy) {
     return (
       <div className="flex items-center justify-center text-xs text-muted-foreground">
-        <span className="italic">Not streaming</span>
+        <span className="italic">Not available</span>
       </div>
     );
   }
 
-  // Deduplicate platforms (e.g., "Apple TV" and "Apple TV Amazon Channel" are the same)
-  const uniquePlatforms = Array.from(new Set(
-    platforms.map(p => {
+  // Deduplicate platforms
+  const getUniquePlatforms = (platformList: string[]) => {
+    const seen = new Set<string>();
+    return platformList.filter(p => {
       const normalized = normalizeplatformName(p);
       const data = PLATFORM_DATA[normalized];
-      return data?.shortName || p;
-    })
-  )).slice(0, 4); // Show max 4 platforms
+      const key = data?.shortName || p;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    }).slice(0, 3);
+  };
+
+  const uniqueStreaming = hasStreaming ? getUniquePlatforms(platforms) : [];
+  const uniqueRent = hasRent ? getUniquePlatforms(rentPlatforms) : [];
+  const uniqueBuy = hasBuy ? getUniquePlatforms(buyPlatforms) : [];
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      {uniquePlatforms.map((platform) => {
-        // Find the original platform name that matches this shortName
-        const originalPlatform = platforms.find(p => {
-          const normalized = normalizeplatformName(p);
-          const data = PLATFORM_DATA[normalized];
-          return (data?.shortName || p) === platform;
-        }) || platform;
-        
-        return (
+    <div className="flex flex-col gap-1.5">
+      {/* Streaming platforms */}
+      {uniqueStreaming.map((platform) => (
+        <StreamingIcon 
+          key={`stream-${platform}`} 
+          platform={platform} 
+          size={size}
+          type="stream"
+        />
+      ))}
+      
+      {/* Rent platforms (only show if not already in streaming) */}
+      {uniqueRent
+        .filter(p => !uniqueStreaming.some(s => {
+          const sData = PLATFORM_DATA[normalizeplatformName(s)];
+          const pData = PLATFORM_DATA[normalizeplatformName(p)];
+          return (sData?.shortName || s) === (pData?.shortName || p);
+        }))
+        .slice(0, 2)
+        .map((platform) => (
           <StreamingIcon 
-            key={platform} 
-            platform={originalPlatform} 
-            size={size} 
+            key={`rent-${platform}`} 
+            platform={platform} 
+            size={size}
+            type="rent"
           />
-        );
-      })}
+        ))}
+      
+      {/* Buy platforms (only show if not in streaming or rent) */}
+      {uniqueBuy
+        .filter(p => {
+          const pData = PLATFORM_DATA[normalizeplatformName(p)];
+          const pName = pData?.shortName || p;
+          const inStreaming = uniqueStreaming.some(s => {
+            const sData = PLATFORM_DATA[normalizeplatformName(s)];
+            return (sData?.shortName || s) === pName;
+          });
+          const inRent = uniqueRent.some(r => {
+            const rData = PLATFORM_DATA[normalizeplatformName(r)];
+            return (rData?.shortName || r) === pName;
+          });
+          return !inStreaming && !inRent;
+        })
+        .slice(0, 2)
+        .map((platform) => (
+          <StreamingIcon 
+            key={`buy-${platform}`} 
+            platform={platform} 
+            size={size}
+            type="buy"
+          />
+        ))}
     </div>
   );
 }
