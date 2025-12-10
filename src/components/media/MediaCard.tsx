@@ -45,9 +45,9 @@ export function MediaCard({
     : null;
 
   return (
-    <div className="group relative animate-fade-in flex gap-3 overflow-hidden rounded-xl bg-card p-3 transition-all hover:ring-2 hover:ring-primary/50">
+    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-card p-4 transition-all hover:ring-2 hover:ring-primary/50">
       {/* Poster */}
-      <div className="relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-muted">
+      <div className="relative aspect-[2/3] w-28 shrink-0 overflow-hidden rounded-lg bg-muted">
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
@@ -135,12 +135,12 @@ export function MediaCard({
       </div>
 
       {/* Streaming Icons - Right side */}
-      <div className="flex shrink-0 items-center border-l border-border pl-3">
+      <div className="flex shrink-0 items-center border-l border-border pl-4">
         <StreamingIcons 
           platforms={item.streaming_platforms} 
           rentPlatforms={item.rent_platforms}
           buyPlatforms={item.buy_platforms}
-          size="md" 
+          size="lg" 
         />
       </div>
     </div>

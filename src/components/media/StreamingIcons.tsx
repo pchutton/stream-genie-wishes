@@ -4,7 +4,7 @@ import { DollarSign, ShoppingCart } from 'lucide-react';
 interface StreamingIconProps {
   platform: string;
   onClick?: () => void;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
   type?: 'stream' | 'rent' | 'buy';
 }
 
@@ -12,7 +12,7 @@ interface StreamingIconsProps {
   platforms: string[] | null;
   rentPlatforms?: string[] | null;
   buyPlatforms?: string[] | null;
-  size?: 'sm' | 'md' | 'lg';
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
 // Platform data with logos, colors, and URLs
@@ -184,12 +184,115 @@ const PLATFORM_DATA: Record<string, {
     url: 'https://fandangoathome.com',
     shortName: 'Fandango',
   },
+  'amc+': {
+    logo: 'https://images.justwatch.com/icon/280477442/s100/amcplus.webp',
+    color: 'bg-[#0072CE]',
+    url: 'https://amcplus.com',
+    shortName: 'AMC+',
+  },
+  'amc': {
+    logo: 'https://images.justwatch.com/icon/280477442/s100/amcplus.webp',
+    color: 'bg-[#0072CE]',
+    url: 'https://amcplus.com',
+    shortName: 'AMC+',
+  },
+  'fubotv': {
+    logo: 'https://images.justwatch.com/icon/147933285/s100/fubotv.webp',
+    color: 'bg-[#FA4616]',
+    url: 'https://fubo.tv',
+    shortName: 'fuboTV',
+  },
+  'fubo tv': {
+    logo: 'https://images.justwatch.com/icon/147933285/s100/fubotv.webp',
+    color: 'bg-[#FA4616]',
+    url: 'https://fubo.tv',
+    shortName: 'fuboTV',
+  },
+  'youtube tv': {
+    logo: 'https://images.justwatch.com/icon/158012148/s100/youtubetv.webp',
+    color: 'bg-[#FF0000]',
+    url: 'https://tv.youtube.com',
+    shortName: 'YouTube TV',
+  },
+  'the roku channel': {
+    logo: 'https://images.justwatch.com/icon/197109268/s100/therokuchannel.webp',
+    color: 'bg-[#662D91]',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku',
+  },
+  'roku channel': {
+    logo: 'https://images.justwatch.com/icon/197109268/s100/therokuchannel.webp',
+    color: 'bg-[#662D91]',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku',
+  },
+  'philo': {
+    logo: 'https://images.justwatch.com/icon/147038715/s100/philo.webp',
+    color: 'bg-[#4C4CFF]',
+    url: 'https://philo.com',
+    shortName: 'Philo',
+  },
+  'spectrum on demand': {
+    logo: 'https://images.justwatch.com/icon/169478387/s100/spectrum.webp',
+    color: 'bg-[#0063B2]',
+    url: 'https://spectrum.net',
+    shortName: 'Spectrum',
+  },
+  'fx now': {
+    logo: 'https://images.justwatch.com/icon/52449539/s100/fxnow.webp',
+    color: 'bg-[#000000]',
+    url: 'https://fxnetworks.com',
+    shortName: 'FX',
+  },
+  'fxnow': {
+    logo: 'https://images.justwatch.com/icon/52449539/s100/fxnow.webp',
+    color: 'bg-[#000000]',
+    url: 'https://fxnetworks.com',
+    shortName: 'FX',
+  },
+  'mgm+': {
+    logo: 'https://images.justwatch.com/icon/305237682/s100/mgmplus.webp',
+    color: 'bg-[#BC9458]',
+    url: 'https://mgmplus.com',
+    shortName: 'MGM+',
+  },
+  'mgm plus': {
+    logo: 'https://images.justwatch.com/icon/305237682/s100/mgmplus.webp',
+    color: 'bg-[#BC9458]',
+    url: 'https://mgmplus.com',
+    shortName: 'MGM+',
+  },
+  'sling tv': {
+    logo: 'https://images.justwatch.com/icon/169478387/s100/slingtv.webp',
+    color: 'bg-[#0074E4]',
+    url: 'https://sling.com',
+    shortName: 'Sling',
+  },
+  'britbox': {
+    logo: 'https://images.justwatch.com/icon/158012148/s100/britbox.webp',
+    color: 'bg-[#D6001C]',
+    url: 'https://britbox.com',
+    shortName: 'BritBox',
+  },
+  'mubi': {
+    logo: 'https://images.justwatch.com/icon/147983397/s100/mubi.webp',
+    color: 'bg-[#001324]',
+    url: 'https://mubi.com',
+    shortName: 'MUBI',
+  },
+  'shudder': {
+    logo: 'https://images.justwatch.com/icon/116305549/s100/shudder.webp',
+    color: 'bg-[#000000]',
+    url: 'https://shudder.com',
+    shortName: 'Shudder',
+  },
 };
 
 const SIZE_CLASSES = {
   sm: 'h-6 w-6',
   md: 'h-8 w-8',
   lg: 'h-10 w-10',
+  xl: 'h-12 w-12',
 };
 
 function normalizeplatformName(platform: string): string {
