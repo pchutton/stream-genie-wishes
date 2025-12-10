@@ -5,9 +5,10 @@ import { SearchBar } from '@/components/search/SearchBar';
 import { WishInput } from '@/components/wish/WishInput';
 import { MediaCard, MediaItem } from '@/components/media/MediaCard';
 import { useAuth } from '@/lib/auth';
-import { useAddToWatchlist, useWatchlist } from '@/hooks/useWatchlist';
+import { useAddToWatchlist, useWatchlist, useToggleWatched } from '@/hooks/useWatchlist';
 import { useIncrementWishUsage } from '@/hooks/useWishUsage';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
+import { useRatings } from '@/hooks/useRatings';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,9 @@ export default function Home() {
   const { results: searchResults, isLoading: isSearching, search } = useTMDBSearch();
   const { data: watchlist } = useWatchlist();
   const addToWatchlist = useAddToWatchlist();
+  const toggleWatched = useToggleWatched();
   const incrementWishUsage = useIncrementWishUsage();
+  const { getRating, setRating } = useRatings();
 
   const handleSearch = async (query: string) => {
     setActiveTab('search');
@@ -110,7 +113,9 @@ export default function Home() {
                       key={`${item.media_type}-${item.tmdb_id}`}
                       item={item}
                       isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
+                      rating={getRating(item.tmdb_id, item.media_type)}
                       onAddToWatchlist={() => addToWatchlist.mutate(item)}
+                      onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
                     />
                   ))}
                 </div>
@@ -135,7 +140,9 @@ export default function Home() {
                     key={`${item.media_type}-${item.tmdb_id}`}
                     item={item}
                     isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
+                    rating={getRating(item.tmdb_id, item.media_type)}
                     onAddToWatchlist={() => addToWatchlist.mutate(item)}
+                    onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
                   />
                 ))}
               </div>

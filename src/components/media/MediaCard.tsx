@@ -21,10 +21,12 @@ interface MediaCardProps {
   item: MediaItem;
   isInWatchlist?: boolean;
   isWatched?: boolean;
+  rating?: 'like' | 'dislike' | null;
   onAddToWatchlist?: () => void;
   onRemoveFromWatchlist?: () => void;
   onToggleWatched?: () => void;
   onShowDetails?: () => void;
+  onRate?: (rating: 'like' | 'dislike' | null) => void;
   showActions?: boolean;
 }
 
@@ -34,16 +36,17 @@ export function MediaCard({
   item,
   isInWatchlist = false,
   isWatched = false,
+  rating = null,
   onAddToWatchlist,
   onRemoveFromWatchlist,
   onToggleWatched,
   onShowDetails,
+  onRate,
   showActions = true,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const [liked, setLiked] = useState<boolean | null>(null);
 
   const posterUrl = item.poster_path 
     ? `${TMDB_IMAGE_BASE}${item.poster_path}`
@@ -95,9 +98,9 @@ export function MediaCard({
               variant="ghost"
               className={cn(
                 'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
-                liked === true && 'bg-green-600 hover:bg-green-700'
+                rating === 'like' && 'bg-green-600 hover:bg-green-700'
               )}
-              onClick={() => setLiked(liked === true ? null : true)}
+              onClick={() => onRate?.(rating === 'like' ? null : 'like')}
             >
               <ThumbsUp className="h-4 w-4" />
             </Button>
@@ -117,9 +120,9 @@ export function MediaCard({
               variant="ghost"
               className={cn(
                 'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
-                liked === false && 'bg-red-600 hover:bg-red-700'
+                rating === 'dislike' && 'bg-red-600 hover:bg-red-700'
               )}
-              onClick={() => setLiked(liked === false ? null : false)}
+              onClick={() => onRate?.(rating === 'dislike' ? null : 'dislike')}
             >
               <ThumbsDown className="h-4 w-4" />
             </Button>
