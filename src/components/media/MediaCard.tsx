@@ -73,7 +73,7 @@ export function MediaCard({
             src={posterUrl}
             alt={item.title}
             className={cn(
-              'h-full w-full object-cover transition-all duration-300',
+              'h-full w-full object-cover transition-all duration-300 pointer-events-none',
               imageLoaded ? 'opacity-100' : 'opacity-0'
             )}
             onLoad={() => setImageLoaded(true)}
