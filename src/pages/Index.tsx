@@ -7,33 +7,25 @@ import { MediaCard, MediaItem } from '@/components/media/MediaCard';
 import { useAuth } from '@/lib/auth';
 import { useAddToWatchlist, useWatchlist } from '@/hooks/useWatchlist';
 import { useIncrementWishUsage } from '@/hooks/useWishUsage';
+import { useTMDBSearch } from '@/hooks/useTMDBSearch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
-// Placeholder for search results - will be replaced with actual API calls
-const MOCK_RESULTS: MediaItem[] = [];
-
 export default function Home() {
   const { user } = useAuth();
-  const [searchResults, setSearchResults] = useState<MediaItem[]>([]);
   const [wishResults, setWishResults] = useState<MediaItem[]>([]);
-  const [isSearching, setIsSearching] = useState(false);
   const [isWishing, setIsWishing] = useState(false);
   const [activeTab, setActiveTab] = useState('wish');
 
+  const { results: searchResults, isLoading: isSearching, search } = useTMDBSearch();
   const { data: watchlist } = useWatchlist();
   const addToWatchlist = useAddToWatchlist();
   const incrementWishUsage = useIncrementWishUsage();
 
   const handleSearch = async (query: string) => {
-    setIsSearching(true);
     setActiveTab('search');
-    // TODO: Implement TMDB search
-    setTimeout(() => {
-      setSearchResults([]);
-      setIsSearching(false);
-    }, 1000);
+    await search(query);
   };
 
   const handleWish = async (mood: string) => {
