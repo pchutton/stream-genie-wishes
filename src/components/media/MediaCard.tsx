@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Check, Eye, EyeOff } from 'lucide-react';
+import { Plus, Check, Eye, EyeOff, ThumbsUp, ThumbsDown, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { StreamingBadges } from './StreamingBadges';
@@ -14,6 +14,7 @@ export interface MediaItem {
   streaming_platforms: string[] | null;
   rent_platforms?: string[] | null;
   buy_platforms?: string[] | null;
+  overview?: string;
 }
 
 interface MediaCardProps {
@@ -23,6 +24,7 @@ interface MediaCardProps {
   onAddToWatchlist?: () => void;
   onRemoveFromWatchlist?: () => void;
   onToggleWatched?: () => void;
+  onShowDetails?: () => void;
   showActions?: boolean;
 }
 
@@ -35,10 +37,13 @@ export function MediaCard({
   onAddToWatchlist,
   onRemoveFromWatchlist,
   onToggleWatched,
+  onShowDetails,
   showActions = true,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [liked, setLiked] = useState<boolean | null>(null);
 
   const posterUrl = item.poster_path 
     ? `${TMDB_IMAGE_BASE}${item.poster_path}`
@@ -47,7 +52,11 @@ export function MediaCard({
   return (
     <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all hover:ring-2 hover:ring-primary/50">
       {/* Poster */}
-      <div className="relative aspect-[2/3] w-32 shrink-0 overflow-hidden rounded-lg bg-muted">
+      <div 
+        className="relative aspect-[2/3] w-32 shrink-0 overflow-hidden rounded-lg bg-muted"
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
@@ -65,8 +74,60 @@ export function MediaCard({
           </div>
         )}
 
-        {/* Watched overlay */}
-        {isWatched && (
+        {/* Hover Overlay with Actions */}
+        <div className={cn(
+          'absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/80 transition-opacity duration-200',
+          isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        )}>
+          {/* Details Button */}
+          <Button
+            size="sm"
+            className="w-24 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-xs"
+            onClick={onShowDetails}
+          >
+            <Play className="mr-1 h-3 w-3" /> Details
+          </Button>
+          
+          {/* Action Icons Row */}
+          <div className="flex items-center gap-1">
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
+                liked === true && 'bg-green-600 hover:bg-green-700'
+              )}
+              onClick={() => setLiked(liked === true ? null : true)}
+            >
+              <ThumbsUp className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
+                isWatched && 'bg-primary hover:bg-primary/80'
+              )}
+              onClick={onToggleWatched}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn(
+                'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
+                liked === false && 'bg-red-600 hover:bg-red-700'
+              )}
+              onClick={() => setLiked(liked === false ? null : false)}
+            >
+              <ThumbsDown className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Watched overlay (when not hovering) */}
+        {isWatched && !isHovered && (
           <div className="absolute inset-0 flex items-center justify-center bg-background/60">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
               <Check className="h-5 w-5 text-primary-foreground" />
