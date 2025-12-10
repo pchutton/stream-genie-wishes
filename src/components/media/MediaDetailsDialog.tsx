@@ -1,4 +1,4 @@
-import { Plus, Check, ThumbsUp, ThumbsDown, X, Calendar, Clock, Globe, Star, User, Users } from 'lucide-react';
+import { Plus, Check, ThumbsUp, ThumbsDown, X, Calendar, Clock, Globe, Trophy, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -107,16 +107,42 @@ export function MediaDetailsDialog({
               </div>
             </DialogHeader>
 
-            {/* Rating Box */}
+            {/* Blended Score Box */}
             {item.rating && (
-              <div className="mb-4 rounded-lg bg-zinc-700/50 p-3">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <Star className="h-4 w-4" />
-                  <span>TMDB Rating</span>
+              <div className="mb-4 rounded-lg border border-zinc-600 bg-zinc-700/30 p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <Trophy className="h-4 w-4" />
+                  <span>Blended Score</span>
                 </div>
-                <div className="flex items-baseline gap-1">
-                  <span className="text-2xl font-bold text-green-400">{item.rating}</span>
-                  <span className="text-sm text-muted-foreground">/ 10</span>
+                <div className="flex items-center gap-6">
+                  {/* Combined Score */}
+                  <div className="text-center">
+                    <span className="text-3xl font-bold text-green-400">{item.rating}</span>
+                    <p className="text-xs text-muted-foreground mt-1">Combined</p>
+                  </div>
+                  
+                  {/* Divider */}
+                  <div className="h-12 w-px bg-zinc-600" />
+                  
+                  {/* Individual Scores */}
+                  <div className="flex items-center gap-6">
+                    <div className="text-center">
+                      <span className="text-lg font-semibold text-zinc-200">{item.rating}</span>
+                      <p className="text-xs text-muted-foreground">TMDB</p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-lg font-semibold text-zinc-400">—</span>
+                      <p className="text-xs text-muted-foreground">IMDb</p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-lg font-semibold text-zinc-400">—</span>
+                      <p className="text-xs text-muted-foreground">RT</p>
+                    </div>
+                    <div className="text-center">
+                      <span className="text-lg font-semibold text-zinc-400">—</span>
+                      <p className="text-xs text-muted-foreground">Meta</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
