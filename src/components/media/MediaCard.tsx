@@ -124,10 +124,10 @@ export function MediaCard({
             ) : (
               <Button
                 size="sm"
-                className="genie-glow h-7 text-xs"
+                className="genie-glow h-7 whitespace-nowrap text-xs"
                 onClick={onAddToWatchlist}
               >
-                <Plus className="mr-1 h-3 w-3" /> Add to List
+                <Plus className="mr-1 h-3 w-3" /> Add
               </Button>
             )}
           </div>

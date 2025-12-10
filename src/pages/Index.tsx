@@ -104,7 +104,7 @@ export default function Home() {
             {wishResults.length > 0 && (
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold">Your Wish Results</h2>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {wishResults.map((item) => (
                     <MediaCard
                       key={`${item.media_type}-${item.tmdb_id}`}
@@ -129,7 +129,7 @@ export default function Home() {
 
           <TabsContent value="search" className="space-y-4">
             {searchResults.length > 0 ? (
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {searchResults.map((item) => (
                   <MediaCard
                     key={`${item.media_type}-${item.tmdb_id}`}
