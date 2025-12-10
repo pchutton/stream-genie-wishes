@@ -6,7 +6,7 @@ import { WishInput } from '@/components/wish/WishInput';
 import { MediaCard, MediaItem } from '@/components/media/MediaCard';
 import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
 import { useAuth } from '@/lib/auth';
-import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist } from '@/hooks/useWatchlist';
+import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist, useMarkAsSeen } from '@/hooks/useWatchlist';
 import { useIncrementWishUsage } from '@/hooks/useWishUsage';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
 import { useRatings } from '@/hooks/useRatings';
@@ -27,6 +27,7 @@ export default function Home() {
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
   const toggleWatched = useToggleWatched();
+  const markAsSeen = useMarkAsSeen();
   const incrementWishUsage = useIncrementWishUsage();
   const { getRating, setRating } = useRatings();
 
@@ -193,8 +194,15 @@ export default function Home() {
             if (wlItem) removeFromWatchlist.mutate(wlItem.id);
           }}
           onToggleWatched={() => {
-            const wlItem = selectedItem && getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type);
-            if (wlItem) toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
+            if (!selectedItem) return;
+            const wlItem = getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type);
+            if (wlItem) {
+              // Already in watchlist, toggle watched status
+              toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
+            } else {
+              // Not in watchlist, add and mark as seen
+              markAsSeen.mutate(selectedItem);
+            }
           }}
           onRate={(rating) => selectedItem && setRating(selectedItem.tmdb_id, selectedItem.media_type, rating)}
         />
