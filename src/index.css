@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 /* StreamGenie Design System
-   Dark theme with warm amber/gold accents for high contrast CTAs
+   Dark theme with Netflix-style red accents for high contrast CTAs
    All colors are HSL
 */
 
@@ -19,8 +19,8 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 20% 10%;
 
-    --primary: 38 92% 50%;
-    --primary-foreground: 220 20% 10%;
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 220 15% 90%;
     --secondary-foreground: 220 20% 10%;
@@ -28,22 +28,22 @@
     --muted: 220 15% 92%;
     --muted-foreground: 220 10% 45%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 220 20% 10%;
+    --accent: 0 85% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 15% 85%;
     --input: 220 15% 85%;
-    --ring: 38 92% 50%;
+    --ring: 0 85% 50%;
 
     --radius: 0.75rem;
 
-    /* Genie-specific tokens */
-    --genie-gold: 38 92% 50%;
-    --genie-gold-light: 38 92% 60%;
-    --genie-gold-dark: 38 92% 40%;
+    /* Genie-specific tokens - Netflix red */
+    --genie-gold: 0 85% 50%;
+    --genie-gold-light: 15 90% 55%;
+    --genie-gold-dark: 0 85% 40%;
     --genie-surface: 220 25% 12%;
     --genie-surface-elevated: 220 25% 16%;
   }
@@ -58,8 +58,8 @@
     --popover: 220 25% 12%;
     --popover-foreground: 220 15% 95%;
 
-    --primary: 38 92% 50%;
-    --primary-foreground: 220 25% 8%;
+    --primary: 0 85% 50%;
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 220 20% 18%;
     --secondary-foreground: 220 15% 90%;
@@ -67,20 +67,20 @@
     --muted: 220 20% 15%;
     --muted-foreground: 220 15% 60%;
 
-    --accent: 38 92% 50%;
-    --accent-foreground: 220 25% 8%;
+    --accent: 0 85% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 50%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 20% 20%;
     --input: 220 20% 20%;
-    --ring: 38 92% 50%;
+    --ring: 0 85% 50%;
 
-    /* Genie-specific tokens - dark mode */
-    --genie-gold: 38 92% 50%;
-    --genie-gold-light: 38 92% 60%;
-    --genie-gold-dark: 38 92% 40%;
+    /* Genie-specific tokens - Netflix red dark mode */
+    --genie-gold: 0 85% 50%;
+    --genie-gold-light: 15 90% 55%;
+    --genie-gold-dark: 0 85% 40%;
     --genie-surface: 220 25% 12%;
     --genie-surface-elevated: 220 25% 16%;
   }
