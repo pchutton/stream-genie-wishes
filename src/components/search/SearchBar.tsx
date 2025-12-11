@@ -88,7 +88,7 @@ export function SearchBar({
               </div>
             </div>
           </div>
-          <span className="text-sm font-medium text-foreground/80 pr-3 w-[55px] text-left">
+          <span className="text-sm font-medium text-foreground/80 pr-6 w-[55px] text-left">
             {mode === 'media' ? 'TV/Movie' : 'Live'}
           </span>
         </button>
