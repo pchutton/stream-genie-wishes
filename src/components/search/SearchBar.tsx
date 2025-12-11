@@ -60,15 +60,21 @@ export function SearchBar({
           <div className="relative w-[60px] h-[32px] rounded-full bg-background/80 border border-border overflow-hidden">
             <div 
               className={cn(
-                "absolute top-[2px] w-[28px] h-[28px] rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
+                "absolute top-[2px] w-[28px] h-[28px] rounded-full bg-primary flex items-center justify-center",
+                "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
                 mode === 'media' ? 'left-[2px]' : 'left-[28px]'
               )}
             >
-              {mode === 'media' ? (
-                <Tv className="h-4 w-4 text-primary-foreground" />
-              ) : (
-                <Radio className="h-4 w-4 text-primary-foreground" />
-              )}
+              <div className={cn(
+                "transition-transform duration-300",
+                mode === 'media' ? 'rotate-0' : 'rotate-[360deg]'
+              )}>
+                {mode === 'media' ? (
+                  <Tv className="h-4 w-4 text-primary-foreground" />
+                ) : (
+                  <Radio className="h-4 w-4 text-primary-foreground" />
+                )}
+              </div>
             </div>
           </div>
           <span className="text-sm font-medium text-foreground/80 pr-1">
