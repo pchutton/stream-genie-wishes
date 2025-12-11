@@ -26,13 +26,21 @@ interface LiveEvent {
 // Helper function to check if an event date is in the past
 function isEventInPast(eventTime: string, eventDate?: string): boolean {
   const now = new Date();
+  // Get today's date at midnight for comparison (be lenient - include all events today)
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  
+  console.log(`Checking if event is past - eventTime: "${eventTime}", eventDate: "${eventDate}", now: ${now.toISOString()}`);
   
   // If we have an ISO date, use it directly
   if (eventDate) {
     try {
       const eventDateTime = new Date(eventDate);
-      return eventDateTime < now;
+      // Only filter if the event date is BEFORE today (not today itself)
+      const isPast = eventDateTime < todayStart;
+      console.log(`  Parsed eventDate: ${eventDateTime.toISOString()}, isPast: ${isPast}`);
+      return isPast;
     } catch {
+      console.log(`  Failed to parse eventDate`);
       // Fall through to parse eventTime
     }
   }
@@ -44,13 +52,18 @@ function isEventInPast(eventTime: string, eventDate?: string): boolean {
     const eventDateTime = new Date(dateStr);
     
     if (!isNaN(eventDateTime.getTime())) {
-      // For dates without specific times, consider them valid until end of that day
-      return eventDateTime < now;
+      // Only filter if the event date is BEFORE today
+      const isPast = eventDateTime < todayStart;
+      console.log(`  Parsed eventTime: ${eventDateTime.toISOString()}, isPast: ${isPast}`);
+      return isPast;
     }
   } catch {
     // If we can't parse, include the event (don't filter it out)
+    console.log(`  Could not parse eventTime`);
   }
   
+  // When in doubt, include the event
+  console.log(`  Unable to determine date, including event`);
   return false;
 }
 
