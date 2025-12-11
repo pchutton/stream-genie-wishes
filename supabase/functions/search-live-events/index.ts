@@ -253,6 +253,64 @@ function getDefaultStatus(platform: string): string {
   return 'Check platform for details';
 }
 
+// AI query normalization to expand partial team names
+async function normalizeQuery(query: string, apiKey: string): Promise<string> {
+  console.log('Normalizing query:', query);
+  
+  try {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `You rewrite sports search queries into full, unambiguous search phrases.
+
+Rules:
+- Expand partial team names into full official names
+- Add context like "next game", "schedule", or "broadcast information" if missing
+- Optimize for finding broadcast channels and streaming availability
+
+Examples:
+"Golden State" → "Golden State Warriors basketball game schedule"
+"OU Football" → "Oklahoma Sooners football schedule"
+"Bama" → "Alabama Crimson Tide football schedule"
+"KC" → "Kansas City Chiefs next game"
+"Lakers" → "Los Angeles Lakers basketball game"
+"Chelsea" → "Chelsea FC fixtures"
+"NBA games this weekend" → "NBA basketball games schedule this weekend broadcast"
+"UFC" → "UFC next event schedule broadcast"
+
+Return ONLY the rewritten query text, nothing else.`
+          },
+          {
+            role: 'user',
+            content: query
+          }
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      console.error('Query normalization failed, using original query');
+      return query;
+    }
+
+    const data = await response.json();
+    const normalizedQuery = data.choices?.[0]?.message?.content?.trim() || query;
+    console.log('Normalized query:', normalizedQuery);
+    return normalizedQuery;
+  } catch (error) {
+    console.error('Query normalization error:', error);
+    return query;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -280,8 +338,11 @@ serve(async (req) => {
       );
     }
 
-    // Search with Google PSE
-    const searchQuery = `${query} live stream schedule broadcast`;
+    // Step 0: Normalize query using AI
+    const normalizedQuery = await normalizeQuery(query, LOVABLE_API_KEY!);
+    
+    // Search with Google PSE using normalized query
+    const searchQuery = `${normalizedQuery} live stream schedule broadcast`;
     console.log(`Searching Google PSE for: ${searchQuery}`);
 
     const searchUrl = `https://www.googleapis.com/customsearch/v1?key=${GOOGLE_API_KEY}&cx=${SEARCH_ENGINE_ID}&q=${encodeURIComponent(searchQuery)}&num=5`;
