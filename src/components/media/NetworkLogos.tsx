@@ -116,7 +116,7 @@ export const TNTLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
 export const TBSLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
   <svg className={className} viewBox="0 0 50 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="50" height="32" rx="4" fill="#00A0DC"/>
-    <text x="25" y="21" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="12" fontWeight="bold">TBS</text>
+    <text x="25" y="22" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="14" fontWeight="bold">TBS</text>
   </svg>
 );
 
@@ -144,8 +144,8 @@ export const FXLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
 export const NFLNetworkLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
   <svg className={className} viewBox="0 0 80 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="80" height="32" rx="4" fill="#013369"/>
-    <text x="40" y="14" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="10" fontWeight="bold">NFL</text>
-    <text x="40" y="25" textAnchor="middle" fill="#D50A0A" fontFamily="Arial, sans-serif" fontSize="8">NETWORK</text>
+    <text x="40" y="15" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="12" fontWeight="bold">NFL</text>
+    <text x="40" y="26" textAnchor="middle" fill="#D50A0A" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="bold">NETWORK</text>
   </svg>
 );
 
@@ -153,8 +153,8 @@ export const NFLNetworkLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
 export const NBATVLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
   <svg className={className} viewBox="0 0 60 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="60" height="32" rx="4" fill="#C8102E"/>
-    <text x="30" y="14" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="10" fontWeight="bold">NBA</text>
-    <text x="30" y="25" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="8">TV</text>
+    <text x="30" y="15" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="12" fontWeight="bold">NBA</text>
+    <text x="30" y="26" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="bold">TV</text>
   </svg>
 );
 
@@ -162,8 +162,8 @@ export const NBATVLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
 export const MLBNetworkLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
   <svg className={className} viewBox="0 0 80 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="80" height="32" rx="4" fill="#002D72"/>
-    <text x="40" y="14" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="10" fontWeight="bold">MLB</text>
-    <text x="40" y="25" textAnchor="middle" fill="#C8102E" fontFamily="Arial, sans-serif" fontSize="8">NETWORK</text>
+    <text x="40" y="15" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="12" fontWeight="bold">MLB</text>
+    <text x="40" y="26" textAnchor="middle" fill="#C8102E" fontFamily="Arial, sans-serif" fontSize="10" fontWeight="bold">NETWORK</text>
   </svg>
 );
 
@@ -171,7 +171,7 @@ export const MLBNetworkLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
 export const USANetworkLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
   <svg className={className} viewBox="0 0 50 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="50" height="32" rx="4" fill="#0046AD"/>
-    <text x="25" y="21" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="12" fontWeight="bold">USA</text>
+    <text x="25" y="22" textAnchor="middle" fill="white" fontFamily="Arial Black, sans-serif" fontSize="14" fontWeight="bold">USA</text>
   </svg>
 );
 
@@ -184,7 +184,7 @@ export const ESPNAppLogo: FC<NetworkLogoProps> = ({ className = "h-8" }) => (
 export const GenericNetworkLogo: FC<NetworkLogoProps & { name: string }> = ({ className = "h-8", name }) => (
   <svg className={className} viewBox="0 0 80 32" fill="none" xmlns="http://www.w3.org/2000/svg">
     <rect width="80" height="32" rx="4" fill="#374151"/>
-    <text x="40" y="20" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="9" fontWeight="bold">{name}</text>
+    <text x="40" y="21" textAnchor="middle" fill="white" fontFamily="Arial, sans-serif" fontSize="11" fontWeight="bold">{name}</text>
   </svg>
 );
 
