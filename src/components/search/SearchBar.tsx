@@ -50,11 +50,21 @@ export function SearchBar({
         {/* Mode Toggle */}
         <button
           type="button"
+          role="switch"
+          aria-checked={mode === 'live'}
+          aria-label={`Search mode: ${mode === 'media' ? 'TV and Movies' : 'Live Events'}. Press to switch.`}
           onClick={toggleMode}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              toggleMode();
+            }
+          }}
           className={cn(
             "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-full px-2.5 py-2.5 transition-all duration-300",
             "bg-primary/20 hover:bg-primary/30 border border-primary/40",
-            "active:scale-95 active:bg-primary/35"
+            "active:scale-95 active:bg-primary/35",
+            "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to TV/Movies'}
         >
