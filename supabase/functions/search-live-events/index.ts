@@ -14,6 +14,38 @@ interface LiveEvent {
   link: string;
   summary: string;
   streamingPlatforms?: string[];
+  eventDate?: string; // ISO date for filtering
+}
+
+// Helper function to check if an event date is in the past
+function isEventInPast(eventTime: string, eventDate?: string): boolean {
+  const now = new Date();
+  
+  // If we have an ISO date, use it directly
+  if (eventDate) {
+    try {
+      const eventDateTime = new Date(eventDate);
+      return eventDateTime < now;
+    } catch {
+      // Fall through to parse eventTime
+    }
+  }
+  
+  // Try to parse the time string
+  try {
+    // Common patterns: "December 19, 2025", "Aug 30, 2025", "November 2, 2025 at 2:30 PM"
+    const dateStr = eventTime.replace(/\s+at\s+/i, ' ').replace(/\s+CT|\s+ET|\s+PT|\s+MT/gi, '');
+    const eventDateTime = new Date(dateStr);
+    
+    if (!isNaN(eventDateTime.getTime())) {
+      // For dates without specific times, consider them valid until end of that day
+      return eventDateTime < now;
+    }
+  } catch {
+    // If we can't parse, include the event (don't filter it out)
+  }
+  
+  return false;
 }
 
 // Mapping of broadcast channels to streaming platforms
@@ -206,21 +238,26 @@ serve(async (req) => {
         messages: [
           {
             role: 'system',
-            content: `You are an assistant that extracts live event information from search results. 
+            content: `You are an assistant that extracts live event information from search results.
+Today's date is ${new Date().toISOString().split('T')[0]}.
 Extract event details and return a JSON array of events with these fields:
 - eventName: Name of the event
-- time: When it's happening (date/time)
+- time: When it's happening (date/time as displayed)
+- eventDate: The event date in ISO format (YYYY-MM-DD) for filtering - IMPORTANT for determining if event is past
 - participants: Who's playing/performing (teams, fighters, artists)
 - whereToWatch: Channel or streaming service to watch (from the search results)
 - link: URL for more info
 - summary: Brief 1-2 sentence description
 
+IMPORTANT: Only include UPCOMING events that have NOT yet occurred. Today is ${new Date().toISOString().split('T')[0]}.
+Exclude any events that have already happened.
+
 Return ONLY a valid JSON array, no markdown or explanation.
-If no events found, return an empty array [].`
+If no upcoming events found, return an empty array [].`
           },
           {
             role: 'user',
-            content: `User searched for: "${query}"\n\nSearch results:\n${searchContext}\n\nExtract live event information as JSON array.`
+            content: `User searched for: "${query}"\nToday's date: ${new Date().toISOString().split('T')[0]}\n\nSearch results:\n${searchContext}\n\nExtract ONLY UPCOMING live event information as JSON array. Exclude past events.`
           }
         ],
       }),
@@ -261,6 +298,11 @@ If no events found, return an empty array [].`
       if (!Array.isArray(events)) {
         events = [events];
       }
+      
+      // Filter out past events as a safety net
+      const upcomingEvents = events.filter(event => !isEventInPast(event.time, event.eventDate));
+      console.log(`Filtered ${events.length - upcomingEvents.length} past events, ${upcomingEvents.length} upcoming`);
+      events = upcomingEvents;
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
       // Fallback to raw search results
