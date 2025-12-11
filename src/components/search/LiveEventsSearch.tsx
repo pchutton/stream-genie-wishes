@@ -46,14 +46,23 @@ export function LiveEventsSearch({ searchQuery }: LiveEventsSearchProps) {
 
   return (
     <div ref={containerRef} className="live-events-search-container">
-      <div className="gcse-searchresults-only" data-resultsUrl="/live-events-results"></div>
+      <div className="gcse-search"></div>
       
       <style>{`
+        /* Hide the Google search box since we have our own */
+        .gsc-search-box-tools,
+        .gsc-search-box {
+          display: none !important;
+        }
         .gsc-control-cse {
           background: transparent !important;
           border: none !important;
           padding: 0 !important;
           font-family: inherit !important;
+        }
+        .gsc-results-wrapper-overlay,
+        .gsc-results-wrapper-visible {
+          background: transparent !important;
         }
         .gsc-results {
           background: transparent !important;
@@ -109,6 +118,9 @@ export function LiveEventsSearch({ searchQuery }: LiveEventsSearchProps) {
         }
         .gcsc-find-more-on-google {
           display: none !important;
+        }
+        .gsc-modal-background-image {
+          background: transparent !important;
         }
       `}</style>
     </div>
