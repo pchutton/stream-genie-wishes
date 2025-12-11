@@ -52,37 +52,37 @@ export function SearchBar({
           type="button"
           onClick={toggleMode}
           className={cn(
-            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1 rounded-xl px-2 py-1.5 transition-all duration-300",
+            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-1.5 rounded-xl px-2.5 py-2 transition-all duration-300",
             "bg-muted hover:bg-muted/80 border border-border"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to Movies & TV'}
         >
-          <div className="relative w-12 h-6 rounded-full bg-background border border-border overflow-hidden">
+          <div className="relative w-[52px] h-[26px] rounded-full bg-background border border-border overflow-hidden">
             <div 
               className={cn(
-                "absolute top-0.5 w-5 h-5 rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
-                mode === 'media' ? 'left-0.5' : 'left-[calc(100%-22px)]'
+                "absolute top-0.5 w-[22px] h-[22px] rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
+                mode === 'media' ? 'left-0.5' : 'left-[calc(100%-24px)]'
               )}
             >
               {mode === 'media' ? (
-                <Tv className="h-3 w-3 text-primary-foreground" />
+                <Tv className="h-3.5 w-3.5 text-primary-foreground" />
               ) : (
-                <Radio className="h-3 w-3 text-primary-foreground" />
+                <Radio className="h-3.5 w-3.5 text-primary-foreground" />
               )}
             </div>
           </div>
-          <span className="text-xs font-medium text-muted-foreground min-w-[32px]">
+          <span className="text-sm font-medium text-muted-foreground min-w-[36px]">
             {mode === 'media' ? 'TV' : 'Live'}
           </span>
         </button>
 
-        <Search className="absolute left-[100px] top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-[110px] top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
         <Input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={currentPlaceholder}
-          className="h-14 rounded-2xl border-2 border-border bg-card pl-[130px] pr-24 text-lg transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-14 rounded-2xl border-2 border-border bg-card pl-[140px] pr-24 text-lg transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {query && (
