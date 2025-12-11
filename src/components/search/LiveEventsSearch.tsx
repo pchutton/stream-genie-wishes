@@ -38,15 +38,15 @@ function EventCard({ event }: { event: LiveEvent }) {
         </p>
         
         {event.link && (
-          <Button
-            variant="outline"
-            size="sm"
-            className="w-full mt-2"
-            onClick={() => window.open(event.link, '_blank')}
+          <a
+            href={event.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center w-full mt-2 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             More Info
-          </Button>
+          </a>
         )}
       </CardContent>
     </Card>
