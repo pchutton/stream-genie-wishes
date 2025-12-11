@@ -84,7 +84,7 @@ export function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={currentPlaceholder}
-          className="h-14 rounded-2xl border-2 border-border bg-card pl-[160px] pr-24 text-lg transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-14 rounded-2xl border-2 border-border bg-card pl-[160px] pr-24 text-lg text-center transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {query && (
