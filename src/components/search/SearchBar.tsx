@@ -53,11 +53,12 @@ export function SearchBar({
           onClick={toggleMode}
           className={cn(
             "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-full px-2.5 py-2.5 transition-all duration-300",
-            "bg-primary/20 hover:bg-primary/30 border border-primary/40"
+            "bg-primary/20 hover:bg-primary/30 border border-primary/40",
+            "active:scale-95 active:bg-primary/35"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to TV/Movies'}
         >
-          <div className="relative w-[60px] h-[32px] rounded-full bg-background/80 border border-border overflow-hidden">
+          <div className="relative w-[60px] h-[32px] rounded-full bg-background/80 border border-border overflow-hidden transition-transform duration-150 active:scale-90">
             <div 
               className={cn(
                 "absolute top-[2px] w-[28px] h-[28px] rounded-full bg-primary flex items-center justify-center",
