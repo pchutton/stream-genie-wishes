@@ -64,7 +64,7 @@ export function MediaCard({
     <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       {/* Poster */}
       <div 
-        className="relative aspect-[2/3] w-32 shrink-0 overflow-hidden rounded-lg bg-muted"
+        className="relative aspect-[4/5] w-28 shrink-0 overflow-hidden rounded-lg bg-muted"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
