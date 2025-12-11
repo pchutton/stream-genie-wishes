@@ -2,6 +2,11 @@ import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
+export interface PlatformInfo {
+  name: string;
+  status: string; // "Included", "Included with provider login", "Rent: $X.XX", etc.
+}
+
 export interface LiveEvent {
   eventName: string;
   time: string;
@@ -10,6 +15,7 @@ export interface LiveEvent {
   link: string;
   summary: string;
   streamingPlatforms?: string[];
+  platformDetails?: PlatformInfo[];
 }
 
 export function useLiveEventsSearch() {

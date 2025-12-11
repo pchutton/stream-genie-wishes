@@ -6,6 +6,11 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface PlatformInfo {
+  name: string;
+  status: string; // "Included", "Included with provider login", "Rent: $X.XX", etc.
+}
+
 interface LiveEvent {
   eventName: string;
   time: string;
@@ -14,6 +19,7 @@ interface LiveEvent {
   link: string;
   summary: string;
   streamingPlatforms?: string[];
+  platformDetails?: PlatformInfo[];
   eventDate?: string; // ISO date for filtering
 }
 
@@ -86,6 +92,7 @@ Participants: ${event.participants}
 Current broadcast info: ${event.whereToWatch}
 `;
 
+        // Step 2a: Get broadcast channels
         const enrichResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -119,50 +126,131 @@ If unknown, return: {"broadcast_channels": []}`
 
         if (!enrichResponse.ok) {
           console.error('Enrichment API error for event:', event.eventName);
-          return { ...event, streamingPlatforms: [] };
+          return { ...event, streamingPlatforms: [], platformDetails: [] };
         }
 
         const enrichData = await enrichResponse.json();
         const content = enrichData.choices?.[0]?.message?.content || '{}';
         
+        let streamingPlatforms: string[] = [];
+        let broadcastChannels: string[] = [];
+        
         try {
           const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
           const parsed = JSON.parse(cleanContent);
           
-          const broadcastChannels: string[] = parsed.broadcast_channels || [];
+          broadcastChannels = parsed.broadcast_channels || [];
           console.log(`Broadcast channels for ${event.eventName}:`, broadcastChannels);
           
           // Map broadcast channels to all available streaming platforms
           const streamingSet = new Set<string>();
           
-          // Add the broadcast channels themselves
           broadcastChannels.forEach(channel => {
             streamingSet.add(channel);
-            
-            // Add all streaming platforms that carry this channel
             const platforms = channelToStreamingMap[channel];
             if (platforms) {
               platforms.forEach(platform => streamingSet.add(platform));
             }
           });
           
-          const streamingPlatforms = Array.from(streamingSet);
+          streamingPlatforms = Array.from(streamingSet);
           console.log(`All streaming options for ${event.eventName}:`, streamingPlatforms);
-          
-          return { ...event, streamingPlatforms };
         } catch (parseError) {
           console.error('Failed to parse platforms:', parseError);
+          return { ...event, streamingPlatforms: [], platformDetails: [] };
+        }
+
+        // Step 2b: Get pricing/availability status for each platform
+        if (streamingPlatforms.length > 0) {
+          const pricingResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${apiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              model: 'google/gemini-2.5-flash',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You determine pricing and availability status for streaming platforms showing sports events.
+
+Rules:
+- Live TV services (Hulu + Live TV, YouTube TV, Fubo, DirecTV Stream, Sling Orange, Sling Blue): "Included"
+- ESPN App, ABC app, Fox Sports app, NBC Sports app: "Included with provider login"
+- Dedicated streaming services (ESPN+, Peacock, Paramount+, Max, Prime Video): "Included with [service] subscription"
+- Broadcast networks shown directly (ABC, CBS, NBC, FOX, ESPN, FS1, TNT, TBS, NFL Network, NBA TV, MLB Network): "Live broadcast" 
+- If rental/PPV is needed (rare for live sports): "Rent: $X.XX" or "PPV: $X.XX"
+
+Return ONLY valid JSON, no markdown.`
+                },
+                {
+                  role: 'user',
+                  content: `Based on the broadcast channels and streaming platforms below, determine the status for each platform.
+
+EVENT: ${event.eventName}
+BROADCAST CHANNELS: ${broadcastChannels.join(', ')}
+PLATFORMS: ${streamingPlatforms.join(', ')}
+
+Return JSON like:
+{"platforms": [{"name": "Hulu + Live TV", "status": "Included"}, {"name": "ESPN App", "status": "Included with provider login"}]}`
+                }
+              ],
+            }),
+          });
+
+          if (pricingResponse.ok) {
+            const pricingData = await pricingResponse.json();
+            const pricingContent = pricingData.choices?.[0]?.message?.content || '{}';
+            
+            try {
+              const cleanPricing = pricingContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+              const pricingParsed = JSON.parse(cleanPricing);
+              const platformDetails: PlatformInfo[] = pricingParsed.platforms || [];
+              
+              console.log(`Platform details for ${event.eventName}:`, platformDetails);
+              return { ...event, streamingPlatforms, platformDetails };
+            } catch (pricingParseError) {
+              console.error('Failed to parse pricing:', pricingParseError);
+              // Fallback: generate default statuses
+              const defaultDetails = streamingPlatforms.map(name => ({
+                name,
+                status: getDefaultStatus(name)
+              }));
+              return { ...event, streamingPlatforms, platformDetails: defaultDetails };
+            }
+          }
         }
         
-        return { ...event, streamingPlatforms: [] };
+        return { ...event, streamingPlatforms, platformDetails: [] };
       } catch (error) {
         console.error('Error enriching event:', event.eventName, error);
-        return { ...event, streamingPlatforms: [] };
+        return { ...event, streamingPlatforms: [], platformDetails: [] };
       }
     })
   );
 
   return enrichedEvents;
+}
+
+// Default status fallback based on platform type
+function getDefaultStatus(platform: string): string {
+  const liveTVServices = ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'DirecTV Stream', 'Sling Orange', 'Sling Blue'];
+  const providerLoginApps = ['ESPN App', 'ABC', 'FOX', 'CBS', 'NBC', 'FS1', 'Fox Sports'];
+  const subscriptionServices: Record<string, string> = {
+    'ESPN+': 'Included with ESPN+ subscription',
+    'Peacock': 'Included with Peacock subscription',
+    'Paramount+': 'Included with Paramount+ subscription',
+    'Max': 'Included with Max subscription',
+    'Prime Video': 'Included with Prime Video subscription',
+  };
+  const broadcasts = ['ESPN', 'ESPN2', 'TNT', 'TBS', 'NFL Network', 'NBA TV', 'MLB Network', 'USA Network'];
+  
+  if (liveTVServices.includes(platform)) return 'Included';
+  if (providerLoginApps.includes(platform)) return 'Included with provider login';
+  if (subscriptionServices[platform]) return subscriptionServices[platform];
+  if (broadcasts.includes(platform)) return 'Live broadcast';
+  return 'Check platform for details';
 }
 
 serve(async (req) => {
