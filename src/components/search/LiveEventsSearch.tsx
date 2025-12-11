@@ -24,10 +24,13 @@ export function LiveEventsSearch({ searchQuery }: LiveEventsSearchProps) {
   useEffect(() => {
     // Auto-fill and trigger search when query changes
     if (searchQuery) {
+      // Magic query: append legal live stream and filter out signup/login pages
+      const magicQuery = `${searchQuery} legal live stream -inurl:(signup login subscribe account)`;
+      
       const attemptSearch = () => {
         const searchBox = document.querySelector('.gsc-search-box input.gsc-input') as HTMLInputElement;
         if (searchBox) {
-          searchBox.value = searchQuery + ' legal live stream';
+          searchBox.value = magicQuery;
           setTimeout(() => {
             const searchButton = document.querySelector('.gsc-search-button input') as HTMLInputElement;
             if (searchButton) searchButton.click();
