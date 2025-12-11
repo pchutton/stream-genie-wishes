@@ -9,6 +9,7 @@ export interface LiveEvent {
   whereToWatch: string;
   link: string;
   summary: string;
+  streamingPlatforms?: string[];
 }
 
 export function useLiveEventsSearch() {

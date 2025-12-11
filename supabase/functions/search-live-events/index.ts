@@ -6,6 +6,93 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface LiveEvent {
+  eventName: string;
+  time: string;
+  participants: string;
+  whereToWatch: string;
+  link: string;
+  summary: string;
+  streamingPlatforms?: string[];
+}
+
+async function enrichWithStreamingPlatforms(
+  events: LiveEvent[],
+  apiKey: string
+): Promise<LiveEvent[]> {
+  console.log('Enriching events with streaming platforms');
+  
+  const enrichedEvents = await Promise.all(
+    events.map(async (event) => {
+      try {
+        const eventDetails = `
+Event: ${event.eventName}
+Time: ${event.time}
+Participants: ${event.participants}
+Current broadcast info: ${event.whereToWatch}
+`;
+
+        const enrichResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'google/gemini-2.5-flash',
+            messages: [
+              {
+                role: 'system',
+                content: `You determine which major US broadcasting networks or streaming platforms will show sports events.
+Only list real, confirmed platforms such as: ABC, ESPN, ESPN+, Fox, Fox Sports, FS1, CBS, NBC, Peacock, Prime Video, YouTube TV, NFL Network, NBA TV, MLB Network, TNT, TBS, USA Network, Paramount+.
+If you cannot confirm platforms, return an empty array.
+Return ONLY a valid JSON array of platform names, no markdown or explanation.`
+              },
+              {
+                role: 'user',
+                content: `Based on the following sports event information, identify which major US broadcasting networks or streaming platforms will show this event.
+
+EVENT DETAILS:
+${eventDetails}
+
+Respond with a JSON array of platforms like: ["ESPN", "ABC", "Fox Sports"]
+If unknown, return: []`
+              }
+            ],
+          }),
+        });
+
+        if (!enrichResponse.ok) {
+          console.error('Enrichment API error for event:', event.eventName);
+          return { ...event, streamingPlatforms: [] };
+        }
+
+        const enrichData = await enrichResponse.json();
+        const content = enrichData.choices?.[0]?.message?.content || '[]';
+        
+        try {
+          const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+          const platforms = JSON.parse(cleanContent);
+          
+          if (Array.isArray(platforms)) {
+            console.log(`Found platforms for ${event.eventName}:`, platforms);
+            return { ...event, streamingPlatforms: platforms };
+          }
+        } catch (parseError) {
+          console.error('Failed to parse platforms:', parseError);
+        }
+        
+        return { ...event, streamingPlatforms: [] };
+      } catch (error) {
+        console.error('Error enriching event:', event.eventName, error);
+        return { ...event, streamingPlatforms: [] };
+      }
+    })
+  );
+
+  return enrichedEvents;
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -65,8 +152,8 @@ serve(async (req) => {
       `[${i + 1}] Title: ${item.title}\nSnippet: ${item.snippet}\nLink: ${item.link}`
     ).join('\n\n');
 
-    // Call Lovable AI to summarize and extract event data
-    console.log('Calling AI for summarization');
+    // Step 1: Call Lovable AI to extract basic event data
+    console.log('Step 1: Calling AI for event extraction');
     
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -84,7 +171,7 @@ Extract event details and return a JSON array of events with these fields:
 - eventName: Name of the event
 - time: When it's happening (date/time)
 - participants: Who's playing/performing (teams, fighters, artists)
-- whereToWatch: Channel or streaming service to watch
+- whereToWatch: Channel or streaming service to watch (from the search results)
 - link: URL for more info
 - summary: Brief 1-2 sentence description
 
@@ -110,7 +197,8 @@ If no events found, return an empty array [].`
         participants: '',
         whereToWatch: 'See link',
         link: item.link,
-        summary: item.snippet
+        summary: item.snippet,
+        streamingPlatforms: []
       }));
       
       return new Response(
@@ -120,11 +208,11 @@ If no events found, return an empty array [].`
     }
 
     const aiData = await aiResponse.json();
-    console.log('AI response received');
+    console.log('Step 1 complete: Event extraction done');
 
     const content = aiData.choices?.[0]?.message?.content || '[]';
     
-    let events = [];
+    let events: LiveEvent[] = [];
     try {
       // Try to parse the AI response as JSON
       const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
@@ -142,14 +230,19 @@ If no events found, return an empty array [].`
         participants: '',
         whereToWatch: 'See link',
         link: item.link,
-        summary: item.snippet
+        summary: item.snippet,
+        streamingPlatforms: []
       }));
     }
 
-    console.log(`Returning ${events.length} events`);
+    // Step 2: Enrich events with streaming platform information
+    console.log('Step 2: Enriching with streaming platforms');
+    const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+
+    console.log(`Returning ${enrichedEvents.length} enriched events`);
 
     return new Response(
-      JSON.stringify({ events, aiProcessed: true }),
+      JSON.stringify({ events: enrichedEvents, aiProcessed: true }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

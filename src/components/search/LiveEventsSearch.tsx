@@ -1,11 +1,61 @@
 import { ExternalLink, Calendar, Users, Tv, Radio } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LiveEvent } from '@/hooks/useLiveEventsSearch';
 
 interface LiveEventsSearchProps {
   results: LiveEvent[];
   isLoading: boolean;
+}
+
+// Platform color mapping for visual distinction
+const platformColors: Record<string, string> = {
+  'ESPN': 'bg-red-600 text-white',
+  'ESPN+': 'bg-red-700 text-white',
+  'ABC': 'bg-blue-600 text-white',
+  'Fox': 'bg-blue-500 text-white',
+  'Fox Sports': 'bg-blue-500 text-white',
+  'FS1': 'bg-blue-500 text-white',
+  'CBS': 'bg-blue-800 text-white',
+  'NBC': 'bg-purple-600 text-white',
+  'Peacock': 'bg-gradient-to-r from-purple-500 to-yellow-400 text-white',
+  'Prime Video': 'bg-cyan-600 text-white',
+  'YouTube TV': 'bg-red-500 text-white',
+  'NFL Network': 'bg-blue-900 text-white',
+  'NBA TV': 'bg-orange-600 text-white',
+  'MLB Network': 'bg-blue-700 text-white',
+  'TNT': 'bg-red-800 text-white',
+  'TBS': 'bg-blue-600 text-white',
+  'USA Network': 'bg-blue-500 text-white',
+  'Paramount+': 'bg-blue-700 text-white',
+};
+
+function getPlatformClass(platform: string): string {
+  return platformColors[platform] || 'bg-muted text-foreground';
+}
+
+function StreamingPlatformBadges({ platforms }: { platforms?: string[] }) {
+  if (!platforms || platforms.length === 0) {
+    return (
+      <p className="text-xs text-muted-foreground italic">
+        Streaming platform unavailable — check local listings.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {platforms.map((platform, index) => (
+        <Badge 
+          key={`${platform}-${index}`}
+          className={`${getPlatformClass(platform)} text-xs font-medium px-2 py-0.5`}
+        >
+          {platform}
+        </Badge>
+      ))}
+    </div>
+  );
 }
 
 function EventCard({ event }: { event: LiveEvent }) {
@@ -32,6 +82,12 @@ function EventCard({ event }: { event: LiveEvent }) {
         <div className="flex items-start gap-2 text-sm">
           <Tv className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <span className="text-foreground font-medium">{event.whereToWatch}</span>
+        </div>
+
+        {/* Streaming Platforms */}
+        <div className="pt-1">
+          <p className="text-xs text-muted-foreground mb-1.5">Watch on:</p>
+          <StreamingPlatformBadges platforms={event.streamingPlatforms} />
         </div>
         
         <p className="text-sm text-muted-foreground line-clamp-2">
@@ -64,6 +120,10 @@ function LoadingSkeleton() {
         <Skeleton className="h-4 w-1/2" />
         <Skeleton className="h-4 w-2/3" />
         <Skeleton className="h-4 w-1/2" />
+        <div className="flex gap-2">
+          <Skeleton className="h-5 w-16 rounded-full" />
+          <Skeleton className="h-5 w-20 rounded-full" />
+        </div>
         <Skeleton className="h-12 w-full" />
         <Skeleton className="h-9 w-full" />
       </CardContent>
