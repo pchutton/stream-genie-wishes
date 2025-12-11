@@ -253,9 +253,122 @@ function getDefaultStatus(platform: string): string {
   return 'Check platform for details';
 }
 
+// Team nickname dictionary for pre-processing queries
+const teamNicknames: Record<string, string> = {
+  // NFL Teams
+  "niners": "San Francisco 49ers", "49ers": "San Francisco 49ers",
+  "cowboys": "Dallas Cowboys", "chiefs": "Kansas City Chiefs",
+  "pats": "New England Patriots", "patriots": "New England Patriots",
+  "fins": "Miami Dolphins", "dolphins": "Miami Dolphins",
+  "jets": "New York Jets", "giants": "New York Giants",
+  "saints": "New Orleans Saints", "packers": "Green Bay Packers",
+  "steelers": "Pittsburgh Steelers", "broncos": "Denver Broncos",
+  "bears": "Chicago Bears", "lions": "Detroit Lions",
+  "ravens": "Baltimore Ravens", "bucs": "Tampa Bay Buccaneers",
+  "buccaneers": "Tampa Bay Buccaneers", "rams": "Los Angeles Rams",
+  "chargers": "Los Angeles Chargers", "vikings": "Minnesota Vikings",
+  "bills": "Buffalo Bills", "texans": "Houston Texans",
+  "jags": "Jacksonville Jaguars", "jaguars": "Jacksonville Jaguars",
+  "raiders": "Las Vegas Raiders", "commanders": "Washington Commanders",
+  "eagles": "Philadelphia Eagles", "panthers": "Carolina Panthers",
+  "falcons": "Atlanta Falcons", "titans": "Tennessee Titans",
+  "colts": "Indianapolis Colts", "cardinals": "Arizona Cardinals",
+  "seahawks": "Seattle Seahawks", "bengals": "Cincinnati Bengals",
+  "browns": "Cleveland Browns",
+  
+  // NBA Teams
+  "dubs": "Golden State Warriors", "warriors": "Golden State Warriors",
+  "lakers": "Los Angeles Lakers", "clips": "Los Angeles Clippers",
+  "clippers": "Los Angeles Clippers", "suns": "Phoenix Suns",
+  "mavs": "Dallas Mavericks", "bucks": "Milwaukee Bucks",
+  "celtics": "Boston Celtics", "knicks": "New York Knicks",
+  "nets": "Brooklyn Nets", "raps": "Toronto Raptors",
+  "raptors": "Toronto Raptors", "heat": "Miami Heat",
+  "magic": "Orlando Magic", "hawks": "Atlanta Hawks",
+  "pels": "New Orleans Pelicans", "pelicans": "New Orleans Pelicans",
+  "spurs": "San Antonio Spurs", "grizz": "Memphis Grizzlies",
+  "grizzlies": "Memphis Grizzlies", "blazers": "Portland Trail Blazers",
+  "nuggets": "Denver Nuggets", "rockets": "Houston Rockets",
+  "wolves": "Minnesota Timberwolves", "jazz": "Utah Jazz",
+  "kings": "Sacramento Kings", "wizards": "Washington Wizards",
+  "bulls": "Chicago Bulls",
+  
+  // MLB Teams
+  "yanks": "New York Yankees", "yankees": "New York Yankees",
+  "mets": "New York Mets", "bo-sox": "Boston Red Sox",
+  "red sox": "Boston Red Sox", "sox": "Chicago White Sox",
+  "white sox": "Chicago White Sox", "cubs": "Chicago Cubs",
+  "cards": "St. Louis Cardinals", "dodgers": "Los Angeles Dodgers",
+  "braves": "Atlanta Braves", "phillies": "Philadelphia Phillies",
+  "orioles": "Baltimore Orioles", "rangers": "Texas Rangers",
+  "mariners": "Seattle Mariners", "astros": "Houston Astros",
+  "tigers": "Detroit Tigers", "royals": "Kansas City Royals",
+  "pirates": "Pittsburgh Pirates", "rays": "Tampa Bay Rays",
+  "twins": "Minnesota Twins",
+  
+  // NHL Teams
+  "bruins": "Boston Bruins", "isles": "New York Islanders",
+  "islanders": "New York Islanders", "devils": "New Jersey Devils",
+  "pens": "Pittsburgh Penguins", "penguins": "Pittsburgh Penguins",
+  "caps": "Washington Capitals", "capitals": "Washington Capitals",
+  "flyers": "Philadelphia Flyers", "leafs": "Toronto Maple Leafs",
+  "lightning": "Tampa Bay Lightning", "blackhawks": "Chicago Blackhawks",
+  "canes": "Carolina Hurricanes", "hurricanes": "Carolina Hurricanes",
+  "avs": "Colorado Avalanche", "avalanche": "Colorado Avalanche",
+  "knights": "Vegas Golden Knights", "golden knights": "Vegas Golden Knights",
+  "kraken": "Seattle Kraken", "sabres": "Buffalo Sabres",
+  
+  // College Football
+  "bama": "Alabama Crimson Tide", "roll tide": "Alabama Crimson Tide",
+  "ou": "Oklahoma Sooners", "sooners": "Oklahoma Sooners",
+  "osu": "Oklahoma State Cowboys", "longhorns": "Texas Longhorns",
+  "horns": "Texas Longhorns", "gators": "Florida Gators",
+  "vols": "Tennessee Volunteers", "volunteers": "Tennessee Volunteers",
+  "bulldogs": "Georgia Bulldogs", "fsu": "Florida State Seminoles",
+  "seminoles": "Florida State Seminoles", "trojans": "USC Trojans",
+  "fighting irish": "Notre Dame Fighting Irish", "clemson": "Clemson Tigers",
+  "wolverines": "Michigan Wolverines", "buckeyes": "Ohio State Buckeyes",
+  "penn state": "Penn State Nittany Lions", "oregon": "Oregon Ducks",
+  "ducks": "Oregon Ducks", "badgers": "Wisconsin Badgers",
+  "huskers": "Nebraska Cornhuskers", "aggies": "Texas A&M Aggies",
+  "wildcats": "Kentucky Wildcats",
+  
+  // College Basketball
+  "jayhawks": "Kansas Jayhawks", "tar heels": "North Carolina Tar Heels",
+  "dukies": "Duke Blue Devils", "blue devils": "Duke Blue Devils",
+  "huskies": "UConn Huskies", "spartans": "Michigan State Spartans",
+  "kansas": "Kansas Jayhawks", "villanova": "Villanova Wildcats",
+};
+
+// Pre-process query with dictionary lookup before AI normalization
+function preProcessQuery(query: string): string {
+  const lowerQuery = query.toLowerCase().trim();
+  
+  // Check for exact matches first
+  if (teamNicknames[lowerQuery]) {
+    return teamNicknames[lowerQuery];
+  }
+  
+  // Check if any nickname is contained in the query and replace it
+  let processedQuery = query;
+  for (const [nickname, fullName] of Object.entries(teamNicknames)) {
+    const regex = new RegExp(`\\b${nickname}\\b`, 'gi');
+    if (regex.test(processedQuery)) {
+      processedQuery = processedQuery.replace(regex, fullName);
+      break; // Only replace first match to avoid conflicts
+    }
+  }
+  
+  return processedQuery;
+}
+
 // AI query normalization to expand partial team names
 async function normalizeQuery(query: string, apiKey: string): Promise<string> {
-  console.log('Normalizing query:', query);
+  console.log('Original query:', query);
+  
+  // Pre-process with dictionary first
+  const preProcessed = preProcessQuery(query);
+  console.log('Pre-processed query:', preProcessed);
   
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -277,11 +390,11 @@ Rules:
 - Optimize for finding broadcast channels and streaming availability
 
 Examples:
-"Golden State" → "Golden State Warriors basketball game schedule"
-"OU Football" → "Oklahoma Sooners football schedule"
-"Bama" → "Alabama Crimson Tide football schedule"
-"KC" → "Kansas City Chiefs next game"
-"Lakers" → "Los Angeles Lakers basketball game"
+"Golden State Warriors" → "Golden State Warriors basketball game schedule"
+"Oklahoma Sooners" → "Oklahoma Sooners football schedule"
+"Alabama Crimson Tide" → "Alabama Crimson Tide football schedule"
+"Kansas City Chiefs" → "Kansas City Chiefs next game"
+"Los Angeles Lakers" → "Los Angeles Lakers basketball game"
 "Chelsea" → "Chelsea FC fixtures"
 "NBA games this weekend" → "NBA basketball games schedule this weekend broadcast"
 "UFC" → "UFC next event schedule broadcast"
@@ -290,24 +403,24 @@ Return ONLY the rewritten query text, nothing else.`
           },
           {
             role: 'user',
-            content: query
+            content: preProcessed
           }
         ],
       }),
     });
 
     if (!response.ok) {
-      console.error('Query normalization failed, using original query');
-      return query;
+      console.error('Query normalization failed, using pre-processed query');
+      return preProcessed;
     }
 
     const data = await response.json();
-    const normalizedQuery = data.choices?.[0]?.message?.content?.trim() || query;
+    const normalizedQuery = data.choices?.[0]?.message?.content?.trim() || preProcessed;
     console.log('Normalized query:', normalizedQuery);
     return normalizedQuery;
   } catch (error) {
     console.error('Query normalization error:', error);
-    return query;
+    return preProcessed;
   }
 }
 
