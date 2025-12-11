@@ -76,7 +76,7 @@ export function SearchBar({
           </span>
         </button>
 
-        <div className="absolute left-[135px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+        <div className="absolute left-[155px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-muted-foreground" />
         </div>
         <Input
