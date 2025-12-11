@@ -340,6 +340,44 @@ const teamNicknames: Record<string, string> = {
   "kansas": "Kansas Jayhawks", "villanova": "Villanova Wildcats",
 };
 
+// Convert dictionary to string for AI prompt
+function getDictionaryString(): string {
+  const categories: Record<string, string[]> = {
+    'NFL': [], 'NBA': [], 'MLB': [], 'NHL': [], 'College Football': [], 'College Basketball': []
+  };
+  
+  // Group by category based on team name patterns
+  for (const [nickname, fullName] of Object.entries(teamNicknames)) {
+    if (fullName.includes('49ers') || fullName.includes('Cowboys') || fullName.includes('Chiefs') || 
+        fullName.includes('Patriots') || fullName.includes('Dolphins') || fullName.includes('Jets') ||
+        fullName.includes('Giants') || fullName.includes('Saints') || fullName.includes('Packers') ||
+        fullName.includes('Steelers') || fullName.includes('Broncos') || fullName.includes('Bears') ||
+        fullName.includes('Lions') || fullName.includes('Ravens') || fullName.includes('Buccaneers') ||
+        fullName.includes('Rams') || fullName.includes('Chargers') || fullName.includes('Vikings') ||
+        fullName.includes('Bills') || fullName.includes('Texans') || fullName.includes('Jaguars') ||
+        fullName.includes('Raiders') || fullName.includes('Commanders') || fullName.includes('Eagles') ||
+        fullName.includes('Panthers') || fullName.includes('Falcons') || fullName.includes('Titans') ||
+        fullName.includes('Colts') || fullName.includes('Cardinals') || fullName.includes('Seahawks') ||
+        fullName.includes('Bengals') || fullName.includes('Browns')) {
+      categories['NFL'].push(`"${nickname}" → "${fullName}"`);
+    } else if (fullName.includes('Warriors') || fullName.includes('Lakers') || fullName.includes('Clippers') ||
+               fullName.includes('Suns') || fullName.includes('Mavericks') || fullName.includes('Bucks') ||
+               fullName.includes('Celtics') || fullName.includes('Knicks') || fullName.includes('Nets') ||
+               fullName.includes('Raptors') || fullName.includes('Heat') || fullName.includes('Magic') ||
+               fullName.includes('Hawks') || fullName.includes('Pelicans') || fullName.includes('Spurs') ||
+               fullName.includes('Grizzlies') || fullName.includes('Trail Blazers') || fullName.includes('Nuggets') ||
+               fullName.includes('Rockets') || fullName.includes('Timberwolves') || fullName.includes('Jazz') ||
+               fullName.includes('Kings') || fullName.includes('Wizards') || fullName.includes('Bulls')) {
+      categories['NBA'].push(`"${nickname}" → "${fullName}"`);
+    }
+  }
+  
+  return Object.entries(categories)
+    .filter(([_, items]) => items.length > 0)
+    .map(([cat, items]) => `${cat}: ${items.slice(0, 10).join(', ')}...`)
+    .join('\n');
+}
+
 // Pre-process query with dictionary lookup before AI normalization
 function preProcessQuery(query: string): string {
   const lowerQuery = query.toLowerCase().trim();
@@ -370,6 +408,9 @@ async function normalizeQuery(query: string, apiKey: string): Promise<string> {
   const preProcessed = preProcessQuery(query);
   console.log('Pre-processed query:', preProcessed);
   
+  // If pre-processing already expanded the query significantly, we may skip AI
+  // But still run AI to add context like "schedule" or "next game"
+  
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -382,24 +423,29 @@ async function normalizeQuery(query: string, apiKey: string): Promise<string> {
         messages: [
           {
             role: 'system',
-            content: `You rewrite sports search queries into full, unambiguous search phrases.
+            content: `You rewrite sports search queries into fully qualified sports search phrases.
 
-Rules:
-- Expand partial team names into full official names
-- Add context like "next game", "schedule", or "broadcast information" if missing
-- Optimize for finding broadcast channels and streaming availability
+TEAM NICKNAME DICTIONARY (partial list):
+NFL: "niners" → "San Francisco 49ers", "cowboys" → "Dallas Cowboys", "chiefs" → "Kansas City Chiefs", "pats" → "New England Patriots"...
+NBA: "dubs" → "Golden State Warriors", "lakers" → "Los Angeles Lakers", "warriors" → "Golden State Warriors", "celtics" → "Boston Celtics"...
+MLB: "yanks" → "New York Yankees", "dodgers" → "Los Angeles Dodgers", "sox" → "Chicago White Sox"...
+NHL: "bruins" → "Boston Bruins", "pens" → "Pittsburgh Penguins", "caps" → "Washington Capitals"...
+College: "bama" → "Alabama Crimson Tide", "sooners" → "Oklahoma Sooners", "buckeyes" → "Ohio State Buckeyes"...
 
-Examples:
-"Golden State Warriors" → "Golden State Warriors basketball game schedule"
-"Oklahoma Sooners" → "Oklahoma Sooners football schedule"
-"Alabama Crimson Tide" → "Alabama Crimson Tide football schedule"
-"Kansas City Chiefs" → "Kansas City Chiefs next game"
-"Los Angeles Lakers" → "Los Angeles Lakers basketball game"
-"Chelsea" → "Chelsea FC fixtures"
-"NBA games this weekend" → "NBA basketball games schedule this weekend broadcast"
-"UFC" → "UFC next event schedule broadcast"
+RULES:
+1. If any nickname or partial team name is detected, REPLACE it with the full official team name
+2. Add sports context: "schedule", "next game", "upcoming match", or "broadcast information"
+3. Ensure the query is optimized for retrieving live event schedules and broadcast info
 
-Return ONLY the rewritten query text, nothing else.`
+EXAMPLES:
+"nuggets" → "Denver Nuggets basketball next game schedule"
+"lakers game" → "Los Angeles Lakers basketball game schedule"  
+"warriors tonight" → "Golden State Warriors basketball game tonight broadcast"
+"bama football" → "Alabama Crimson Tide football schedule"
+"chiefs vs raiders" → "Kansas City Chiefs vs Las Vegas Raiders NFL game schedule"
+"UFC this weekend" → "UFC next event schedule broadcast"
+
+Return ONLY the rewritten query text. Do NOT explain.`
           },
           {
             role: 'user',
