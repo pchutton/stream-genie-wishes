@@ -76,13 +76,15 @@ export function SearchBar({
           </span>
         </button>
 
-        <Search className="absolute left-[125px] top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <div className="absolute left-[135px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+          <Search className="h-5 w-5 text-muted-foreground" />
+        </div>
         <Input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={currentPlaceholder}
-          className="h-14 rounded-2xl border-2 border-border bg-card pl-[155px] pr-24 text-lg transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-14 rounded-2xl border-2 border-border bg-card pl-[160px] pr-24 text-lg transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {query && (
