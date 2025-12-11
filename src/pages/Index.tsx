@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { Sparkles, Search as SearchIcon } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { SearchBar } from '@/components/search/SearchBar';
+import { SearchBar, SearchMode } from '@/components/search/SearchBar';
 import { MediaCard, MediaItem } from '@/components/media/MediaCard';
 import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
+import { LiveEventsSearch } from '@/components/search/LiveEventsSearch';
 import { useAuth } from '@/lib/auth';
 import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist, useMarkAsSeen } from '@/hooks/useWatchlist';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
+import { useLiveEventsSearch } from '@/hooks/useLiveEventsSearch';
 import { useRatings } from '@/hooks/useRatings';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -15,8 +17,10 @@ export default function Home() {
   const { user } = useAuth();
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [searchMode, setSearchMode] = useState<SearchMode>('media');
 
-  const { results: searchResults, isLoading: isSearching, search, clearResults } = useTMDBSearch();
+  const { results: searchResults, isLoading: isSearching, search, clearResults: clearMediaResults } = useTMDBSearch();
+  const { results: liveResults, isLoading: isSearchingLive, search: searchLive, clearResults: clearLiveResults } = useLiveEventsSearch();
   const { data: watchlist } = useWatchlist();
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
@@ -33,8 +37,15 @@ export default function Home() {
     return watchlist?.find(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
   };
 
-  const handleSearch = async (query: string) => {
-    await search(query);
+  const handleSearch = async (query: string, mode: SearchMode) => {
+    setSearchMode(mode);
+    if (mode === 'media') {
+      clearLiveResults();
+      await search(query);
+    } else {
+      clearMediaResults();
+      await searchLive(query);
+    }
   };
 
   const isInWatchlist = (tmdbId: number, mediaType: 'movie' | 'tv') => {
@@ -85,15 +96,17 @@ export default function Home() {
         {/* Hero Section */}
         <div className="mb-8 text-center">
           <h1 className="mb-2 text-2xl font-bold">What do you want to watch?</h1>
-          <p className="text-muted-foreground">Search for movies and TV shows</p>
+          <p className="text-muted-foreground">Search for movies, TV shows, or live events</p>
         </div>
 
         {/* Search Bar */}
-        <SearchBar onSearch={handleSearch} isLoading={isSearching} className="mb-8" />
+        <SearchBar onSearch={handleSearch} isLoading={isSearching || isSearchingLive} className="mb-8" />
 
         {/* Search Results */}
         <div className="space-y-4">
-          {filteredSearchResults.length > 0 ? (
+          {searchMode === 'live' ? (
+            <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} />
+          ) : filteredSearchResults.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               {filteredSearchResults.map((item) => (
                 <MediaCard
