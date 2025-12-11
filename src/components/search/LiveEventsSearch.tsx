@@ -95,7 +95,7 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
   
   const content = (
     <div className="flex flex-col items-center gap-1">
-      <NetworkLogo platform={platform.name} className="h-8" />
+      <NetworkLogo platform={platform.name} className="h-9" />
       <span className={`text-[10px] px-1.5 py-0.5 rounded border flex items-center gap-1 ${style.bg} ${style.text}`}>
         {style.icon}
         <span className="truncate max-w-[80px]">{platform.status}</span>
@@ -152,7 +152,7 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
           <NetworkLogo 
             key={`${platform}-${index}`}
             platform={platform}
-            className="h-8"
+            className="h-9"
           />
         );
         
