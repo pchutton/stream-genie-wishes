@@ -73,7 +73,7 @@ function WatchlistContent() {
 
         <TabsContent value="to-watch">
           {unwatchedItems.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {unwatchedItems.map((item) => (
                 <MediaCard
                   key={item.id}
@@ -102,7 +102,7 @@ function WatchlistContent() {
 
         <TabsContent value="watched">
           {watchedItems.length > 0 ? (
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               {watchedItems.map((item) => (
                 <MediaCard
                   key={item.id}
