@@ -52,16 +52,16 @@ export function SearchBar({
           type="button"
           onClick={toggleMode}
           className={cn(
-            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-300",
+            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 rounded-xl px-3.5 py-3 transition-all duration-300",
             "bg-primary/25 hover:bg-primary/35 border border-primary/50"
           )}
-          title={mode === 'media' ? 'Switch to Live Events' : 'Switch to Movies & TV'}
+          title={mode === 'media' ? 'Switch to Live Events' : 'Switch to TV/Movies'}
         >
-          <div className="relative w-[62px] h-[31px] rounded-full bg-background border border-border overflow-hidden">
+          <div className="relative w-[68px] h-[34px] rounded-full bg-background border border-border overflow-hidden">
             <div 
               className={cn(
-                "absolute top-[3px] w-[25px] h-[25px] rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
-                mode === 'media' ? 'left-[3px]' : 'left-[calc(100%-28px)]'
+                "absolute top-[3px] w-[28px] h-[28px] rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
+                mode === 'media' ? 'left-[3px]' : 'left-[calc(100%-31px)]'
               )}
             >
               {mode === 'media' ? (
@@ -71,12 +71,12 @@ export function SearchBar({
               )}
             </div>
           </div>
-          <span className="text-sm font-medium text-muted-foreground min-w-[40px]">
-            {mode === 'media' ? 'TV' : 'Live'}
+          <span className="text-sm font-medium text-muted-foreground min-w-[55px]">
+            {mode === 'media' ? 'TV/Movie' : 'Live'}
           </span>
         </button>
 
-        <div className="absolute left-[155px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
+        <div className="absolute left-[175px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
           <Search className="h-5 w-5 text-muted-foreground" />
         </div>
         <Input
@@ -84,7 +84,7 @@ export function SearchBar({
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={currentPlaceholder}
-          className="h-14 rounded-2xl border-2 border-border bg-card pl-[160px] pr-24 text-lg text-center transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
+          className="h-14 rounded-2xl border-2 border-border bg-card pl-[200px] pr-24 text-lg text-center transition-all focus:border-primary focus:ring-2 focus:ring-primary/20"
         />
         <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
           {query && (
