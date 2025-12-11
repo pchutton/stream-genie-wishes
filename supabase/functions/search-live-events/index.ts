@@ -16,6 +16,28 @@ interface LiveEvent {
   streamingPlatforms?: string[];
 }
 
+// Mapping of broadcast channels to streaming platforms
+const channelToStreamingMap: Record<string, string[]> = {
+  'ABC': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'DirecTV Stream'],
+  'ESPN': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
+  'ESPN2': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
+  'ESPN+': ['ESPN+'],
+  'FOX': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
+  'FS1': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
+  'Fox Sports': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
+  'CBS': ['Paramount+', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  'NBC': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  'Peacock': ['Peacock'],
+  'Prime Video': ['Prime Video'],
+  'Amazon Prime': ['Prime Video'],
+  'TNT': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
+  'TBS': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
+  'NFL Network': ['YouTube TV', 'Fubo', 'Sling Blue', 'DirecTV Stream'],
+  'NBA TV': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
+  'MLB Network': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
+  'USA Network': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+};
+
 async function enrichWithStreamingPlatforms(
   events: LiveEvent[],
   apiKey: string
@@ -43,20 +65,21 @@ Current broadcast info: ${event.whereToWatch}
             messages: [
               {
                 role: 'system',
-                content: `You determine which major US broadcasting networks or streaming platforms will show sports events.
-Only list real, confirmed platforms such as: ABC, ESPN, ESPN+, Fox, Fox Sports, FS1, CBS, NBC, Peacock, Prime Video, YouTube TV, NFL Network, NBA TV, MLB Network, TNT, TBS, USA Network, Paramount+.
-If you cannot confirm platforms, return an empty array.
-Return ONLY a valid JSON array of platform names, no markdown or explanation.`
+                content: `You determine which major US broadcasting networks will show sports events.
+Identify the PRIMARY broadcast channel(s) from this list: ABC, ESPN, ESPN2, ESPN+, FOX, FS1, CBS, NBC, Peacock, Prime Video, TNT, TBS, NFL Network, NBA TV, MLB Network, USA Network.
+Return ONLY a valid JSON object with broadcast_channels array. No markdown or explanation.`
               },
               {
                 role: 'user',
-                content: `Based on the following sports event information, identify which major US broadcasting networks or streaming platforms will show this event.
+                content: `Based on the following sports event information, identify which major US broadcasting networks will show this event.
 
 EVENT DETAILS:
 ${eventDetails}
 
-Respond with a JSON array of platforms like: ["ESPN", "ABC", "Fox Sports"]
-If unknown, return: []`
+Step 1: Identify the primary broadcast channels (e.g., ABC, ESPN, FOX, CBS, NBC, ESPN+, Peacock, Prime Video, TNT, FS1).
+
+Respond with a JSON object like: {"broadcast_channels": ["ESPN", "ABC"]}
+If unknown, return: {"broadcast_channels": []}`
               }
             ],
           }),
@@ -68,16 +91,33 @@ If unknown, return: []`
         }
 
         const enrichData = await enrichResponse.json();
-        const content = enrichData.choices?.[0]?.message?.content || '[]';
+        const content = enrichData.choices?.[0]?.message?.content || '{}';
         
         try {
           const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          const platforms = JSON.parse(cleanContent);
+          const parsed = JSON.parse(cleanContent);
           
-          if (Array.isArray(platforms)) {
-            console.log(`Found platforms for ${event.eventName}:`, platforms);
-            return { ...event, streamingPlatforms: platforms };
-          }
+          const broadcastChannels: string[] = parsed.broadcast_channels || [];
+          console.log(`Broadcast channels for ${event.eventName}:`, broadcastChannels);
+          
+          // Map broadcast channels to all available streaming platforms
+          const streamingSet = new Set<string>();
+          
+          // Add the broadcast channels themselves
+          broadcastChannels.forEach(channel => {
+            streamingSet.add(channel);
+            
+            // Add all streaming platforms that carry this channel
+            const platforms = channelToStreamingMap[channel];
+            if (platforms) {
+              platforms.forEach(platform => streamingSet.add(platform));
+            }
+          });
+          
+          const streamingPlatforms = Array.from(streamingSet);
+          console.log(`All streaming options for ${event.eventName}:`, streamingPlatforms);
+          
+          return { ...event, streamingPlatforms };
         } catch (parseError) {
           console.error('Failed to parse platforms:', parseError);
         }
