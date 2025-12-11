@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Sparkles, Search as SearchIcon } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { SearchBar } from '@/components/search/SearchBar';
+import { SearchBar, SearchMode } from '@/components/search/SearchBar';
 import { MediaCard, MediaItem } from '@/components/media/MediaCard';
 import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
 import { useAuth } from '@/lib/auth';
@@ -33,8 +33,13 @@ export default function Home() {
     return watchlist?.find(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
   };
 
-  const handleSearch = async (query: string) => {
-    await search(query);
+  const handleSearch = async (query: string, mode: SearchMode) => {
+    if (mode === 'media') {
+      await search(query);
+    } else {
+      // Live events search - placeholder for future implementation
+      console.log('Live events search:', query);
+    }
   };
 
   const isInWatchlist = (tmdbId: number, mediaType: 'movie' | 'tv') => {
