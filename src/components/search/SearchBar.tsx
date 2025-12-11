@@ -14,7 +14,7 @@ interface SearchBarProps {
 export function SearchBar({ 
   onSearch, 
   isLoading = false,
-  placeholder = 'Search for movies or TV shows...',
+  placeholder = 'Find Your Show. Compare Every Streaming Option.',
   className,
 }: SearchBarProps) {
   const [query, setQuery] = useState('');
