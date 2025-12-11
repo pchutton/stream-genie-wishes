@@ -1,38 +1,12 @@
 import { ExternalLink, Calendar, Users, Tv, Radio } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LiveEvent } from '@/hooks/useLiveEventsSearch';
+import { NetworkLogo } from '@/components/media/NetworkLogos';
 
 interface LiveEventsSearchProps {
   results: LiveEvent[];
   isLoading: boolean;
-}
-
-// Platform color mapping for visual distinction
-const platformColors: Record<string, string> = {
-  'ESPN': 'bg-red-600 text-white',
-  'ESPN+': 'bg-red-700 text-white',
-  'ABC': 'bg-blue-600 text-white',
-  'Fox': 'bg-blue-500 text-white',
-  'Fox Sports': 'bg-blue-500 text-white',
-  'FS1': 'bg-blue-500 text-white',
-  'CBS': 'bg-blue-800 text-white',
-  'NBC': 'bg-purple-600 text-white',
-  'Peacock': 'bg-gradient-to-r from-purple-500 to-yellow-400 text-white',
-  'Prime Video': 'bg-cyan-600 text-white',
-  'YouTube TV': 'bg-red-500 text-white',
-  'NFL Network': 'bg-blue-900 text-white',
-  'NBA TV': 'bg-orange-600 text-white',
-  'MLB Network': 'bg-blue-700 text-white',
-  'TNT': 'bg-red-800 text-white',
-  'TBS': 'bg-blue-600 text-white',
-  'USA Network': 'bg-blue-500 text-white',
-  'Paramount+': 'bg-blue-700 text-white',
-};
-
-function getPlatformClass(platform: string): string {
-  return platformColors[platform] || 'bg-muted text-foreground';
 }
 
 function StreamingPlatformBadges({ platforms }: { platforms?: string[] }) {
@@ -45,14 +19,13 @@ function StreamingPlatformBadges({ platforms }: { platforms?: string[] }) {
   }
 
   return (
-    <div className="flex flex-wrap gap-1.5">
+    <div className="flex flex-wrap gap-2 items-center">
       {platforms.map((platform, index) => (
-        <Badge 
+        <NetworkLogo 
           key={`${platform}-${index}`}
-          className={`${getPlatformClass(platform)} text-xs font-medium px-2 py-0.5`}
-        >
-          {platform}
-        </Badge>
+          platform={platform}
+          className="h-6"
+        />
       ))}
     </div>
   );
