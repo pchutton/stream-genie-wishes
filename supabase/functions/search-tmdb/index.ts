@@ -12,14 +12,20 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-async function normalizeQuery(query: string): Promise<string> {
+interface QueryAnalysis {
+  normalizedQuery: string;
+  isFranchise: boolean;
+  franchiseName: string | null;
+}
+
+async function analyzeQuery(query: string): Promise<QueryAnalysis> {
   if (!LOVABLE_API_KEY) {
-    console.log('LOVABLE_API_KEY not configured, skipping query normalization');
-    return query;
+    console.log('LOVABLE_API_KEY not configured, skipping query analysis');
+    return { normalizedQuery: query, isFranchise: false, franchiseName: null };
   }
 
   try {
-    console.log(`Normalizing query: "${query}"`);
+    console.log(`Analyzing query: "${query}"`);
     
     const response = await fetch(LOVABLE_AI_URL, {
       method: 'POST',
@@ -32,41 +38,133 @@ async function normalizeQuery(query: string): Promise<string> {
         messages: [
           {
             role: 'system',
-            content: `Rewrite the user's search query into the correct movie or TV show name that TMDB will recognize.
+            content: `Analyze the user's movie/TV search query and determine:
+1. The corrected/normalized search text
+2. Whether this is a franchise search (Star Wars, Marvel, Harry Potter, Lord of the Rings, Jurassic Park, Fast & Furious, James Bond, Mission Impossible, Indiana Jones, Batman, Spider-Man, X-Men, Transformers, Pirates of the Caribbean, The Matrix, Terminator, Rocky, Rambo, Die Hard, Alien, Predator, Back to the Future, Toy Story, Shrek, Ice Age, Madagascar, Kung Fu Panda, How to Train Your Dragon, Despicable Me, The Hunger Games, Twilight, Divergent, The Maze Runner, etc.)
 
 Rules:
-- Add missing spaces for combined words (e.g., "starwars" → "Star Wars", "harrypotter" → "Harry Potter").
-- Correct common typos (e.g., "avnegers" → "Avengers").
-- For franchise searches (e.g., "starwars", "marvelmovies", "harrypotter"), expand into the proper franchise title.
-- Use official spellings and spacing.
-- If the user types a franchise name, treat it as a broad search, not a single movie.
-- Keep the query concise - just the corrected title/franchise name.
-
-Return ONLY the cleaned-up search text, nothing else.`
+- Add missing spaces for combined words (starwars → Star Wars)
+- Correct common typos
+- Use official spellings`
           },
           {
             role: 'user',
             content: query
           }
         ],
-        max_tokens: 100,
-        temperature: 0.1,
+        tools: [
+          {
+            type: 'function',
+            function: {
+              name: 'analyze_search_query',
+              description: 'Analyze and normalize the search query',
+              parameters: {
+                type: 'object',
+                properties: {
+                  normalizedQuery: {
+                    type: 'string',
+                    description: 'The corrected/normalized search query'
+                  },
+                  isFranchise: {
+                    type: 'boolean',
+                    description: 'True if this is a well-known movie franchise search'
+                  },
+                  franchiseName: {
+                    type: 'string',
+                    description: 'The official franchise name for collection search (e.g., "Star Wars Collection", "Harry Potter Collection")'
+                  }
+                },
+                required: ['normalizedQuery', 'isFranchise'],
+                additionalProperties: false
+              }
+            }
+          }
+        ],
+        tool_choice: { type: 'function', function: { name: 'analyze_search_query' } },
       }),
     });
 
     if (!response.ok) {
-      console.log(`AI normalization failed: ${response.status}`);
-      return query;
+      console.log(`AI analysis failed: ${response.status}`);
+      return { normalizedQuery: query, isFranchise: false, franchiseName: null };
     }
 
     const data = await response.json();
-    const normalizedQuery = data.choices?.[0]?.message?.content?.trim() || query;
+    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
     
-    console.log(`Normalized query: "${query}" → "${normalizedQuery}"`);
-    return normalizedQuery;
+    if (toolCall?.function?.arguments) {
+      const args = JSON.parse(toolCall.function.arguments);
+      console.log(`Query analysis result:`, args);
+      return {
+        normalizedQuery: args.normalizedQuery || query,
+        isFranchise: args.isFranchise || false,
+        franchiseName: args.franchiseName || null
+      };
+    }
+    
+    return { normalizedQuery: query, isFranchise: false, franchiseName: null };
   } catch (error) {
-    console.error('Error normalizing query:', error);
-    return query;
+    console.error('Error analyzing query:', error);
+    return { normalizedQuery: query, isFranchise: false, franchiseName: null };
+  }
+}
+
+interface TMDBCollectionMovie {
+  id: number;
+  title: string;
+  poster_path: string | null;
+  release_date: string;
+  overview: string;
+  genre_ids?: number[];
+  vote_average?: number;
+}
+
+async function searchCollection(franchiseName: string): Promise<TMDBCollectionMovie[]> {
+  try {
+    // Search for the collection
+    const searchRes = await fetch(
+      `${TMDB_BASE_URL}/search/collection?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(franchiseName)}&language=en-US`
+    );
+    
+    if (!searchRes.ok) {
+      console.log(`Collection search failed: ${searchRes.status}`);
+      return [];
+    }
+    
+    const searchData = await searchRes.json();
+    const collection = searchData.results?.[0];
+    
+    if (!collection) {
+      console.log(`No collection found for: ${franchiseName}`);
+      return [];
+    }
+    
+    console.log(`Found collection: ${collection.name} (ID: ${collection.id})`);
+    
+    // Get all movies in the collection
+    const collectionRes = await fetch(
+      `${TMDB_BASE_URL}/collection/${collection.id}?api_key=${TMDB_API_KEY}&language=en-US`
+    );
+    
+    if (!collectionRes.ok) {
+      console.log(`Collection details failed: ${collectionRes.status}`);
+      return [];
+    }
+    
+    const collectionData = await collectionRes.json();
+    const movies = collectionData.parts || [];
+    
+    console.log(`Found ${movies.length} movies in collection`);
+    
+    // Sort by release date (oldest first)
+    return movies.sort((a: TMDBCollectionMovie, b: TMDBCollectionMovie) => {
+      const dateA = a.release_date ? new Date(a.release_date).getTime() : 0;
+      const dateB = b.release_date ? new Date(b.release_date).getTime() : 0;
+      return dateA - dateB;
+    });
+  } catch (error) {
+    console.error('Error searching collection:', error);
+    return [];
   }
 }
 
@@ -325,27 +423,53 @@ serve(async (req) => {
 
     console.log(`Original query: "${query}" in region: ${region}`);
 
-    // Normalize the query using AI before searching
-    const normalizedQuery = await normalizeQuery(query);
+    // Analyze the query using AI to normalize and detect franchises
+    const { normalizedQuery, isFranchise, franchiseName } = await analyzeQuery(query);
     
-    console.log(`Searching TMDB for: "${normalizedQuery}"`);
+    console.log(`Query analysis - normalized: "${normalizedQuery}", isFranchise: ${isFranchise}, franchiseName: ${franchiseName}`);
 
-    // Search for both movies and TV shows using /search/multi
-    const searchResponse = await fetch(
-      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=1`
-    );
+    let mediaResults: TMDBSearchResult[] = [];
 
-    if (!searchResponse.ok) {
-      console.error('TMDB search failed:', searchResponse.status, await searchResponse.text());
-      throw new Error('Failed to search TMDB');
+    // If it's a franchise search, try to get the collection first
+    if (isFranchise && franchiseName) {
+      const collectionMovies = await searchCollection(franchiseName);
+      
+      if (collectionMovies.length > 0) {
+        // Convert collection movies to TMDBSearchResult format
+        mediaResults = collectionMovies.map(movie => ({
+          id: movie.id,
+          title: movie.title,
+          poster_path: movie.poster_path,
+          release_date: movie.release_date,
+          genre_ids: movie.genre_ids || [],
+          media_type: 'movie',
+          overview: movie.overview,
+          vote_average: movie.vote_average,
+        }));
+        console.log(`Using ${mediaResults.length} movies from collection`);
+      }
     }
 
-    const searchData = await searchResponse.json();
-    
-    // Filter to only movies and TV shows, limit to 20 results
-    const mediaResults = (searchData.results as TMDBSearchResult[])
-      .filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
-      .slice(0, 20);
+    // If no collection results, fall back to multi-search
+    if (mediaResults.length === 0) {
+      console.log(`Searching TMDB multi for: "${normalizedQuery}"`);
+      
+      const searchResponse = await fetch(
+        `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=1`
+      );
+
+      if (!searchResponse.ok) {
+        console.error('TMDB search failed:', searchResponse.status, await searchResponse.text());
+        throw new Error('Failed to search TMDB');
+      }
+
+      const searchData = await searchResponse.json();
+      
+      // Filter to only movies and TV shows, limit to 20 results
+      mediaResults = (searchData.results as TMDBSearchResult[])
+        .filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
+        .slice(0, 20);
+    }
 
     console.log(`Found ${mediaResults.length} results`);
 
