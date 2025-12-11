@@ -53,7 +53,7 @@ export function SearchBar({
           onClick={toggleMode}
           className={cn(
             "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-2 rounded-xl px-3 py-2.5 transition-all duration-300",
-            "bg-primary/10 hover:bg-primary/20 border border-primary/30"
+            "bg-primary/25 hover:bg-primary/35 border border-primary/50"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to Movies & TV'}
         >
