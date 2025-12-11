@@ -10,7 +10,7 @@ interface LiveEventsSearchProps {
 
 function EventCard({ event }: { event: LiveEvent }) {
   return (
-    <Card className="bg-card border-border hover:border-primary/50 transition-colors">
+    <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg font-semibold text-foreground line-clamp-2">
           {event.eventName}
