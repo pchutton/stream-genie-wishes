@@ -2,6 +2,3 @@ project_id = "nyxmunwiqwzhncctbuma"
 
 [functions.search-tmdb]
 verify_jwt = false
-
-[functions.search-live-events]
-verify_jwt = false
