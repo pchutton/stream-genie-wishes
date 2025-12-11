@@ -1,0 +1,105 @@
+import { ExternalLink, Calendar, Users, Tv, Radio } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import type { LiveEvent } from '@/hooks/useLiveEventsSearch';
+
+interface LiveEventsSearchProps {
+  results: LiveEvent[];
+  isLoading: boolean;
+}
+
+function EventCard({ event }: { event: LiveEvent }) {
+  return (
+    <Card className="bg-card border-border hover:border-primary/50 transition-colors">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2">
+          {event.eventName}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex items-start gap-2 text-sm">
+          <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <span className="text-muted-foreground">{event.time}</span>
+        </div>
+        
+        <div className="flex items-start gap-2 text-sm">
+          <Users className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <span className="text-muted-foreground">{event.participants}</span>
+        </div>
+        
+        <div className="flex items-start gap-2 text-sm">
+          <Tv className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <span className="text-foreground font-medium">{event.whereToWatch}</span>
+        </div>
+        
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {event.summary}
+        </p>
+        
+        {event.link && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mt-2"
+            onClick={() => window.open(event.link, '_blank')}
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            More Info
+          </Button>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function LoadingSkeleton() {
+  return (
+    <Card className="bg-card border-border">
+      <CardHeader className="pb-2">
+        <Skeleton className="h-6 w-3/4" />
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-4 w-2/3" />
+        <Skeleton className="h-4 w-1/2" />
+        <Skeleton className="h-12 w-full" />
+        <Skeleton className="h-9 w-full" />
+      </CardContent>
+    </Card>
+  );
+}
+
+export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) {
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <LoadingSkeleton />
+        <LoadingSkeleton />
+        <LoadingSkeleton />
+      </div>
+    );
+  }
+
+  if (results.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <Radio className="mb-4 h-12 w-12 text-muted-foreground/50" />
+        <p className="text-muted-foreground">
+          Search for live events, sports, or concerts
+        </p>
+        <p className="text-sm text-muted-foreground/70 mt-1">
+          Try "Lakers game tonight" or "UFC this weekend"
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {results.map((event, index) => (
+        <EventCard key={`${event.eventName}-${index}`} event={event} />
+      ))}
+    </div>
+  );
+}
