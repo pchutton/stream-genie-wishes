@@ -52,22 +52,22 @@ export function SearchBar({
           type="button"
           onClick={toggleMode}
           className={cn(
-            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-full px-2 py-2 transition-all duration-300",
+            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-full px-2.5 py-2.5 transition-all duration-300",
             "bg-primary/20 hover:bg-primary/30 border border-primary/40"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to TV/Movies'}
         >
-          <div className="relative w-[52px] h-[28px] rounded-full bg-background/80 border border-border overflow-hidden">
+          <div className="relative w-[60px] h-[32px] rounded-full bg-background/80 border border-border overflow-hidden">
             <div 
               className={cn(
-                "absolute top-[2px] w-[24px] h-[24px] rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
-                mode === 'media' ? 'left-[2px]' : 'left-[24px]'
+                "absolute top-[2px] w-[28px] h-[28px] rounded-full bg-primary transition-all duration-300 flex items-center justify-center",
+                mode === 'media' ? 'left-[2px]' : 'left-[28px]'
               )}
             >
               {mode === 'media' ? (
-                <Tv className="h-3.5 w-3.5 text-primary-foreground" />
+                <Tv className="h-4 w-4 text-primary-foreground" />
               ) : (
-                <Radio className="h-3.5 w-3.5 text-primary-foreground" />
+                <Radio className="h-4 w-4 text-primary-foreground" />
               )}
             </div>
           </div>
