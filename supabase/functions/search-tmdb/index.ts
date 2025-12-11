@@ -2,13 +2,73 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const TMDB_API_KEY = Deno.env.get('TMDB_API_KEY');
 const OMDB_API_KEY = Deno.env.get('OMDB_API_KEY');
+const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const OMDB_BASE_URL = 'https://www.omdbapi.com';
+const LOVABLE_AI_URL = 'https://ai.gateway.lovable.dev/v1/chat/completions';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+async function normalizeQuery(query: string): Promise<string> {
+  if (!LOVABLE_API_KEY) {
+    console.log('LOVABLE_API_KEY not configured, skipping query normalization');
+    return query;
+  }
+
+  try {
+    console.log(`Normalizing query: "${query}"`);
+    
+    const response = await fetch(LOVABLE_AI_URL, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.5-flash',
+        messages: [
+          {
+            role: 'system',
+            content: `Rewrite the user's search query into the correct movie or TV show name that TMDB will recognize.
+
+Rules:
+- Add missing spaces for combined words (e.g., "starwars" → "Star Wars", "harrypotter" → "Harry Potter").
+- Correct common typos (e.g., "avnegers" → "Avengers").
+- For franchise searches (e.g., "starwars", "marvelmovies", "harrypotter"), expand into the proper franchise title.
+- Use official spellings and spacing.
+- If the user types a franchise name, treat it as a broad search, not a single movie.
+- Keep the query concise - just the corrected title/franchise name.
+
+Return ONLY the cleaned-up search text, nothing else.`
+          },
+          {
+            role: 'user',
+            content: query
+          }
+        ],
+        max_tokens: 100,
+        temperature: 0.1,
+      }),
+    });
+
+    if (!response.ok) {
+      console.log(`AI normalization failed: ${response.status}`);
+      return query;
+    }
+
+    const data = await response.json();
+    const normalizedQuery = data.choices?.[0]?.message?.content?.trim() || query;
+    
+    console.log(`Normalized query: "${query}" → "${normalizedQuery}"`);
+    return normalizedQuery;
+  } catch (error) {
+    console.error('Error normalizing query:', error);
+    return query;
+  }
+}
 
 interface TMDBSearchResult {
   id: number;
@@ -263,11 +323,16 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Searching TMDB for: "${query}" in region: ${region}`);
+    console.log(`Original query: "${query}" in region: ${region}`);
+
+    // Normalize the query using AI before searching
+    const normalizedQuery = await normalizeQuery(query);
+    
+    console.log(`Searching TMDB for: "${normalizedQuery}"`);
 
     // Search for both movies and TV shows
     const searchResponse = await fetch(
-      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(query)}&include_adult=false`
+      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&include_adult=false`
     );
 
     if (!searchResponse.ok) {
