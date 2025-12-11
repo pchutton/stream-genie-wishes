@@ -330,9 +330,9 @@ serve(async (req) => {
     
     console.log(`Searching TMDB for: "${normalizedQuery}"`);
 
-    // Search for both movies and TV shows
+    // Search for both movies and TV shows using /search/multi
     const searchResponse = await fetch(
-      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&include_adult=false`
+      `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=1`
     );
 
     if (!searchResponse.ok) {
