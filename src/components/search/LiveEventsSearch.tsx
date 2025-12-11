@@ -9,6 +9,42 @@ interface LiveEventsSearchProps {
   isLoading: boolean;
 }
 
+// Streaming platform URLs
+const platformUrls: Record<string, string> = {
+  'YouTube TV': 'https://tv.youtube.com',
+  'Hulu': 'https://www.hulu.com',
+  'Hulu + Live TV': 'https://www.hulu.com/live-tv',
+  'Fubo': 'https://www.fubo.tv',
+  'FuboTV': 'https://www.fubo.tv',
+  'DirecTV Stream': 'https://www.directv.com/stream',
+  'Sling': 'https://www.sling.com',
+  'Sling Orange': 'https://www.sling.com',
+  'Sling Blue': 'https://www.sling.com',
+  'ESPN': 'https://www.espn.com/watch',
+  'ESPN+': 'https://plus.espn.com',
+  'ESPN App': 'https://www.espn.com/watch',
+  'ABC': 'https://abc.com/watch-live',
+  'CBS': 'https://www.cbs.com',
+  'NBC': 'https://www.nbc.com',
+  'FOX': 'https://www.fox.com',
+  'FS1': 'https://www.foxsports.com',
+  'Fox Sports': 'https://www.foxsports.com',
+  'Peacock': 'https://www.peacocktv.com',
+  'Paramount+': 'https://www.paramountplus.com',
+  'Prime Video': 'https://www.amazon.com/primevideo',
+  'Max': 'https://www.max.com',
+  'TNT': 'https://www.tntdrama.com',
+  'TBS': 'https://www.tbs.com',
+  'NFL Network': 'https://www.nfl.com/network',
+  'NBA TV': 'https://www.nba.com/watch',
+  'MLB Network': 'https://www.mlb.com/network',
+  'USA Network': 'https://www.usanetwork.com',
+};
+
+function getPlatformUrl(platform: string): string | null {
+  return platformUrls[platform] || null;
+}
+
 // Get the status badge styling based on the status text
 function getStatusBadgeStyle(status: string): { bg: string; text: string; icon: React.ReactNode } {
   const statusLower = status.toLowerCase();
@@ -55,8 +91,9 @@ function getStatusBadgeStyle(status: string): { bg: string; text: string; icon: 
 
 function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
   const style = getStatusBadgeStyle(platform.status);
+  const url = getPlatformUrl(platform.name);
   
-  return (
+  const content = (
     <div className="flex flex-col items-center gap-1">
       <NetworkLogo platform={platform.name} className="h-8" />
       <span className={`text-[10px] px-1.5 py-0.5 rounded border flex items-center gap-1 ${style.bg} ${style.text}`}>
@@ -65,6 +102,22 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
       </span>
     </div>
   );
+  
+  if (url) {
+    return (
+      <a 
+        href={url} 
+        target="_blank" 
+        rel="noopener noreferrer"
+        className="transition-transform hover:scale-105 hover:opacity-80"
+        title={`Open ${platform.name}`}
+      >
+        {content}
+      </a>
+    );
+  }
+  
+  return content;
 }
 
 function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: string[]; platformDetails?: PlatformInfo[] }) {
@@ -93,13 +146,33 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
 
   return (
     <div className="flex flex-wrap gap-2 items-center">
-      {platforms.map((platform, index) => (
-        <NetworkLogo 
-          key={`${platform}-${index}`}
-          platform={platform}
-          className="h-8"
-        />
-      ))}
+      {platforms.map((platform, index) => {
+        const url = getPlatformUrl(platform);
+        const logo = (
+          <NetworkLogo 
+            key={`${platform}-${index}`}
+            platform={platform}
+            className="h-8"
+          />
+        );
+        
+        if (url) {
+          return (
+            <a 
+              key={`${platform}-${index}`}
+              href={url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="transition-transform hover:scale-105 hover:opacity-80"
+              title={`Open ${platform}`}
+            >
+              {logo}
+            </a>
+          );
+        }
+        
+        return logo;
+      })}
     </div>
   );
 }
