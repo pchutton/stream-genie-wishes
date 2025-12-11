@@ -136,6 +136,12 @@
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* Logo glow animation */
+  .logo-glow {
+    filter: drop-shadow(0 0 8px hsl(var(--genie-gold) / 0.5));
+    animation: logo-pulse 3s ease-in-out infinite;
+  }
 }
 
 /* Animation keyframes */
@@ -163,6 +169,15 @@
   }
   50% {
     transform: translateY(-5px);
+  }
+}
+
+@keyframes logo-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 6px hsl(var(--genie-gold) / 0.4));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px hsl(var(--genie-gold) / 0.7));
   }
 }
 
