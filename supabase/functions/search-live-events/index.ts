@@ -563,12 +563,18 @@ serve(async (req) => {
 Today's date is ${new Date().toISOString().split('T')[0]}.
 Extract event details and return a JSON array of events with these fields:
 - eventName: Name of the event
-- time: When it's happening (date/time as displayed)
+- time: MUST include the full date AND specific time of day (e.g., "Saturday, Dec 21 at 8:00 PM ET" or "Sun, 12/22 - 4:25 PM EST"). If no specific time is mentioned, use "TBD" for the time portion but still include the date.
 - eventDate: The event date in ISO format (YYYY-MM-DD) for filtering - IMPORTANT for determining if event is past
 - participants: Who's playing/performing (teams, fighters, artists)
 - whereToWatch: Channel or streaming service to watch (from the search results)
 - link: URL for more info
 - summary: Brief 1-2 sentence description
+
+CRITICAL: The "time" field MUST be as specific as possible. Include:
+1. Day of week (if available)
+2. Date (month/day)
+3. Time of day with timezone (e.g., "8:00 PM ET", "3:30 PM CST")
+If the exact kickoff/start time isn't in the search results, indicate "Time TBD" but still provide the date.
 
 IMPORTANT: Only include UPCOMING events that have NOT yet occurred. Today is ${new Date().toISOString().split('T')[0]}.
 Exclude any events that have already happened.
