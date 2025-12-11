@@ -61,17 +61,17 @@ export function SearchBar({
             }
           }}
           className={cn(
-            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-full px-2.5 py-2.5 transition-all duration-300",
+            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-all duration-300",
             "bg-primary/20 hover:bg-primary/30 border border-primary/40",
             "active:scale-95 active:bg-primary/35",
             "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to TV/Movies'}
         >
-          <div className="relative w-[60px] h-[32px] rounded-full bg-background/80 border border-border overflow-hidden transition-transform duration-150 active:scale-90">
+          <div className="relative w-[60px] h-[32px] rounded-lg bg-background/80 border border-border overflow-hidden transition-transform duration-150 active:scale-90">
             <div 
               className={cn(
-                "absolute top-[2px] w-[28px] h-[28px] rounded-full bg-primary flex items-center justify-center",
+                "absolute top-[2px] w-[28px] h-[28px] rounded-md bg-primary flex items-center justify-center",
                 "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
                 mode === 'media' ? 'left-[2px]' : 'left-[28px]'
               )}
