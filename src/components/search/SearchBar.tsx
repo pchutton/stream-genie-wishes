@@ -47,7 +47,16 @@ export function SearchBar({
   const isLive = mode === 'live';
 
   return (
-    <form onSubmit={handleSubmit} className={cn('relative', className)}>
+    <form onSubmit={handleSubmit} className={cn('relative group', className)}>
+      {/* Glowing background effect */}
+      <div className={cn(
+        "absolute -inset-1 rounded-2xl blur-md transition-opacity duration-300",
+        "animate-glow-pulse group-hover:opacity-75",
+        isLive 
+          ? "bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 opacity-40"
+          : "bg-gradient-to-r from-primary via-genie-gold to-primary opacity-50"
+      )} />
+      
       <div className="relative">
         {/* Mode Toggle */}
         <button
