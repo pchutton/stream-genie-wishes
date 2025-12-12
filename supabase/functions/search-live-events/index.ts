@@ -23,6 +23,182 @@ interface LiveEvent {
   eventDate?: string; // ISO date for filtering
 }
 
+// Helper function to fetch ESPN schedule page and extract game time
+async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<string | null> {
+  try {
+    // Map team names to ESPN team slugs and sport types
+    const espnTeamMap: Record<string, { slug: string; sport: string; league: string }> = {
+      // College Football
+      'Oklahoma Sooners': { slug: 'oklahoma-sooners', sport: 'college-football', league: 'team' },
+      'Alabama Crimson Tide': { slug: 'alabama-crimson-tide', sport: 'college-football', league: 'team' },
+      'Georgia Bulldogs': { slug: 'georgia-bulldogs', sport: 'college-football', league: 'team' },
+      'Ohio State Buckeyes': { slug: 'ohio-state-buckeyes', sport: 'college-football', league: 'team' },
+      'Michigan Wolverines': { slug: 'michigan-wolverines', sport: 'college-football', league: 'team' },
+      'Texas Longhorns': { slug: 'texas-longhorns', sport: 'college-football', league: 'team' },
+      'Notre Dame Fighting Irish': { slug: 'notre-dame-fighting-irish', sport: 'college-football', league: 'team' },
+      'Clemson Tigers': { slug: 'clemson-tigers', sport: 'college-football', league: 'team' },
+      'Oregon Ducks': { slug: 'oregon-ducks', sport: 'college-football', league: 'team' },
+      'Penn State Nittany Lions': { slug: 'penn-state-nittany-lions', sport: 'college-football', league: 'team' },
+      'Florida State Seminoles': { slug: 'florida-state-seminoles', sport: 'college-football', league: 'team' },
+      'Tennessee Volunteers': { slug: 'tennessee-volunteers', sport: 'college-football', league: 'team' },
+      'Florida Gators': { slug: 'florida-gators', sport: 'college-football', league: 'team' },
+      'USC Trojans': { slug: 'usc-trojans', sport: 'college-football', league: 'team' },
+      'Texas A&M Aggies': { slug: 'texas-am-aggies', sport: 'college-football', league: 'team' },
+      
+      // NFL Teams
+      'Dallas Cowboys': { slug: 'dal', sport: 'nfl', league: 'team' },
+      'Kansas City Chiefs': { slug: 'kc', sport: 'nfl', league: 'team' },
+      'San Francisco 49ers': { slug: 'sf', sport: 'nfl', league: 'team' },
+      'Philadelphia Eagles': { slug: 'phi', sport: 'nfl', league: 'team' },
+      'Buffalo Bills': { slug: 'buf', sport: 'nfl', league: 'team' },
+      'Miami Dolphins': { slug: 'mia', sport: 'nfl', league: 'team' },
+      'New England Patriots': { slug: 'ne', sport: 'nfl', league: 'team' },
+      'New York Jets': { slug: 'nyj', sport: 'nfl', league: 'team' },
+      'New York Giants': { slug: 'nyg', sport: 'nfl', league: 'team' },
+      'Baltimore Ravens': { slug: 'bal', sport: 'nfl', league: 'team' },
+      'Pittsburgh Steelers': { slug: 'pit', sport: 'nfl', league: 'team' },
+      'Cleveland Browns': { slug: 'cle', sport: 'nfl', league: 'team' },
+      'Cincinnati Bengals': { slug: 'cin', sport: 'nfl', league: 'team' },
+      'Denver Broncos': { slug: 'den', sport: 'nfl', league: 'team' },
+      'Las Vegas Raiders': { slug: 'lv', sport: 'nfl', league: 'team' },
+      'Los Angeles Chargers': { slug: 'lac', sport: 'nfl', league: 'team' },
+      'Green Bay Packers': { slug: 'gb', sport: 'nfl', league: 'team' },
+      'Chicago Bears': { slug: 'chi', sport: 'nfl', league: 'team' },
+      'Detroit Lions': { slug: 'det', sport: 'nfl', league: 'team' },
+      'Minnesota Vikings': { slug: 'min', sport: 'nfl', league: 'team' },
+      'Tampa Bay Buccaneers': { slug: 'tb', sport: 'nfl', league: 'team' },
+      'Atlanta Falcons': { slug: 'atl', sport: 'nfl', league: 'team' },
+      'New Orleans Saints': { slug: 'no', sport: 'nfl', league: 'team' },
+      'Carolina Panthers': { slug: 'car', sport: 'nfl', league: 'team' },
+      'Seattle Seahawks': { slug: 'sea', sport: 'nfl', league: 'team' },
+      'Los Angeles Rams': { slug: 'lar', sport: 'nfl', league: 'team' },
+      'Arizona Cardinals': { slug: 'ari', sport: 'nfl', league: 'team' },
+      'Washington Commanders': { slug: 'wsh', sport: 'nfl', league: 'team' },
+      'Houston Texans': { slug: 'hou', sport: 'nfl', league: 'team' },
+      'Indianapolis Colts': { slug: 'ind', sport: 'nfl', league: 'team' },
+      'Tennessee Titans': { slug: 'ten', sport: 'nfl', league: 'team' },
+      'Jacksonville Jaguars': { slug: 'jax', sport: 'nfl', league: 'team' },
+      
+      // NBA Teams
+      'Los Angeles Lakers': { slug: 'lal', sport: 'nba', league: 'team' },
+      'Golden State Warriors': { slug: 'gs', sport: 'nba', league: 'team' },
+      'Boston Celtics': { slug: 'bos', sport: 'nba', league: 'team' },
+      'Milwaukee Bucks': { slug: 'mil', sport: 'nba', league: 'team' },
+      'Phoenix Suns': { slug: 'phx', sport: 'nba', league: 'team' },
+      'Dallas Mavericks': { slug: 'dal', sport: 'nba', league: 'team' },
+      'Miami Heat': { slug: 'mia', sport: 'nba', league: 'team' },
+      'Denver Nuggets': { slug: 'den', sport: 'nba', league: 'team' },
+    };
+
+    // Find the team in our map
+    let teamInfo = espnTeamMap[teamName];
+    
+    // Try to find a partial match if exact match fails
+    if (!teamInfo) {
+      for (const [key, value] of Object.entries(espnTeamMap)) {
+        if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
+          teamInfo = value;
+          break;
+        }
+      }
+    }
+    
+    if (!teamInfo) {
+      console.log(`No ESPN mapping found for team: ${teamName}`);
+      return null;
+    }
+
+    // Construct ESPN API URL for team schedule
+    const espnApiUrl = teamInfo.sport === 'college-football' 
+      ? `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamInfo.slug}/schedule`
+      : `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport.includes('nfl') ? 'football/nfl' : teamInfo.sport.includes('nba') ? 'basketball/nba' : teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+
+    console.log(`Fetching ESPN schedule: ${espnApiUrl}`);
+    
+    const response = await fetch(espnApiUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      }
+    });
+
+    if (!response.ok) {
+      console.log(`ESPN API returned ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const events = data.events || [];
+    
+    // Find the event matching our date
+    for (const event of events) {
+      const eventDateStr = event.date;
+      if (!eventDateStr) continue;
+      
+      const eventDateTime = new Date(eventDateStr);
+      const targetDate = eventDate ? new Date(eventDate) : new Date();
+      
+      // Check if dates match (same day)
+      if (eventDateTime.toISOString().split('T')[0] === targetDate.toISOString().split('T')[0]) {
+        // Format the time nicely
+        const options: Intl.DateTimeFormatOptions = {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        };
+        const formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/New_York' });
+        console.log(`Found ESPN game time: ${formattedTime}`);
+        return formattedTime;
+      }
+    }
+    
+    // If no exact date match, find the next upcoming game
+    const now = new Date();
+    for (const event of events) {
+      const eventDateTime = new Date(event.date);
+      if (eventDateTime > now) {
+        const options: Intl.DateTimeFormatOptions = {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        };
+        const formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/New_York' });
+        console.log(`Found next ESPN game time: ${formattedTime}`);
+        return formattedTime;
+      }
+    }
+
+    return null;
+  } catch (error) {
+    console.error('Error fetching ESPN schedule:', error);
+    return null;
+  }
+}
+
+// Helper function to extract team name from event for ESPN lookup
+function extractTeamFromEvent(event: LiveEvent): string | null {
+  // Try to extract from participants first
+  const participants = event.participants || '';
+  const parts = participants.split(/\s+vs\.?\s+|\s+@\s+/i);
+  if (parts.length > 0) {
+    return parts[0].trim();
+  }
+  
+  // Try to extract from event name
+  const eventName = event.eventName || '';
+  const vsMatch = eventName.match(/(.+?)\s+vs\.?\s+/i);
+  if (vsMatch) {
+    return vsMatch[1].trim();
+  }
+  
+  return null;
+}
+
 // Helper function to check if an event date is in the past
 function isEventInPast(eventTime: string, eventDate?: string): boolean {
   const now = new Date();
@@ -644,9 +820,30 @@ If no upcoming events found, return an empty array [].`
       }));
     }
 
+    // Step 1.5: Enhance game times with ESPN API for events with TBD time
+    console.log('Step 1.5: Enhancing game times with ESPN API');
+    const eventsWithTimes = await Promise.all(
+      events.map(async (event) => {
+        // Check if time contains TBD or is missing specific time
+        const timeStr = event.time?.toLowerCase() || '';
+        if (timeStr.includes('tbd') || !timeStr.match(/\d{1,2}:\d{2}/)) {
+          const teamName = extractTeamFromEvent(event);
+          if (teamName) {
+            console.log(`Looking up ESPN time for team: ${teamName}, date: ${event.eventDate}`);
+            const espnTime = await fetchESPNGameTime(teamName, event.eventDate);
+            if (espnTime) {
+              console.log(`Updated time from "${event.time}" to "${espnTime}"`);
+              return { ...event, time: espnTime };
+            }
+          }
+        }
+        return event;
+      })
+    );
+
     // Step 2: Enrich events with streaming platform information
     console.log('Step 2: Enriching with streaming platforms');
-    const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+    const enrichedEvents = await enrichWithStreamingPlatforms(eventsWithTimes, LOVABLE_API_KEY!);
 
     console.log(`Returning ${enrichedEvents.length} enriched events`);
 
