@@ -45,6 +45,39 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         if (idMatch) {
           const teamId = idMatch[1];
           scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamId}/schedule`;
+          
+          // Also try scoreboard API for specific date if we have eventDate
+          if (eventDate) {
+            const dateStr = eventDate.replace(/-/g, '');
+            const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=${dateStr}&limit=100`;
+            console.log(`Trying ESPN scoreboard for date: ${scoreboardUrl}`);
+            
+            try {
+              const scoreboardResponse = await fetch(scoreboardUrl, {
+                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+              });
+              
+              if (scoreboardResponse.ok) {
+                const scoreboardData = await scoreboardResponse.json();
+                // Look for game involving this team
+                const teamGame = scoreboardData.events?.find((event: any) => {
+                  const competitors = event.competitions?.[0]?.competitors || [];
+                  return competitors.some((c: any) => 
+                    c.team?.id === teamId || 
+                    c.team?.displayName?.toLowerCase().includes(teamName.toLowerCase().split(' ')[0])
+                  );
+                });
+                
+                if (teamGame) {
+                  const eventDateTime = new Date(teamGame.date);
+                  console.log(`Found game on scoreboard: ${teamGame.name} at ${eventDateTime.toISOString()}`);
+                  return extractGameInfo(teamGame, eventDateTime);
+                }
+              }
+            } catch (scoreboardError) {
+              console.log(`Scoreboard fetch failed: ${scoreboardError}`);
+            }
+          }
         }
       }
 
@@ -376,18 +409,51 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
 
 // Helper to extract game info from ESPN event
 function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
-    timeZoneName: 'short'
-  };
-  const formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/New_York' });
+  // Check if the event actually has a specific time or is TBD
+  // ESPN returns midnight UTC (00:00:00Z) for TBD games
+  const isTimeTBD = eventDateTime.getUTCHours() === 0 && 
+                    eventDateTime.getUTCMinutes() === 0 && 
+                    eventDateTime.getUTCSeconds() === 0;
+  
+  // Also check the status field for TBD indicators
+  const competitions = event.competitions || [];
+  const statusType = competitions[0]?.status?.type?.name || '';
+  const hasBroadcast = competitions[0]?.broadcasts?.length > 0;
+  
+  let formattedTime: string;
+  
+  if (isTimeTBD && !hasBroadcast) {
+    // Time is truly TBD - just format the date
+    const dateOptions: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric'
+    };
+    formattedTime = eventDateTime.toLocaleDateString('en-US', dateOptions) + ' - Time TBD';
+  } else {
+    // Format with Central Time for US sports
+    const options: Intl.DateTimeFormatOptions = {
+      weekday: 'short',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      timeZoneName: 'short'
+    };
+    // Use Central Time as primary since user appears to be in CT
+    formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/Chicago' });
+    
+    // Also provide EST for reference if different
+    const estTime = eventDateTime.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
+    const cstTime = eventDateTime.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
+    
+    // If times are different, append EST equivalent
+    if (estTime !== cstTime) {
+      formattedTime = formattedTime.replace(' CST', ' CT').replace(' CDT', ' CT');
+    }
+  }
   
   // Extract opponent from competitions
-  const competitions = event.competitions || [];
   let opponent = '';
   let eventName = event.name || event.shortName || '';
   
@@ -395,10 +461,31 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
     const competitors = competitions[0].competitors || [];
     // Try to find away team or the opponent
     if (competitors.length >= 2) {
-      const team1 = competitors[0]?.team?.displayName || competitors[0]?.team?.name || '';
-      const team2 = competitors[1]?.team?.displayName || competitors[1]?.team?.name || '';
-      opponent = `${team1} vs ${team2}`;
-      eventName = eventName || opponent;
+      const homeTeam = competitors.find((c: any) => c.homeAway === 'home')?.team;
+      const awayTeam = competitors.find((c: any) => c.homeAway === 'away')?.team;
+      
+      if (homeTeam && awayTeam) {
+        const homeName = homeTeam.displayName || homeTeam.name || '';
+        const awayName = awayTeam.displayName || awayTeam.name || '';
+        opponent = `${awayName} at ${homeName}`;
+        eventName = eventName || opponent;
+      } else {
+        const team1 = competitors[0]?.team?.displayName || competitors[0]?.team?.name || '';
+        const team2 = competitors[1]?.team?.displayName || competitors[1]?.team?.name || '';
+        opponent = `${team1} vs ${team2}`;
+        eventName = eventName || opponent;
+      }
+    }
+    
+    // Extract broadcast info if available
+    const broadcasts = competitions[0]?.broadcasts || [];
+    if (broadcasts.length > 0) {
+      const broadcastNames = broadcasts.flatMap((b: any) => 
+        b.names || (b.media?.shortName ? [b.media.shortName] : [])
+      );
+      if (broadcastNames.length > 0) {
+        console.log(`Broadcast channels from ESPN: ${broadcastNames.join(', ')}`);
+      }
     }
   }
   
