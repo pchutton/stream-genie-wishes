@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Check, Eye, EyeOff, ThumbsUp, ThumbsDown, Play } from 'lucide-react';
+import { Plus, Check, Eye, EyeOff, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { StreamingBadges } from './StreamingBadges';
@@ -110,20 +110,6 @@ export function MediaCard({
               variant="ghost"
               className={cn(
                 'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
-                rating === 'like' && 'bg-green-600 hover:bg-green-700'
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRate?.(rating === 'like' ? null : 'like');
-              }}
-            >
-              <ThumbsUp className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
                 isWatched && 'bg-primary hover:bg-primary/80'
               )}
               onClick={(e) => {
@@ -132,20 +118,6 @@ export function MediaCard({
               }}
             >
               <Eye className="h-4 w-4" />
-            </Button>
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
-                rating === 'dislike' && 'bg-red-600 hover:bg-red-700'
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onRate?.(rating === 'dislike' ? null : 'dislike');
-              }}
-            >
-              <ThumbsDown className="h-4 w-4" />
             </Button>
           </div>
         </div>
