@@ -225,6 +225,15 @@
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
 .animate-shimmer {
   animation: shimmer 2s infinite;
   background-size: 200% 100%;
@@ -236,4 +245,8 @@
 
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
 }
