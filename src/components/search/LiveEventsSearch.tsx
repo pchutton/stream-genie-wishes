@@ -244,8 +244,10 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
           variant={isSaved ? "secondary" : "outline"}
           onClick={onToggleSave}
           className={cn(
-            "w-full mt-2 h-10 gap-2",
-            !isSaved && "border-primary/50 hover:bg-primary/10"
+            "w-full mt-2 h-10 gap-2 transition-all duration-300",
+            isSaved 
+              ? "" 
+              : "border-primary/50 hover:bg-primary/10 shadow-[0_0_15px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_25px_hsl(var(--primary)/0.5)]"
           )}
         >
           <Heart 
