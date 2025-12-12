@@ -167,7 +167,7 @@ export function MediaCard({
                   className="h-8 text-xs"
                 >
                   {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
-                  {isWatched ? 'Unwatch' : 'Watched'}
+                  {isWatched ? 'Unwatch' : 'Added'}
                 </Button>
                 <Button
                   size="sm"
