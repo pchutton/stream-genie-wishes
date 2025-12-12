@@ -166,7 +166,7 @@ export function MediaCard({
                   onClick={onToggleWatched}
                   className="h-8 text-xs"
                 >
-                  {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Eye className="mr-1 h-3 w-3" />}
+                  {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Check className="mr-1 h-3 w-3" />}
                   {isWatched ? 'Unwatch' : 'Added'}
                 </Button>
                 <Button
