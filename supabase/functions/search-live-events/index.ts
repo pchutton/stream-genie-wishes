@@ -176,6 +176,38 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
       'Texas Rangers': { slug: 'tex', sport: 'mlb', league: 'team' },
       'Toronto Blue Jays': { slug: 'tor', sport: 'mlb', league: 'team' },
       'Washington Nationals': { slug: 'wsh', sport: 'mlb', league: 'team' },
+      
+      // College Basketball - Top Programs (using "Basketball" suffix to avoid conflicts with football)
+      'Duke Blue Devils': { slug: 'duke-blue-devils', sport: 'mens-college-basketball', league: 'team' },
+      'North Carolina Tar Heels': { slug: 'north-carolina-tar-heels', sport: 'mens-college-basketball', league: 'team' },
+      'Kansas Jayhawks': { slug: 'kansas-jayhawks', sport: 'mens-college-basketball', league: 'team' },
+      'Kentucky Wildcats': { slug: 'kentucky-wildcats', sport: 'mens-college-basketball', league: 'team' },
+      'UCLA Bruins': { slug: 'ucla-bruins', sport: 'mens-college-basketball', league: 'team' },
+      'Gonzaga Bulldogs': { slug: 'gonzaga-bulldogs', sport: 'mens-college-basketball', league: 'team' },
+      'UConn Huskies': { slug: 'connecticut-huskies', sport: 'mens-college-basketball', league: 'team' },
+      'Villanova Wildcats': { slug: 'villanova-wildcats', sport: 'mens-college-basketball', league: 'team' },
+      'Michigan State Spartans': { slug: 'michigan-state-spartans', sport: 'mens-college-basketball', league: 'team' },
+      'Arizona Wildcats': { slug: 'arizona-wildcats', sport: 'mens-college-basketball', league: 'team' },
+      'Purdue Boilermakers': { slug: 'purdue-boilermakers', sport: 'mens-college-basketball', league: 'team' },
+      'Houston Cougars': { slug: 'houston-cougars', sport: 'mens-college-basketball', league: 'team' },
+      'Baylor Bears': { slug: 'baylor-bears', sport: 'mens-college-basketball', league: 'team' },
+      'Indiana Hoosiers': { slug: 'indiana-hoosiers', sport: 'mens-college-basketball', league: 'team' },
+      'Louisville Cardinals': { slug: 'louisville-cardinals', sport: 'mens-college-basketball', league: 'team' },
+      'Syracuse Orange': { slug: 'syracuse-orange', sport: 'mens-college-basketball', league: 'team' },
+      'Auburn Tigers': { slug: 'auburn-tigers', sport: 'mens-college-basketball', league: 'team' },
+      'Arkansas Razorbacks': { slug: 'arkansas-razorbacks', sport: 'mens-college-basketball', league: 'team' },
+      'Iowa Hawkeyes': { slug: 'iowa-hawkeyes', sport: 'mens-college-basketball', league: 'team' },
+      'Wisconsin Badgers': { slug: 'wisconsin-badgers', sport: 'mens-college-basketball', league: 'team' },
+      'Virginia Cavaliers': { slug: 'virginia-cavaliers', sport: 'mens-college-basketball', league: 'team' },
+      'Marquette Golden Eagles': { slug: 'marquette-golden-eagles', sport: 'mens-college-basketball', league: 'team' },
+      'Creighton Bluejays': { slug: 'creighton-bluejays', sport: 'mens-college-basketball', league: 'team' },
+      'San Diego State Aztecs': { slug: 'san-diego-state-aztecs', sport: 'mens-college-basketball', league: 'team' },
+      'Illinois Fighting Illini': { slug: 'illinois-fighting-illini', sport: 'mens-college-basketball', league: 'team' },
+      'Xavier Musketeers': { slug: 'xavier-musketeers', sport: 'mens-college-basketball', league: 'team' },
+      'Memphis Tigers': { slug: 'memphis-tigers', sport: 'mens-college-basketball', league: 'team' },
+      'St. Johns Red Storm': { slug: 'st-johns-red-storm', sport: 'mens-college-basketball', league: 'team' },
+      'Seton Hall Pirates': { slug: 'seton-hall-pirates', sport: 'mens-college-basketball', league: 'team' },
+      'Georgetown Hoyas': { slug: 'georgetown-hoyas', sport: 'mens-college-basketball', league: 'team' },
     };
 
     // Find the team in our map
@@ -213,6 +245,9 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
         break;
       case 'mlb':
         espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/${teamInfo.slug}/schedule`;
+        break;
+      case 'mens-college-basketball':
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/${teamInfo.slug}/schedule`;
         break;
       default:
         espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
