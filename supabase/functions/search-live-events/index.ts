@@ -103,6 +103,7 @@ interface ESPNGameInfo {
   time: string;
   opponent: string;
   eventName: string;
+  eventDate?: string;
 }
 
 // Helper function to fetch ESPN schedule page and extract game time
@@ -550,7 +551,11 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
   }
   
   console.log(`Found ESPN game: ${eventName} at ${formattedTime}`);
-  return { time: formattedTime, opponent, eventName };
+  
+  // Include eventDate from the eventDateTime
+  const eventDateStr = eventDateTime.toISOString().split('T')[0];
+  
+  return { time: formattedTime, opponent, eventName, eventDate: eventDateStr };
 }
 
 // Helper function to extract team name from event for ESPN lookup
@@ -1075,8 +1080,48 @@ serve(async (req) => {
     const searchResponse = await fetch(searchUrl);
     const searchData = await searchResponse.json();
 
+    // If Google quota exceeded or error, fall back to ESPN-only lookup
     if (searchData.error) {
       console.error('Google PSE error:', JSON.stringify(searchData.error));
+      
+      // Check if it's a quota error - fall back to ESPN direct lookup
+      if (searchData.error.code === 429 || searchData.error.status === 'RESOURCE_EXHAUSTED') {
+        console.log('Google quota exceeded, falling back to ESPN-only lookup');
+        
+        // Try ESPN direct lookup with the normalized query
+        const espnGameInfo = await fetchESPNGameInfo(normalizedQuery);
+        
+        if (espnGameInfo) {
+          const fallbackEvent: LiveEvent = {
+            eventName: espnGameInfo.eventName,
+            time: espnGameInfo.time,
+            participants: espnGameInfo.opponent ? `${normalizedQuery.split(' ')[0]} vs ${espnGameInfo.opponent}` : espnGameInfo.eventName,
+            whereToWatch: 'TBD',
+            link: `https://www.espn.com/search/_/q/${encodeURIComponent(normalizedQuery)}`,
+            summary: `Upcoming game for ${normalizedQuery.replace(' schedule', '')}`,
+            eventDate: espnGameInfo.eventDate,
+          };
+          
+          // Enrich with streaming platforms
+          const enrichedEvents = await enrichWithStreamingPlatforms([fallbackEvent], LOVABLE_API_KEY!);
+          
+          return new Response(
+            JSON.stringify({ events: enrichedEvents, aiProcessed: true, fallbackUsed: true }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        
+        // If ESPN lookup also fails, return helpful error
+        return new Response(
+          JSON.stringify({ 
+            events: [], 
+            aiProcessed: false, 
+            error: 'Search quota exceeded. Try again tomorrow or search for a specific team name.' 
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
       return new Response(
         JSON.stringify({ error: 'Search failed', details: JSON.stringify(searchData.error) }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
