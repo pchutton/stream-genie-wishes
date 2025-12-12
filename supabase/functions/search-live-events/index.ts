@@ -88,6 +88,94 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
       'Dallas Mavericks': { slug: 'dal', sport: 'nba', league: 'team' },
       'Miami Heat': { slug: 'mia', sport: 'nba', league: 'team' },
       'Denver Nuggets': { slug: 'den', sport: 'nba', league: 'team' },
+      'Brooklyn Nets': { slug: 'bkn', sport: 'nba', league: 'team' },
+      'New York Knicks': { slug: 'ny', sport: 'nba', league: 'team' },
+      'Philadelphia 76ers': { slug: 'phi', sport: 'nba', league: 'team' },
+      'Toronto Raptors': { slug: 'tor', sport: 'nba', league: 'team' },
+      'Chicago Bulls': { slug: 'chi', sport: 'nba', league: 'team' },
+      'Cleveland Cavaliers': { slug: 'cle', sport: 'nba', league: 'team' },
+      'Detroit Pistons': { slug: 'det', sport: 'nba', league: 'team' },
+      'Indiana Pacers': { slug: 'ind', sport: 'nba', league: 'team' },
+      'Atlanta Hawks': { slug: 'atl', sport: 'nba', league: 'team' },
+      'Charlotte Hornets': { slug: 'cha', sport: 'nba', league: 'team' },
+      'Orlando Magic': { slug: 'orl', sport: 'nba', league: 'team' },
+      'Washington Wizards': { slug: 'wsh', sport: 'nba', league: 'team' },
+      'Houston Rockets': { slug: 'hou', sport: 'nba', league: 'team' },
+      'Memphis Grizzlies': { slug: 'mem', sport: 'nba', league: 'team' },
+      'New Orleans Pelicans': { slug: 'no', sport: 'nba', league: 'team' },
+      'San Antonio Spurs': { slug: 'sa', sport: 'nba', league: 'team' },
+      'Los Angeles Clippers': { slug: 'lac', sport: 'nba', league: 'team' },
+      'Sacramento Kings': { slug: 'sac', sport: 'nba', league: 'team' },
+      'Oklahoma City Thunder': { slug: 'okc', sport: 'nba', league: 'team' },
+      'Portland Trail Blazers': { slug: 'por', sport: 'nba', league: 'team' },
+      'Utah Jazz': { slug: 'uta', sport: 'nba', league: 'team' },
+      'Minnesota Timberwolves': { slug: 'min', sport: 'nba', league: 'team' },
+      
+      // NHL Teams
+      'Boston Bruins': { slug: 'bos', sport: 'nhl', league: 'team' },
+      'Buffalo Sabres': { slug: 'buf', sport: 'nhl', league: 'team' },
+      'Detroit Red Wings': { slug: 'det', sport: 'nhl', league: 'team' },
+      'Florida Panthers': { slug: 'fla', sport: 'nhl', league: 'team' },
+      'Montreal Canadiens': { slug: 'mtl', sport: 'nhl', league: 'team' },
+      'Ottawa Senators': { slug: 'ott', sport: 'nhl', league: 'team' },
+      'Tampa Bay Lightning': { slug: 'tb', sport: 'nhl', league: 'team' },
+      'Toronto Maple Leafs': { slug: 'tor', sport: 'nhl', league: 'team' },
+      'Carolina Hurricanes': { slug: 'car', sport: 'nhl', league: 'team' },
+      'Columbus Blue Jackets': { slug: 'cbj', sport: 'nhl', league: 'team' },
+      'New Jersey Devils': { slug: 'nj', sport: 'nhl', league: 'team' },
+      'New York Islanders': { slug: 'nyi', sport: 'nhl', league: 'team' },
+      'New York Rangers': { slug: 'nyr', sport: 'nhl', league: 'team' },
+      'Philadelphia Flyers': { slug: 'phi', sport: 'nhl', league: 'team' },
+      'Pittsburgh Penguins': { slug: 'pit', sport: 'nhl', league: 'team' },
+      'Washington Capitals': { slug: 'wsh', sport: 'nhl', league: 'team' },
+      'Arizona Coyotes': { slug: 'ari', sport: 'nhl', league: 'team' },
+      'Chicago Blackhawks': { slug: 'chi', sport: 'nhl', league: 'team' },
+      'Colorado Avalanche': { slug: 'col', sport: 'nhl', league: 'team' },
+      'Dallas Stars': { slug: 'dal', sport: 'nhl', league: 'team' },
+      'Minnesota Wild': { slug: 'min', sport: 'nhl', league: 'team' },
+      'Nashville Predators': { slug: 'nsh', sport: 'nhl', league: 'team' },
+      'St. Louis Blues': { slug: 'stl', sport: 'nhl', league: 'team' },
+      'Winnipeg Jets': { slug: 'wpg', sport: 'nhl', league: 'team' },
+      'Anaheim Ducks': { slug: 'ana', sport: 'nhl', league: 'team' },
+      'Calgary Flames': { slug: 'cgy', sport: 'nhl', league: 'team' },
+      'Edmonton Oilers': { slug: 'edm', sport: 'nhl', league: 'team' },
+      'Los Angeles Kings': { slug: 'la', sport: 'nhl', league: 'team' },
+      'San Jose Sharks': { slug: 'sj', sport: 'nhl', league: 'team' },
+      'Seattle Kraken': { slug: 'sea', sport: 'nhl', league: 'team' },
+      'Vancouver Canucks': { slug: 'van', sport: 'nhl', league: 'team' },
+      'Vegas Golden Knights': { slug: 'vgk', sport: 'nhl', league: 'team' },
+      
+      // MLB Teams
+      'Arizona Diamondbacks': { slug: 'ari', sport: 'mlb', league: 'team' },
+      'Atlanta Braves': { slug: 'atl', sport: 'mlb', league: 'team' },
+      'Baltimore Orioles': { slug: 'bal', sport: 'mlb', league: 'team' },
+      'Boston Red Sox': { slug: 'bos', sport: 'mlb', league: 'team' },
+      'Chicago Cubs': { slug: 'chc', sport: 'mlb', league: 'team' },
+      'Chicago White Sox': { slug: 'chw', sport: 'mlb', league: 'team' },
+      'Cincinnati Reds': { slug: 'cin', sport: 'mlb', league: 'team' },
+      'Cleveland Guardians': { slug: 'cle', sport: 'mlb', league: 'team' },
+      'Colorado Rockies': { slug: 'col', sport: 'mlb', league: 'team' },
+      'Detroit Tigers': { slug: 'det', sport: 'mlb', league: 'team' },
+      'Houston Astros': { slug: 'hou', sport: 'mlb', league: 'team' },
+      'Kansas City Royals': { slug: 'kc', sport: 'mlb', league: 'team' },
+      'Los Angeles Angels': { slug: 'laa', sport: 'mlb', league: 'team' },
+      'Los Angeles Dodgers': { slug: 'lad', sport: 'mlb', league: 'team' },
+      'Miami Marlins': { slug: 'mia', sport: 'mlb', league: 'team' },
+      'Milwaukee Brewers': { slug: 'mil', sport: 'mlb', league: 'team' },
+      'Minnesota Twins': { slug: 'min', sport: 'mlb', league: 'team' },
+      'New York Mets': { slug: 'nym', sport: 'mlb', league: 'team' },
+      'New York Yankees': { slug: 'nyy', sport: 'mlb', league: 'team' },
+      'Oakland Athletics': { slug: 'oak', sport: 'mlb', league: 'team' },
+      'Philadelphia Phillies': { slug: 'phi', sport: 'mlb', league: 'team' },
+      'Pittsburgh Pirates': { slug: 'pit', sport: 'mlb', league: 'team' },
+      'San Diego Padres': { slug: 'sd', sport: 'mlb', league: 'team' },
+      'San Francisco Giants': { slug: 'sf', sport: 'mlb', league: 'team' },
+      'Seattle Mariners': { slug: 'sea', sport: 'mlb', league: 'team' },
+      'St. Louis Cardinals': { slug: 'stl', sport: 'mlb', league: 'team' },
+      'Tampa Bay Rays': { slug: 'tb', sport: 'mlb', league: 'team' },
+      'Texas Rangers': { slug: 'tex', sport: 'mlb', league: 'team' },
+      'Toronto Blue Jays': { slug: 'tor', sport: 'mlb', league: 'team' },
+      'Washington Nationals': { slug: 'wsh', sport: 'mlb', league: 'team' },
     };
 
     // Find the team in our map
@@ -109,9 +197,26 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
     }
 
     // Construct ESPN API URL for team schedule
-    const espnApiUrl = teamInfo.sport === 'college-football' 
-      ? `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamInfo.slug}/schedule`
-      : `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport.includes('nfl') ? 'football/nfl' : teamInfo.sport.includes('nba') ? 'basketball/nba' : teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+    let espnApiUrl: string;
+    switch (teamInfo.sport) {
+      case 'college-football':
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamInfo.slug}/schedule`;
+        break;
+      case 'nfl':
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamInfo.slug}/schedule`;
+        break;
+      case 'nba':
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamInfo.slug}/schedule`;
+        break;
+      case 'nhl':
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/${teamInfo.slug}/schedule`;
+        break;
+      case 'mlb':
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/${teamInfo.slug}/schedule`;
+        break;
+      default:
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+    }
 
     console.log(`Fetching ESPN schedule: ${espnApiUrl}`);
     
