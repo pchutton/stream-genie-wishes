@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Heart, Plus, X, Calendar, Tv, Clock, Users, ExternalLink } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { NotificationSettings } from '@/components/notifications/NotificationSettings';
 
 interface TeamEvent extends LiveEvent {
   teamName: string;
@@ -109,6 +110,11 @@ export default function MyEvents() {
         <div className="flex items-center gap-3 mb-8">
           <Heart className="w-8 h-8 text-primary" />
           <h1 className="text-3xl font-bold">My Events</h1>
+        </div>
+
+        {/* Notification Settings */}
+        <div className="mb-8">
+          <NotificationSettings />
         </div>
 
         {/* Add Team Section */}
