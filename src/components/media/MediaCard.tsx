@@ -164,7 +164,10 @@ export function MediaCard({
                   size="sm"
                   variant="secondary"
                   onClick={onToggleWatched}
-                  className="h-8 text-xs"
+                  className={cn(
+                    "h-8 text-xs",
+                    !isWatched && "bg-emerald-600 hover:bg-emerald-700 text-white"
+                  )}
                 >
                   {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Check className="mr-1 h-3 w-3" />}
                   {isWatched ? 'Unwatch' : 'Added'}
