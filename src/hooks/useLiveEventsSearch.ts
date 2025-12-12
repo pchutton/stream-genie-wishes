@@ -38,18 +38,27 @@ export function useLiveEventsSearch() {
       if (functionError) {
         throw new Error(functionError.message);
       }
-
+ 
       if (data.error) {
         throw new Error(data.error);
       }
-
+ 
       setResults(data.events || []);
-
+ 
       if (data.events?.length === 0) {
-        toast({
-          title: 'No events found',
-          description: 'Try a different search term',
-        });
+        if (data.quotaExceeded) {
+          toast({
+            title: 'Search limited today',
+            description:
+              data.message ||
+              'Our main search provider hit a daily limit. We could not find any upcoming events for this query.',
+          });
+        } else {
+          toast({
+            title: 'No events found',
+            description: 'Try a different search term',
+          });
+        }
       }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to search live events';
