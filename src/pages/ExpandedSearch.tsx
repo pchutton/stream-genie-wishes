@@ -1,8 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
-import { Search, Loader2, Globe, ExternalLink } from 'lucide-react';
+import { Search, Loader2, Globe, ExternalLink, Info } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const SEARCH_ENGINE_ID = 'f14f3e698611345bf';
 
@@ -99,10 +105,22 @@ export default function ExpandedSearch() {
           <p className="text-muted-foreground mb-2">
             Find legal streaming options for live events across the web
           </p>
-          <p className="text-sm text-muted-foreground/60 flex items-center justify-center gap-1">
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground/60">
             <ExternalLink className="h-3 w-3" />
-            Results open in a new tab
-          </p>
+            <span>Results open in a new tab</span>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button type="button" className="inline-flex items-center justify-center rounded-full p-1 hover:bg-muted transition-colors">
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs text-center">
+                  <p>Some streaming sites (like YouTube TV, Netflix) may block direct links for security reasons. If a site shows "blocked," try copying the URL and pasting it directly in a new tab.</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
         </div>
 
         {/* Search Bar */}
