@@ -17,11 +17,9 @@ interface MediaDetailsDialogProps {
   onOpenChange: (open: boolean) => void;
   isInWatchlist?: boolean;
   isWatched?: boolean;
-  userRating?: 'like' | 'dislike' | null;
   onAddToWatchlist?: () => void;
   onRemoveFromWatchlist?: () => void;
   onToggleWatched?: () => void;
-  onRate?: (rating: 'like' | 'dislike' | null) => void;
 }
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
@@ -68,11 +66,9 @@ export function MediaDetailsDialog({
   onOpenChange,
   isInWatchlist = false,
   isWatched = false,
-  userRating = null,
   onAddToWatchlist,
   onRemoveFromWatchlist,
   onToggleWatched,
-  onRate,
 }: MediaDetailsDialogProps) {
   if (!item) return null;
 

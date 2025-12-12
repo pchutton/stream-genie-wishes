@@ -9,7 +9,7 @@ import { useAuth } from '@/lib/auth';
 import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist, useMarkAsSeen } from '@/hooks/useWatchlist';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
 import { useLiveEventsSearch } from '@/hooks/useLiveEventsSearch';
-import { useRatings } from '@/hooks/useRatings';
+
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 
@@ -26,7 +26,7 @@ export default function Home() {
   const removeFromWatchlist = useRemoveFromWatchlist();
   const toggleWatched = useToggleWatched();
   const markAsSeen = useMarkAsSeen();
-  const { getRating, setRating } = useRatings();
+  
 
   const handleShowDetails = (item: MediaItem) => {
     setSelectedItem(item);
@@ -114,7 +114,6 @@ export default function Home() {
                   item={item}
                   isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
                   isWatched={isWatched(item.tmdb_id, item.media_type)}
-                  rating={getRating(item.tmdb_id, item.media_type)}
                   onAddToWatchlist={() => addToWatchlist.mutate(item)}
                   onToggleWatched={() => {
                     const wlItem = getWatchlistItem(item.tmdb_id, item.media_type);
@@ -124,7 +123,6 @@ export default function Home() {
                       markAsSeen.mutate(item);
                     }
                   }}
-                  onRate={(rating) => setRating(item.tmdb_id, item.media_type, rating)}
                   onShowDetails={() => handleShowDetails(item)}
                 />
               ))}
@@ -146,7 +144,6 @@ export default function Home() {
           onOpenChange={setDetailsOpen}
           isInWatchlist={selectedItem ? isInWatchlist(selectedItem.tmdb_id, selectedItem.media_type) : false}
           isWatched={selectedItem ? getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type)?.is_watched ?? false : false}
-          userRating={selectedItem ? getRating(selectedItem.tmdb_id, selectedItem.media_type) : null}
           onAddToWatchlist={() => selectedItem && addToWatchlist.mutate(selectedItem)}
           onRemoveFromWatchlist={() => {
             const wlItem = selectedItem && getWatchlistItem(selectedItem.tmdb_id, selectedItem.media_type);
@@ -161,7 +158,6 @@ export default function Home() {
               markAsSeen.mutate(selectedItem);
             }
           }}
-          onRate={(rating) => selectedItem && setRating(selectedItem.tmdb_id, selectedItem.media_type, rating)}
         />
       </div>
     </Layout>
