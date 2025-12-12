@@ -13,6 +13,7 @@ import Watchlist from "./pages/Watchlist";
 import Settings from "./pages/Settings";
 import Pro from "./pages/Pro";
 import ExpandedSearch from "./pages/ExpandedSearch";
+import MyEvents from "./pages/MyEvents";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -34,6 +35,7 @@ const App = () => (
               <Route path="/settings" element={<Settings />} />
               <Route path="/pro" element={<Pro />} />
               <Route path="/expanded-search" element={<ExpandedSearch />} />
+              <Route path="/my-events" element={<MyEvents />} />
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>
