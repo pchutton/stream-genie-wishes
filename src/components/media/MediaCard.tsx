@@ -166,7 +166,7 @@ export function MediaCard({
                   onClick={onToggleWatched}
                   className={cn(
                     "h-8 text-xs transition-all duration-300 active:scale-95",
-                    !isWatched && "bg-emerald-600 hover:bg-emerald-700 text-white animate-scale-in"
+                    !isWatched && "bg-emerald-600 hover:bg-emerald-700 text-white animate-scale-in shadow-[0_0_12px_rgba(16,185,129,0.5)] hover:shadow-[0_0_18px_rgba(16,185,129,0.7)]"
                   )}
                 >
                   {isWatched ? <EyeOff className="mr-1 h-3 w-3" /> : <Check className="mr-1 h-3 w-3 animate-scale-in" />}
