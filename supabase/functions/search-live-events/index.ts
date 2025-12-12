@@ -1111,12 +1111,14 @@ serve(async (req) => {
           );
         }
         
-        // If ESPN lookup also fails, return helpful error
+        // If ESPN lookup also fails, return a graceful empty result without throwing an error
         return new Response(
           JSON.stringify({ 
             events: [], 
-            aiProcessed: false, 
-            error: 'Search quota exceeded. Try again tomorrow or search for a specific team name.' 
+            aiProcessed: false,
+            fallbackUsed: true,
+            quotaExceeded: true,
+            message: 'Search quota exceeded for our main provider. We tried a direct schedule lookup but could not find any upcoming events. Try again tomorrow or search for a different team.'
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
