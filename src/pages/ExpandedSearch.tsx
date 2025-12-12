@@ -20,7 +20,7 @@ export default function ExpandedSearch() {
     if (scriptLoaded.current) return;
     scriptLoaded.current = true;
 
-    // Configure Google CSE exactly once and force results to open in a new tab
+    // Configure Google CSE with bulletproof external link handling
     (window as any).__gcse = {
       parsetags: 'explicit',
       initializationCallback: () => {
@@ -31,8 +31,37 @@ export default function ExpandedSearch() {
               gname: 'gsearch',
               div: 'live-events-results',
               tag: 'searchresults-only',
-              attributes: { linkTarget: '_blank' },
+              attributes: { 
+                linkTarget: '_blank',  // Fallback for basic links
+                enableHistory: false   // Keeps it snappy, no URL changes
+              },
             });
+
+            // Bulletproof: Override ALL clickable elements to open externally
+            setTimeout(() => {
+              const resultsContainer = document.getElementById('live-events-results');
+              if (resultsContainer) {
+                // Listen for clicks on any result element
+                resultsContainer.addEventListener('click', function(e) {
+                  const link = (e.target as HTMLElement).closest('a');
+                  if (link && link.href) {
+                    e.preventDefault();  // Stop iframe nonsense
+                    window.open(link.href, '_blank', 'noopener,noreferrer');  // Full external open
+                  }
+                });
+
+                // Also force any embedded images/videos to external
+                const embeds = resultsContainer.querySelectorAll('img, iframe');
+                embeds.forEach(el => {
+                  el.addEventListener('click', function() {
+                    const src = (el as HTMLImageElement | HTMLIFrameElement).src;
+                    if (src) {
+                      window.open(src, '_blank', 'noopener,noreferrer');
+                    }
+                  });
+                });
+              }
+            }, 500);  // Wait for results to render
           }
         } catch (err) {
           console.error('Error rendering Google CSE element', err);
