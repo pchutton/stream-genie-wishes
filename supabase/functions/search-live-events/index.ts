@@ -432,6 +432,35 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
     }
     
     const events = data.events || [];
+    console.log(`ESPN returned ${events.length} total events`);
+    
+    // Log raw event data for debugging
+    if (events.length > 0) {
+      console.log('=== ESPN RAW EVENT DATA (first 5 events) ===');
+      events.slice(0, 5).forEach((event: any, idx: number) => {
+        const eventDate = event.date ? new Date(event.date) : null;
+        const competitions = event.competitions || [];
+        const competitors = competitions[0]?.competitors || [];
+        const team1 = competitors[0]?.team?.displayName || 'Unknown';
+        const team2 = competitors[1]?.team?.displayName || 'Unknown';
+        const statusName = competitions[0]?.status?.type?.name || 'Unknown';
+        const broadcasts = competitions[0]?.broadcasts?.flatMap((b: any) => b.names || []) || [];
+        
+        console.log(`Event ${idx + 1}: ${event.name || event.shortName}`);
+        console.log(`  Date: ${event.date} (parsed: ${eventDate?.toISOString()})`);
+        console.log(`  Teams: ${team1} vs ${team2}`);
+        console.log(`  Status: ${statusName}`);
+        console.log(`  Broadcasts: ${broadcasts.join(', ') || 'None listed'}`);
+        console.log(`  Is future: ${eventDate ? eventDate > new Date() : 'N/A'}`);
+      });
+      console.log('=== END ESPN RAW DATA ===');
+    } else {
+      console.log('ESPN returned ZERO events in data.events');
+      console.log('ESPN data keys:', Object.keys(data));
+      if (data.team) {
+        console.log('Team info found:', data.team.displayName || data.team.name);
+      }
+    }
     
     // Find the event matching our requested date (allowing for timezone differences)
     if (eventDate) {
@@ -454,13 +483,17 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
     
     // If no exact date match, find the next upcoming game
     const now = new Date();
+    console.log(`Looking for next game after: ${now.toISOString()}`);
     for (const event of events) {
       const eventDateTime = new Date(event.date);
+      console.log(`Checking event: ${event.name} at ${eventDateTime.toISOString()} > now? ${eventDateTime > now}`);
       if (eventDateTime > now) {
+        console.log(`Found upcoming event: ${event.name}`);
         return extractGameInfo(event, eventDateTime);
       }
     }
     
+    console.log('No upcoming events found after filtering');
     return null;
   } catch (error) {
     console.error('Error fetching ESPN schedule:', error);
