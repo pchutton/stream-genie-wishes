@@ -14,6 +14,7 @@ export default function ExpandedSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const scriptLoaded = useRef(false);
   const searchExecuted = useRef(false);
+  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (scriptLoaded.current) return;
@@ -46,6 +47,29 @@ export default function ExpandedSearch() {
 
     const firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode?.insertBefore(script, firstScript);
+  }, []);
+
+  // Force all Expanded Search result links to open in a new tab
+  useEffect(() => {
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+
+      const anchor = target.closest('a');
+      if (!anchor || !resultsRef.current) return;
+      if (!resultsRef.current.contains(anchor)) return;
+
+      const href = anchor.getAttribute('href');
+      if (!href) return;
+
+      // Intercept and open in a new tab instead of inside the iframe
+      event.preventDefault();
+      event.stopPropagation();
+      window.open(href, '_blank', 'noopener,noreferrer');
+    };
+
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
   }, []);
 
   const executeSearch = (searchQuery: string) => {
@@ -141,7 +165,7 @@ export default function ExpandedSearch() {
         </form>
 
         {/* Results Container - Hide default search box, only show results */}
-        <div className="max-w-4xl mx-auto gcse-results-container">
+        <div className="max-w-4xl mx-auto gcse-results-container" ref={resultsRef}>
           <div id="gcse-results" className="gcse-searchresults-only"></div>
         </div>
       </div>
