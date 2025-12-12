@@ -137,6 +137,48 @@ export type Database = {
         }
         Relationships: []
       }
+      saved_events: {
+        Row: {
+          created_at: string
+          event_name: string
+          event_time: string
+          id: string
+          link: string | null
+          participants: string | null
+          platform_details: Json | null
+          streaming_platforms: string[] | null
+          summary: string | null
+          user_id: string
+          where_to_watch: string | null
+        }
+        Insert: {
+          created_at?: string
+          event_name: string
+          event_time: string
+          id?: string
+          link?: string | null
+          participants?: string | null
+          platform_details?: Json | null
+          streaming_platforms?: string[] | null
+          summary?: string | null
+          user_id: string
+          where_to_watch?: string | null
+        }
+        Update: {
+          created_at?: string
+          event_name?: string
+          event_time?: string
+          id?: string
+          link?: string | null
+          participants?: string | null
+          platform_details?: Json | null
+          streaming_platforms?: string[] | null
+          summary?: string | null
+          user_id?: string
+          where_to_watch?: string | null
+        }
+        Relationships: []
+      }
       watchlist: {
         Row: {
           added_at: string
