@@ -16,16 +16,34 @@ export default function ExpandedSearch() {
   const searchExecuted = useRef(false);
 
   useEffect(() => {
-    // Only load script once
     if (scriptLoaded.current) return;
     scriptLoaded.current = true;
+
+    // Configure Google CSE to render explicitly so we can control link target
+    (window as any).__gcse = {
+      parsetags: 'explicit',
+      callback: () => {
+        try {
+          const googleObj = (window as any).google;
+          if (googleObj?.search?.cse?.element) {
+            googleObj.search.cse.element.render({
+              div: 'gcse-results',
+              tag: 'searchresults-only',
+              attributes: { linkTarget: '_blank' },
+            });
+          }
+        } catch (err) {
+          console.error('Error rendering Google CSE element', err);
+        }
+      },
+    };
 
     // Load Google CSE script
     const script = document.createElement('script');
     script.type = 'text/javascript';
     script.async = true;
     script.src = `https://cse.google.com/cse.js?cx=${SEARCH_ENGINE_ID}`;
-    
+
     const firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode?.insertBefore(script, firstScript);
   }, []);
@@ -124,7 +142,7 @@ export default function ExpandedSearch() {
 
         {/* Results Container - Hide default search box, only show results */}
         <div className="max-w-4xl mx-auto gcse-results-container">
-          <div className="gcse-searchresults-only" data-linktarget="_blank"></div>
+          <div id="gcse-results" className="gcse-searchresults-only"></div>
         </div>
       </div>
 
