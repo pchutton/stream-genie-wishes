@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, List, User, LogOut, Search } from 'lucide-react';
+import { Sparkles, List, User, LogOut, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import {
@@ -48,6 +48,16 @@ export function Header() {
               >
                 <List className="h-4 w-4" />
                 <span className="hidden sm:inline">Watchlist</span>
+              </Button>
+            </Link>
+            <Link to="/my-events">
+              <Button
+                variant={isActive('/my-events') ? 'secondary' : 'ghost'}
+                size="sm"
+                className="gap-2"
+              >
+                <Heart className="h-4 w-4" />
+                <span className="hidden sm:inline">My Events</span>
               </Button>
             </Link>
             <Link to="/expanded-search">

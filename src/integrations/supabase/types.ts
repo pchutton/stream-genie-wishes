@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      favorite_teams: {
+        Row: {
+          created_at: string
+          espn_team_id: string | null
+          id: string
+          league: Database["public"]["Enums"]["sport_league"]
+          team_name: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          espn_team_id?: string | null
+          id?: string
+          league: Database["public"]["Enums"]["sport_league"]
+          team_name: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          espn_team_id?: string | null
+          id?: string
+          league?: Database["public"]["Enums"]["sport_league"]
+          team_name?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -160,7 +187,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      sport_league: "NFL" | "NBA" | "MLB" | "NHL" | "MLS" | "NCAAF" | "NCAAB"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -287,6 +314,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      sport_league: ["NFL", "NBA", "MLB", "NHL", "MLS", "NCAAF", "NCAAB"],
+    },
   },
 } as const
