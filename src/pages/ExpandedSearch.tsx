@@ -14,21 +14,21 @@ export default function ExpandedSearch() {
   const [isSearching, setIsSearching] = useState(false);
   const scriptLoaded = useRef(false);
   const searchExecuted = useRef(false);
-  const resultsRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (scriptLoaded.current) return;
     scriptLoaded.current = true;
 
-    // Configure Google CSE to render explicitly so we can control link target
+    // Configure Google CSE exactly once and force results to open in a new tab
     (window as any).__gcse = {
       parsetags: 'explicit',
-      callback: () => {
+      initializationCallback: () => {
         try {
           const googleObj = (window as any).google;
           if (googleObj?.search?.cse?.element) {
             googleObj.search.cse.element.render({
-              div: 'gcse-results',
+              gname: 'gsearch',
+              div: 'live-events-results',
               tag: 'searchresults-only',
               attributes: { linkTarget: '_blank' },
             });
@@ -49,34 +49,11 @@ export default function ExpandedSearch() {
     firstScript.parentNode?.insertBefore(script, firstScript);
   }, []);
 
-  // Force all Expanded Search result links to open in a new tab
-  useEffect(() => {
-    const handleClick = (event: MouseEvent) => {
-      const target = event.target as HTMLElement | null;
-      if (!target) return;
-
-      const anchor = target.closest('a');
-      if (!anchor || !resultsRef.current) return;
-      if (!resultsRef.current.contains(anchor)) return;
-
-      const href = anchor.getAttribute('href');
-      if (!href) return;
-
-      // Intercept and open in a new tab instead of inside the iframe
-      event.preventDefault();
-      event.stopPropagation();
-      window.open(href, '_blank', 'noopener,noreferrer');
-    };
-
-    document.addEventListener('click', handleClick, true);
-    return () => document.removeEventListener('click', handleClick, true);
-  }, []);
-
   const executeSearch = (searchQuery: string) => {
     // Access the Google CSE element and execute search
     const element = (window as any).google?.search?.cse?.element;
     if (element) {
-      const searchElement = element.getElement('searchresults-only0');
+      const searchElement = element.getElement('gsearch');
       if (searchElement) {
         // Combine user query with magic suffix
         const magicQuery = `${searchQuery} ${MAGIC_SUFFIX}`;
@@ -165,8 +142,8 @@ export default function ExpandedSearch() {
         </form>
 
         {/* Results Container - Hide default search box, only show results */}
-        <div className="max-w-4xl mx-auto gcse-results-container" ref={resultsRef}>
-          <div id="gcse-results" className="gcse-searchresults-only"></div>
+        <div className="max-w-4xl mx-auto gcse-results-container">
+          <div id="live-events-results" className="gcse-searchresults-only"></div>
         </div>
       </div>
 
