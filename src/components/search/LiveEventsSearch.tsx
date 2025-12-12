@@ -205,7 +205,9 @@ function EventCard({ event }: { event: LiveEvent }) {
         
         <div className="flex items-start gap-2 text-sm">
           <Tv className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <span className="text-foreground font-medium">{event.whereToWatch}</span>
+          <span className="text-foreground font-medium">
+            {event.whereToWatch?.toUpperCase().includes('TBD') ? 'TV / streaming details TBD' : event.whereToWatch}
+          </span>
         </div>
 
         {/* Streaming Platforms with Status */}
