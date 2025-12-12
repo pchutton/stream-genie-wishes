@@ -47,18 +47,9 @@ export function SearchBar({
   const isLive = mode === 'live';
 
   return (
-    <form onSubmit={handleSubmit} className={cn('relative group', className)}>
-      {/* Glowing background effect */}
-      <div className={cn(
-        "absolute -top-1 -right-1 -bottom-1 left-1 rounded-2xl blur-md transition-opacity duration-300",
-        "animate-glow-pulse group-hover:opacity-75",
-        isLive 
-          ? "bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 opacity-40"
-          : "bg-gradient-to-r from-primary via-genie-gold to-primary opacity-50"
-      )} />
-      
-      <div className="relative">
-        {/* Mode Toggle */}
+    <div className={cn('space-y-4', className)}>
+      {/* Mode Toggle - Above search bar */}
+      <div className="flex justify-center">
         <button
           type="button"
           role="switch"
@@ -72,7 +63,7 @@ export function SearchBar({
             }
           }}
           className={cn(
-            "absolute left-2 top-1/2 -translate-y-1/2 flex items-center gap-3 rounded-xl px-2.5 py-2.5 transition-all duration-300",
+            "flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300",
             "active:scale-95",
             "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background",
             isLive 
@@ -107,62 +98,76 @@ export function SearchBar({
             </div>
           </div>
           <span className={cn(
-            "text-sm font-medium pr-14 w-[55px] text-left transition-colors duration-300",
+            "text-sm font-medium transition-colors duration-300",
             isLive ? "text-emerald-400" : "text-foreground/80"
           )}>
             {mode === 'media' ? 'TV/Movie' : 'Live'}
           </span>
         </button>
-
-        <div className="absolute left-[180px] top-1/2 -translate-y-1/2 flex items-center pointer-events-none">
-          <Search className={cn(
-            "h-5 w-5 transition-colors duration-300",
-            isLive ? "text-emerald-400" : "text-muted-foreground"
-          )} />
-        </div>
-        <Input
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          placeholder={currentPlaceholder}
-          className={cn(
-            "h-14 rounded-2xl border-2 bg-card pl-[205px] pr-24 text-lg text-center transition-all duration-300",
-            isLive 
-              ? "border-emerald-500/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
-              : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
-          )}
-        />
-        <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
-          {query && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleClear}
-              className="h-8 w-8"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          )}
-          <Button 
-            type="submit" 
-            size="sm"
-            disabled={!query.trim() || isLoading}
-            className={cn(
-              "h-10 rounded-xl transition-all duration-300",
-              isLive 
-                ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]"
-                : "genie-glow"
-            )}
-          >
-            {isLoading ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              'Search'
-            )}
-          </Button>
-        </div>
       </div>
-    </form>
+
+      {/* Search Bar */}
+      <form onSubmit={handleSubmit} className="relative group">
+        {/* Glowing background effect */}
+        <div className={cn(
+          "absolute -inset-1 rounded-2xl blur-md transition-opacity duration-300",
+          "animate-glow-pulse group-hover:opacity-75",
+          isLive 
+            ? "bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 opacity-40"
+            : "bg-gradient-to-r from-primary via-genie-gold to-primary opacity-50"
+        )} />
+        
+        <div className="relative flex items-center">
+          <div className="absolute left-4 flex items-center pointer-events-none">
+            <Search className={cn(
+              "h-5 w-5 transition-colors duration-300",
+              isLive ? "text-emerald-400" : "text-muted-foreground"
+            )} />
+          </div>
+          <Input
+            type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={currentPlaceholder}
+            className={cn(
+              "h-14 rounded-2xl border-2 bg-card pl-12 pr-28 text-lg transition-all duration-300",
+              isLive 
+                ? "border-emerald-500/40 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20"
+                : "border-border focus:border-primary focus:ring-2 focus:ring-primary/20"
+            )}
+          />
+          <div className="absolute right-2 flex items-center gap-1">
+            {query && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={handleClear}
+                className="h-8 w-8"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            )}
+            <Button 
+              type="submit" 
+              size="sm"
+              disabled={!query.trim() || isLoading}
+              className={cn(
+                "h-10 rounded-xl transition-all duration-300",
+                isLive 
+                  ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)]"
+                  : "genie-glow"
+              )}
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                'Search'
+              )}
+            </Button>
+          </div>
+        </div>
+      </form>
+    </div>
   );
 }
