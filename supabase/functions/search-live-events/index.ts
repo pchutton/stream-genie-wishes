@@ -23,8 +23,14 @@ interface LiveEvent {
   eventDate?: string; // ISO date for filtering
 }
 
+interface ESPNGameInfo {
+  time: string;
+  opponent: string;
+  eventName: string;
+}
+
 // Helper function to fetch ESPN schedule page and extract game time
-async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<string | null> {
+async function fetchESPNGameInfo(teamName: string, eventDate?: string): Promise<ESPNGameInfo | null> {
   try {
     // Map team names to ESPN team slugs and sport types
     const espnTeamMap: Record<string, { slug: string; sport: string; league: string }> = {
@@ -232,7 +238,8 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
     let espnApiUrl: string;
     switch (teamInfo.sport) {
       case 'college-football':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamInfo.slug}/schedule`;
+        // College football uses numeric team IDs - we need to get the ID first
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
         break;
       case 'nfl':
         espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamInfo.slug}/schedule`;
@@ -247,7 +254,7 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
         espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/${teamInfo.slug}/schedule`;
         break;
       case 'mens-college-basketball':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams/${teamInfo.slug}/schedule`;
+        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
         break;
       default:
         espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
@@ -266,7 +273,32 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
       return null;
     }
 
-    const data = await response.json();
+    let data = await response.json();
+    
+    // For college teams, we need a second request to get the schedule
+    if (teamInfo.sport === 'college-football' || teamInfo.sport === 'mens-college-basketball') {
+      const teams = data.sports?.[0]?.leagues?.[0]?.teams || data.teams || [];
+      if (teams.length > 0) {
+        const teamId = teams[0].team?.id || teams[0].id;
+        const sport = teamInfo.sport === 'college-football' ? 'football/college-football' : 'basketball/mens-college-basketball';
+        const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`;
+        console.log(`Fetching college team schedule: ${scheduleUrl}`);
+        
+        const scheduleResponse = await fetch(scheduleUrl, {
+          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+        });
+        
+        if (!scheduleResponse.ok) {
+          console.log(`ESPN schedule API returned ${scheduleResponse.status}`);
+          return null;
+        }
+        data = await scheduleResponse.json();
+      } else {
+        console.log('No team found in ESPN search');
+        return null;
+      }
+    }
+    
     const events = data.events || [];
     
     // Find the event matching our date
@@ -279,18 +311,7 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
       
       // Check if dates match (same day)
       if (eventDateTime.toISOString().split('T')[0] === targetDate.toISOString().split('T')[0]) {
-        // Format the time nicely
-        const options: Intl.DateTimeFormatOptions = {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZoneName: 'short'
-        };
-        const formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/New_York' });
-        console.log(`Found ESPN game time: ${formattedTime}`);
-        return formattedTime;
+        return extractGameInfo(event, eventDateTime);
       }
     }
     
@@ -299,25 +320,47 @@ async function fetchESPNGameTime(teamName: string, eventDate?: string): Promise<
     for (const event of events) {
       const eventDateTime = new Date(event.date);
       if (eventDateTime > now) {
-        const options: Intl.DateTimeFormatOptions = {
-          weekday: 'short',
-          month: 'short',
-          day: 'numeric',
-          hour: 'numeric',
-          minute: '2-digit',
-          timeZoneName: 'short'
-        };
-        const formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/New_York' });
-        console.log(`Found next ESPN game time: ${formattedTime}`);
-        return formattedTime;
+        return extractGameInfo(event, eventDateTime);
       }
     }
-
+    
     return null;
   } catch (error) {
     console.error('Error fetching ESPN schedule:', error);
     return null;
   }
+}
+
+// Helper to extract game info from ESPN event
+function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    timeZoneName: 'short'
+  };
+  const formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/New_York' });
+  
+  // Extract opponent from competitions
+  const competitions = event.competitions || [];
+  let opponent = '';
+  let eventName = event.name || event.shortName || '';
+  
+  if (competitions.length > 0) {
+    const competitors = competitions[0].competitors || [];
+    // Try to find away team or the opponent
+    if (competitors.length >= 2) {
+      const team1 = competitors[0]?.team?.displayName || competitors[0]?.team?.name || '';
+      const team2 = competitors[1]?.team?.displayName || competitors[1]?.team?.name || '';
+      opponent = `${team1} vs ${team2}`;
+      eventName = eventName || opponent;
+    }
+  }
+  
+  console.log(`Found ESPN game: ${eventName} at ${formattedTime}`);
+  return { time: formattedTime, opponent, eventName };
 }
 
 // Helper function to extract team name from event for ESPN lookup
@@ -969,11 +1012,16 @@ If no upcoming events found, return an empty array [].`
         if (timeStr.includes('tbd') || !timeStr.match(/\d{1,2}:\d{2}/)) {
           const teamName = extractTeamFromEvent(event);
           if (teamName) {
-            console.log(`Looking up ESPN time for team: ${teamName}, date: ${event.eventDate}`);
-            const espnTime = await fetchESPNGameTime(teamName, event.eventDate);
-            if (espnTime) {
-              console.log(`Updated time from "${event.time}" to "${espnTime}"`);
-              return { ...event, time: espnTime };
+            console.log(`Looking up ESPN info for team: ${teamName}, date: ${event.eventDate}`);
+            const espnInfo = await fetchESPNGameInfo(teamName, event.eventDate);
+            if (espnInfo) {
+              console.log(`Updated event from ESPN: time="${espnInfo.time}", opponent="${espnInfo.opponent}"`);
+              return { 
+                ...event, 
+                time: espnInfo.time,
+                participants: espnInfo.opponent || event.participants,
+                eventName: event.eventName || espnInfo.eventName
+              };
             }
           }
         }
