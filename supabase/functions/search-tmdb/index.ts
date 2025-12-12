@@ -454,21 +454,29 @@ serve(async (req) => {
     if (mediaResults.length === 0) {
       console.log(`Searching TMDB multi for: "${normalizedQuery}"`);
       
-      const searchResponse = await fetch(
-        `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=1`
-      );
+      // Fetch first 2 pages to get more results
+      const [page1Response, page2Response] = await Promise.all([
+        fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=1`),
+        fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=2`)
+      ]);
 
-      if (!searchResponse.ok) {
-        console.error('TMDB search failed:', searchResponse.status, await searchResponse.text());
+      if (!page1Response.ok) {
+        console.error('TMDB search failed:', page1Response.status, await page1Response.text());
         throw new Error('Failed to search TMDB');
       }
 
-      const searchData = await searchResponse.json();
+      const page1Data = await page1Response.json();
+      const page2Data = page2Response.ok ? await page2Response.json() : { results: [] };
       
-      // Filter to only movies and TV shows, limit to 20 results
-      mediaResults = (searchData.results as TMDBSearchResult[])
+      // Combine results from both pages
+      const allResults = [...(page1Data.results || []), ...(page2Data.results || [])];
+      
+      // Filter to only movies and TV shows, limit to 25 results
+      mediaResults = (allResults as TMDBSearchResult[])
         .filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
-        .slice(0, 20);
+        .slice(0, 25);
+        
+      console.log(`TMDB returned ${page1Data.results?.length || 0} + ${page2Data.results?.length || 0} results, filtered to ${mediaResults.length}`);
     }
 
     console.log(`Found ${mediaResults.length} results`);
