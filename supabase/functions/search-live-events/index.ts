@@ -1017,6 +1017,7 @@ If no upcoming events found, return an empty array [].`
     console.log('Step 1 complete: Event extraction done');
 
     const content = aiData.choices?.[0]?.message?.content || '[]';
+    console.log('AI extraction raw response:', content.substring(0, 500));
     
     let events: LiveEvent[] = [];
     try {
@@ -1027,6 +1028,8 @@ If no upcoming events found, return an empty array [].`
       if (!Array.isArray(events)) {
         events = [events];
       }
+      
+      console.log(`AI extracted ${events.length} events before filtering`);
       
       // Filter out past events as a safety net
       const upcomingEvents = events.filter(event => !isEventInPast(event.time, event.eventDate));
@@ -1044,6 +1047,41 @@ If no upcoming events found, return an empty array [].`
         summary: item.snippet,
         streamingPlatforms: []
       }));
+    }
+
+    // Step 1.4: If AI returned 0 events but we have a recognized team, try ESPN API directly
+    if (events.length === 0) {
+      console.log('No events from AI, trying direct ESPN lookup for query:', query);
+      const preProcessed = preProcessQuery(query);
+      
+      // Check if the preprocessed query contains a known team name
+      const teamNicknamesList = Object.values(teamNicknames);
+      let matchedTeam: string | null = null;
+      
+      for (const teamName of teamNicknamesList) {
+        if (preProcessed.toLowerCase().includes(teamName.toLowerCase().split(' ')[0])) {
+          matchedTeam = teamName;
+          break;
+        }
+      }
+      
+      if (matchedTeam) {
+        console.log(`Attempting direct ESPN lookup for team: ${matchedTeam}`);
+        const espnInfo = await fetchESPNGameInfo(matchedTeam);
+        
+        if (espnInfo) {
+          console.log(`Direct ESPN lookup found game: ${espnInfo.eventName} at ${espnInfo.time}`);
+          events = [{
+            eventName: espnInfo.eventName || `${matchedTeam} Game`,
+            time: espnInfo.time,
+            participants: espnInfo.opponent || matchedTeam,
+            whereToWatch: 'TBD',
+            link: `https://www.espn.com/search/_/q/${encodeURIComponent(matchedTeam)}`,
+            summary: `Upcoming game for ${matchedTeam}`,
+            eventDate: new Date().toISOString().split('T')[0]
+          }];
+        }
+      }
     }
 
     // Step 1.5: Enhance game times with ESPN API for events with TBD time
