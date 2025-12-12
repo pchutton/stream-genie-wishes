@@ -190,25 +190,9 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
   return (
     <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       <CardHeader className="pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 flex-1">
-            {event.eventName}
-          </CardTitle>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleSave}
-            className="shrink-0 h-8 w-8"
-            title={isSaved ? 'Remove from My Events' : 'Add to My Events'}
-          >
-            <Heart 
-              className={cn(
-                "h-5 w-5 transition-colors",
-                isSaved ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary"
-              )} 
-            />
-          </Button>
-        </div>
+        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2">
+          {event.eventName}
+        </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-start gap-2 text-sm">
@@ -254,6 +238,28 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
             More Info
           </a>
         )}
+
+        {/* Add to My Events Button */}
+        <Button
+          variant={isSaved ? "secondary" : "outline"}
+          onClick={onToggleSave}
+          className={cn(
+            "w-full mt-2 h-10 gap-2",
+            !isSaved && "border-primary/50 hover:bg-primary/10"
+          )}
+        >
+          <Heart 
+            className={cn(
+              "h-5 w-5 transition-all",
+              isSaved 
+                ? "fill-primary text-primary" 
+                : "text-primary animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
+            )} 
+          />
+          <span className={cn(isSaved ? "text-foreground" : "text-primary font-medium")}>
+            {isSaved ? 'Saved to My Events' : 'Add to My Events'}
+          </span>
+        </Button>
       </CardContent>
     </Card>
   );
