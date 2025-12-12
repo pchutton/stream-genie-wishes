@@ -1,8 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Layout } from '@/components/layout/Layout';
 
-// Replace this with your actual Google CSE ID
-const SEARCH_ENGINE_ID = 'REPLACE_WITH_YOUR_SEARCH_ENGINE_ID';
+const SEARCH_ENGINE_ID = 'f14f3e698611345bf';
 
 export default function ExpandedSearch() {
   const scriptLoaded = useRef(false);
