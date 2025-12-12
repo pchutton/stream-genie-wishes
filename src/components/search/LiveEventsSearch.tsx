@@ -1,4 +1,5 @@
 import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { LiveEvent, PlatformInfo } from '@/hooks/useLiveEventsSearch';
@@ -286,6 +287,12 @@ export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) 
         </p>
         <p className="text-sm text-muted-foreground/70 mt-1">
           Try "Lakers game tonight" or "UFC this weekend"
+        </p>
+        <p className="text-sm text-muted-foreground mt-3">
+          Not seeing the results you want? Try{' '}
+          <Link to="/expanded-search" className="text-primary hover:underline font-medium">
+            "Expanded Search"
+          </Link>
         </p>
       </div>
     );
