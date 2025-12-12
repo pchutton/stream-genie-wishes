@@ -30,273 +30,311 @@ interface ESPNGameInfo {
 }
 
 // Helper function to fetch ESPN schedule page and extract game time
-async function fetchESPNGameInfo(teamName: string, eventDate?: string): Promise<ESPNGameInfo | null> {
+async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink?: string): Promise<ESPNGameInfo | null> {
   try {
-    // Map team names to ESPN team slugs and sport types
-    const espnTeamMap: Record<string, { slug: string; sport: string; league: string }> = {
-      // College Football
-      'Oklahoma Sooners': { slug: 'oklahoma-sooners', sport: 'college-football', league: 'team' },
-      'Alabama Crimson Tide': { slug: 'alabama-crimson-tide', sport: 'college-football', league: 'team' },
-      'Georgia Bulldogs': { slug: 'georgia-bulldogs', sport: 'college-football', league: 'team' },
-      'Ohio State Buckeyes': { slug: 'ohio-state-buckeyes', sport: 'college-football', league: 'team' },
-      'Michigan Wolverines': { slug: 'michigan-wolverines', sport: 'college-football', league: 'team' },
-      'Texas Longhorns': { slug: 'texas-longhorns', sport: 'college-football', league: 'team' },
-      'Notre Dame Fighting Irish': { slug: 'notre-dame-fighting-irish', sport: 'college-football', league: 'team' },
-      'Clemson Tigers': { slug: 'clemson-tigers', sport: 'college-football', league: 'team' },
-      'Oregon Ducks': { slug: 'oregon-ducks', sport: 'college-football', league: 'team' },
-      'Penn State Nittany Lions': { slug: 'penn-state-nittany-lions', sport: 'college-football', league: 'team' },
-      'Florida State Seminoles': { slug: 'florida-state-seminoles', sport: 'college-football', league: 'team' },
-      'Tennessee Volunteers': { slug: 'tennessee-volunteers', sport: 'college-football', league: 'team' },
-      'Florida Gators': { slug: 'florida-gators', sport: 'college-football', league: 'team' },
-      'USC Trojans': { slug: 'usc-trojans', sport: 'college-football', league: 'team' },
-      'Texas A&M Aggies': { slug: 'texas-am-aggies', sport: 'college-football', league: 'team' },
-      
-      // NFL Teams
-      'Dallas Cowboys': { slug: 'dal', sport: 'nfl', league: 'team' },
-      'Kansas City Chiefs': { slug: 'kc', sport: 'nfl', league: 'team' },
-      'San Francisco 49ers': { slug: 'sf', sport: 'nfl', league: 'team' },
-      'Philadelphia Eagles': { slug: 'phi', sport: 'nfl', league: 'team' },
-      'Buffalo Bills': { slug: 'buf', sport: 'nfl', league: 'team' },
-      'Miami Dolphins': { slug: 'mia', sport: 'nfl', league: 'team' },
-      'New England Patriots': { slug: 'ne', sport: 'nfl', league: 'team' },
-      'New York Jets': { slug: 'nyj', sport: 'nfl', league: 'team' },
-      'New York Giants': { slug: 'nyg', sport: 'nfl', league: 'team' },
-      'Baltimore Ravens': { slug: 'bal', sport: 'nfl', league: 'team' },
-      'Pittsburgh Steelers': { slug: 'pit', sport: 'nfl', league: 'team' },
-      'Cleveland Browns': { slug: 'cle', sport: 'nfl', league: 'team' },
-      'Cincinnati Bengals': { slug: 'cin', sport: 'nfl', league: 'team' },
-      'Denver Broncos': { slug: 'den', sport: 'nfl', league: 'team' },
-      'Las Vegas Raiders': { slug: 'lv', sport: 'nfl', league: 'team' },
-      'Los Angeles Chargers': { slug: 'lac', sport: 'nfl', league: 'team' },
-      'Green Bay Packers': { slug: 'gb', sport: 'nfl', league: 'team' },
-      'Chicago Bears': { slug: 'chi', sport: 'nfl', league: 'team' },
-      'Detroit Lions': { slug: 'det', sport: 'nfl', league: 'team' },
-      'Minnesota Vikings': { slug: 'min', sport: 'nfl', league: 'team' },
-      'Tampa Bay Buccaneers': { slug: 'tb', sport: 'nfl', league: 'team' },
-      'Atlanta Falcons': { slug: 'atl', sport: 'nfl', league: 'team' },
-      'New Orleans Saints': { slug: 'no', sport: 'nfl', league: 'team' },
-      'Carolina Panthers': { slug: 'car', sport: 'nfl', league: 'team' },
-      'Seattle Seahawks': { slug: 'sea', sport: 'nfl', league: 'team' },
-      'Los Angeles Rams': { slug: 'lar', sport: 'nfl', league: 'team' },
-      'Arizona Cardinals': { slug: 'ari', sport: 'nfl', league: 'team' },
-      'Washington Commanders': { slug: 'wsh', sport: 'nfl', league: 'team' },
-      'Houston Texans': { slug: 'hou', sport: 'nfl', league: 'team' },
-      'Indianapolis Colts': { slug: 'ind', sport: 'nfl', league: 'team' },
-      'Tennessee Titans': { slug: 'ten', sport: 'nfl', league: 'team' },
-      'Jacksonville Jaguars': { slug: 'jax', sport: 'nfl', league: 'team' },
-      
-      // NBA Teams
-      'Los Angeles Lakers': { slug: 'lal', sport: 'nba', league: 'team' },
-      'Golden State Warriors': { slug: 'gs', sport: 'nba', league: 'team' },
-      'Boston Celtics': { slug: 'bos', sport: 'nba', league: 'team' },
-      'Milwaukee Bucks': { slug: 'mil', sport: 'nba', league: 'team' },
-      'Phoenix Suns': { slug: 'phx', sport: 'nba', league: 'team' },
-      'Dallas Mavericks': { slug: 'dal', sport: 'nba', league: 'team' },
-      'Miami Heat': { slug: 'mia', sport: 'nba', league: 'team' },
-      'Denver Nuggets': { slug: 'den', sport: 'nba', league: 'team' },
-      'Brooklyn Nets': { slug: 'bkn', sport: 'nba', league: 'team' },
-      'New York Knicks': { slug: 'ny', sport: 'nba', league: 'team' },
-      'Philadelphia 76ers': { slug: 'phi', sport: 'nba', league: 'team' },
-      'Toronto Raptors': { slug: 'tor', sport: 'nba', league: 'team' },
-      'Chicago Bulls': { slug: 'chi', sport: 'nba', league: 'team' },
-      'Cleveland Cavaliers': { slug: 'cle', sport: 'nba', league: 'team' },
-      'Detroit Pistons': { slug: 'det', sport: 'nba', league: 'team' },
-      'Indiana Pacers': { slug: 'ind', sport: 'nba', league: 'team' },
-      'Atlanta Hawks': { slug: 'atl', sport: 'nba', league: 'team' },
-      'Charlotte Hornets': { slug: 'cha', sport: 'nba', league: 'team' },
-      'Orlando Magic': { slug: 'orl', sport: 'nba', league: 'team' },
-      'Washington Wizards': { slug: 'wsh', sport: 'nba', league: 'team' },
-      'Houston Rockets': { slug: 'hou', sport: 'nba', league: 'team' },
-      'Memphis Grizzlies': { slug: 'mem', sport: 'nba', league: 'team' },
-      'New Orleans Pelicans': { slug: 'no', sport: 'nba', league: 'team' },
-      'San Antonio Spurs': { slug: 'sa', sport: 'nba', league: 'team' },
-      'Los Angeles Clippers': { slug: 'lac', sport: 'nba', league: 'team' },
-      'Sacramento Kings': { slug: 'sac', sport: 'nba', league: 'team' },
-      'Oklahoma City Thunder': { slug: 'okc', sport: 'nba', league: 'team' },
-      'Portland Trail Blazers': { slug: 'por', sport: 'nba', league: 'team' },
-      'Utah Jazz': { slug: 'uta', sport: 'nba', league: 'team' },
-      'Minnesota Timberwolves': { slug: 'min', sport: 'nba', league: 'team' },
-      
-      // NHL Teams
-      'Boston Bruins': { slug: 'bos', sport: 'nhl', league: 'team' },
-      'Buffalo Sabres': { slug: 'buf', sport: 'nhl', league: 'team' },
-      'Detroit Red Wings': { slug: 'det', sport: 'nhl', league: 'team' },
-      'Florida Panthers': { slug: 'fla', sport: 'nhl', league: 'team' },
-      'Montreal Canadiens': { slug: 'mtl', sport: 'nhl', league: 'team' },
-      'Ottawa Senators': { slug: 'ott', sport: 'nhl', league: 'team' },
-      'Tampa Bay Lightning': { slug: 'tb', sport: 'nhl', league: 'team' },
-      'Toronto Maple Leafs': { slug: 'tor', sport: 'nhl', league: 'team' },
-      'Carolina Hurricanes': { slug: 'car', sport: 'nhl', league: 'team' },
-      'Columbus Blue Jackets': { slug: 'cbj', sport: 'nhl', league: 'team' },
-      'New Jersey Devils': { slug: 'nj', sport: 'nhl', league: 'team' },
-      'New York Islanders': { slug: 'nyi', sport: 'nhl', league: 'team' },
-      'New York Rangers': { slug: 'nyr', sport: 'nhl', league: 'team' },
-      'Philadelphia Flyers': { slug: 'phi', sport: 'nhl', league: 'team' },
-      'Pittsburgh Penguins': { slug: 'pit', sport: 'nhl', league: 'team' },
-      'Washington Capitals': { slug: 'wsh', sport: 'nhl', league: 'team' },
-      'Arizona Coyotes': { slug: 'ari', sport: 'nhl', league: 'team' },
-      'Chicago Blackhawks': { slug: 'chi', sport: 'nhl', league: 'team' },
-      'Colorado Avalanche': { slug: 'col', sport: 'nhl', league: 'team' },
-      'Dallas Stars': { slug: 'dal', sport: 'nhl', league: 'team' },
-      'Minnesota Wild': { slug: 'min', sport: 'nhl', league: 'team' },
-      'Nashville Predators': { slug: 'nsh', sport: 'nhl', league: 'team' },
-      'St. Louis Blues': { slug: 'stl', sport: 'nhl', league: 'team' },
-      'Winnipeg Jets': { slug: 'wpg', sport: 'nhl', league: 'team' },
-      'Anaheim Ducks': { slug: 'ana', sport: 'nhl', league: 'team' },
-      'Calgary Flames': { slug: 'cgy', sport: 'nhl', league: 'team' },
-      'Edmonton Oilers': { slug: 'edm', sport: 'nhl', league: 'team' },
-      'Los Angeles Kings': { slug: 'la', sport: 'nhl', league: 'team' },
-      'San Jose Sharks': { slug: 'sj', sport: 'nhl', league: 'team' },
-      'Seattle Kraken': { slug: 'sea', sport: 'nhl', league: 'team' },
-      'Vancouver Canucks': { slug: 'van', sport: 'nhl', league: 'team' },
-      'Vegas Golden Knights': { slug: 'vgk', sport: 'nhl', league: 'team' },
-      
-      // MLB Teams
-      'Arizona Diamondbacks': { slug: 'ari', sport: 'mlb', league: 'team' },
-      'Atlanta Braves': { slug: 'atl', sport: 'mlb', league: 'team' },
-      'Baltimore Orioles': { slug: 'bal', sport: 'mlb', league: 'team' },
-      'Boston Red Sox': { slug: 'bos', sport: 'mlb', league: 'team' },
-      'Chicago Cubs': { slug: 'chc', sport: 'mlb', league: 'team' },
-      'Chicago White Sox': { slug: 'chw', sport: 'mlb', league: 'team' },
-      'Cincinnati Reds': { slug: 'cin', sport: 'mlb', league: 'team' },
-      'Cleveland Guardians': { slug: 'cle', sport: 'mlb', league: 'team' },
-      'Colorado Rockies': { slug: 'col', sport: 'mlb', league: 'team' },
-      'Detroit Tigers': { slug: 'det', sport: 'mlb', league: 'team' },
-      'Houston Astros': { slug: 'hou', sport: 'mlb', league: 'team' },
-      'Kansas City Royals': { slug: 'kc', sport: 'mlb', league: 'team' },
-      'Los Angeles Angels': { slug: 'laa', sport: 'mlb', league: 'team' },
-      'Los Angeles Dodgers': { slug: 'lad', sport: 'mlb', league: 'team' },
-      'Miami Marlins': { slug: 'mia', sport: 'mlb', league: 'team' },
-      'Milwaukee Brewers': { slug: 'mil', sport: 'mlb', league: 'team' },
-      'Minnesota Twins': { slug: 'min', sport: 'mlb', league: 'team' },
-      'New York Mets': { slug: 'nym', sport: 'mlb', league: 'team' },
-      'New York Yankees': { slug: 'nyy', sport: 'mlb', league: 'team' },
-      'Oakland Athletics': { slug: 'oak', sport: 'mlb', league: 'team' },
-      'Philadelphia Phillies': { slug: 'phi', sport: 'mlb', league: 'team' },
-      'Pittsburgh Pirates': { slug: 'pit', sport: 'mlb', league: 'team' },
-      'San Diego Padres': { slug: 'sd', sport: 'mlb', league: 'team' },
-      'San Francisco Giants': { slug: 'sf', sport: 'mlb', league: 'team' },
-      'Seattle Mariners': { slug: 'sea', sport: 'mlb', league: 'team' },
-      'St. Louis Cardinals': { slug: 'stl', sport: 'mlb', league: 'team' },
-      'Tampa Bay Rays': { slug: 'tb', sport: 'mlb', league: 'team' },
-      'Texas Rangers': { slug: 'tex', sport: 'mlb', league: 'team' },
-      'Toronto Blue Jays': { slug: 'tor', sport: 'mlb', league: 'team' },
-      'Washington Nationals': { slug: 'wsh', sport: 'mlb', league: 'team' },
-      
-      // College Basketball - Top Programs (using "Basketball" suffix to avoid conflicts with football)
-      'Duke Blue Devils': { slug: 'duke-blue-devils', sport: 'mens-college-basketball', league: 'team' },
-      'North Carolina Tar Heels': { slug: 'north-carolina-tar-heels', sport: 'mens-college-basketball', league: 'team' },
-      'Kansas Jayhawks': { slug: 'kansas-jayhawks', sport: 'mens-college-basketball', league: 'team' },
-      'Kentucky Wildcats': { slug: 'kentucky-wildcats', sport: 'mens-college-basketball', league: 'team' },
-      'UCLA Bruins': { slug: 'ucla-bruins', sport: 'mens-college-basketball', league: 'team' },
-      'Gonzaga Bulldogs': { slug: 'gonzaga-bulldogs', sport: 'mens-college-basketball', league: 'team' },
-      'UConn Huskies': { slug: 'connecticut-huskies', sport: 'mens-college-basketball', league: 'team' },
-      'Villanova Wildcats': { slug: 'villanova-wildcats', sport: 'mens-college-basketball', league: 'team' },
-      'Michigan State Spartans': { slug: 'michigan-state-spartans', sport: 'mens-college-basketball', league: 'team' },
-      'Arizona Wildcats': { slug: 'arizona-wildcats', sport: 'mens-college-basketball', league: 'team' },
-      'Purdue Boilermakers': { slug: 'purdue-boilermakers', sport: 'mens-college-basketball', league: 'team' },
-      'Houston Cougars': { slug: 'houston-cougars', sport: 'mens-college-basketball', league: 'team' },
-      'Baylor Bears': { slug: 'baylor-bears', sport: 'mens-college-basketball', league: 'team' },
-      'Indiana Hoosiers': { slug: 'indiana-hoosiers', sport: 'mens-college-basketball', league: 'team' },
-      'Louisville Cardinals': { slug: 'louisville-cardinals', sport: 'mens-college-basketball', league: 'team' },
-      'Syracuse Orange': { slug: 'syracuse-orange', sport: 'mens-college-basketball', league: 'team' },
-      'Auburn Tigers': { slug: 'auburn-tigers', sport: 'mens-college-basketball', league: 'team' },
-      'Arkansas Razorbacks': { slug: 'arkansas-razorbacks', sport: 'mens-college-basketball', league: 'team' },
-      'Iowa Hawkeyes': { slug: 'iowa-hawkeyes', sport: 'mens-college-basketball', league: 'team' },
-      'Wisconsin Badgers': { slug: 'wisconsin-badgers', sport: 'mens-college-basketball', league: 'team' },
-      'Virginia Cavaliers': { slug: 'virginia-cavaliers', sport: 'mens-college-basketball', league: 'team' },
-      'Marquette Golden Eagles': { slug: 'marquette-golden-eagles', sport: 'mens-college-basketball', league: 'team' },
-      'Creighton Bluejays': { slug: 'creighton-bluejays', sport: 'mens-college-basketball', league: 'team' },
-      'San Diego State Aztecs': { slug: 'san-diego-state-aztecs', sport: 'mens-college-basketball', league: 'team' },
-      'Illinois Fighting Illini': { slug: 'illinois-fighting-illini', sport: 'mens-college-basketball', league: 'team' },
-      'Xavier Musketeers': { slug: 'xavier-musketeers', sport: 'mens-college-basketball', league: 'team' },
-      'Memphis Tigers': { slug: 'memphis-tigers', sport: 'mens-college-basketball', league: 'team' },
-      'St. Johns Red Storm': { slug: 'st-johns-red-storm', sport: 'mens-college-basketball', league: 'team' },
-      'Seton Hall Pirates': { slug: 'seton-hall-pirates', sport: 'mens-college-basketball', league: 'team' },
-      'Georgetown Hoyas': { slug: 'georgetown-hoyas', sport: 'mens-college-basketball', league: 'team' },
-    };
+    let data: any | null = null;
 
-    // Find the team in our map
-    let teamInfo = espnTeamMap[teamName];
-    
-    // Try to find a partial match if exact match fails
-    if (!teamInfo) {
-      for (const [key, value] of Object.entries(espnTeamMap)) {
-        if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
-          teamInfo = value;
-          break;
+    // 1) If we have a direct ESPN schedule link, derive the API URL from it (best signal)
+    if (eventLink && eventLink.includes('espn.com')) {
+      let scheduleUrl: string | null = null;
+
+      // College football team schedule links look like:
+      // https://www.espn.com/college-football/team/schedule/_/id/201/oklahoma-sooners
+      if (eventLink.includes('/college-football/')) {
+        const idMatch = eventLink.match(/id\/(\d+)/);
+        if (idMatch) {
+          const teamId = idMatch[1];
+          scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams/${teamId}/schedule`;
         }
       }
-    }
-    
-    if (!teamInfo) {
-      console.log(`No ESPN mapping found for team: ${teamName}`);
-      return null;
-    }
 
-    // Construct ESPN API URL for team schedule
-    let espnApiUrl: string;
-    switch (teamInfo.sport) {
-      case 'college-football':
-        // College football uses numeric team IDs - we need to get the ID first
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
-        break;
-      case 'nfl':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamInfo.slug}/schedule`;
-        break;
-      case 'nba':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamInfo.slug}/schedule`;
-        break;
-      case 'nhl':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/${teamInfo.slug}/schedule`;
-        break;
-      case 'mlb':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/${teamInfo.slug}/schedule`;
-        break;
-      case 'mens-college-basketball':
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
-        break;
-      default:
-        espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
-    }
-
-    console.log(`Fetching ESPN schedule: ${espnApiUrl}`);
-    
-    const response = await fetch(espnApiUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-      }
-    });
-
-    if (!response.ok) {
-      console.log(`ESPN API returned ${response.status}`);
-      return null;
-    }
-
-    let data = await response.json();
-    
-    // For college teams, we need a second request to get the schedule
-    if (teamInfo.sport === 'college-football' || teamInfo.sport === 'mens-college-basketball') {
-      const teams = data.sports?.[0]?.leagues?.[0]?.teams || data.teams || [];
-      if (teams.length > 0) {
-        const teamId = teams[0].team?.id || teams[0].id;
-        const sport = teamInfo.sport === 'college-football' ? 'football/college-football' : 'basketball/mens-college-basketball';
-        const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`;
-        console.log(`Fetching college team schedule: ${scheduleUrl}`);
-        
+      if (scheduleUrl) {
+        console.log(`Fetching ESPN schedule from event link: ${scheduleUrl}`);
         const scheduleResponse = await fetch(scheduleUrl, {
           headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
         });
-        
-        if (!scheduleResponse.ok) {
-          console.log(`ESPN schedule API returned ${scheduleResponse.status}`);
-          return null;
+
+        if (scheduleResponse.ok) {
+          data = await scheduleResponse.json();
+        } else {
+          console.log(`ESPN schedule from link returned ${scheduleResponse.status}`);
         }
-        data = await scheduleResponse.json();
-      } else {
-        console.log('No team found in ESPN search');
+      }
+    }
+
+    // 2) Fallback: use team name mapping + search API if we still don't have data
+    if (!data) {
+      // Map team names to ESPN team slugs and sport types
+      const espnTeamMap: Record<string, { slug: string; sport: string; league: string }> = {
+        // College Football
+        'Oklahoma Sooners': { slug: 'oklahoma-sooners', sport: 'college-football', league: 'team' },
+        'Alabama Crimson Tide': { slug: 'alabama-crimson-tide', sport: 'college-football', league: 'team' },
+        'Georgia Bulldogs': { slug: 'georgia-bulldogs', sport: 'college-football', league: 'team' },
+        'Ohio State Buckeyes': { slug: 'ohio-state-buckeyes', sport: 'college-football', league: 'team' },
+        'Michigan Wolverines': { slug: 'michigan-wolverines', sport: 'college-football', league: 'team' },
+        'Texas Longhorns': { slug: 'texas-longhorns', sport: 'college-football', league: 'team' },
+        'Notre Dame Fighting Irish': { slug: 'notre-dame-fighting-irish', sport: 'college-football', league: 'team' },
+        'Clemson Tigers': { slug: 'clemson-tigers', sport: 'college-football', league: 'team' },
+        'Oregon Ducks': { slug: 'oregon-ducks', sport: 'college-football', league: 'team' },
+        'Penn State Nittany Lions': { slug: 'penn-state-nittany-lions', sport: 'college-football', league: 'team' },
+        'Florida State Seminoles': { slug: 'florida-state-seminoles', sport: 'college-football', league: 'team' },
+        'Tennessee Volunteers': { slug: 'tennessee-volunteers', sport: 'college-football', league: 'team' },
+        'Florida Gators': { slug: 'florida-gators', sport: 'college-football', league: 'team' },
+        'USC Trojans': { slug: 'usc-trojans', sport: 'college-football', league: 'team' },
+        'Texas A&M Aggies': { slug: 'texas-am-aggies', sport: 'college-football', league: 'team' },
+        
+        // NFL Teams
+        'Dallas Cowboys': { slug: 'dal', sport: 'nfl', league: 'team' },
+        'Kansas City Chiefs': { slug: 'kc', sport: 'nfl', league: 'team' },
+        'San Francisco 49ers': { slug: 'sf', sport: 'nfl', league: 'team' },
+        'Philadelphia Eagles': { slug: 'phi', sport: 'nfl', league: 'team' },
+        'Buffalo Bills': { slug: 'buf', sport: 'nfl', league: 'team' },
+        'Miami Dolphins': { slug: 'mia', sport: 'nfl', league: 'team' },
+        'New England Patriots': { slug: 'ne', sport: 'nfl', league: 'team' },
+        'New York Jets': { slug: 'nyj', sport: 'nfl', league: 'team' },
+        'New York Giants': { slug: 'nyg', sport: 'nfl', league: 'team' },
+        'Baltimore Ravens': { slug: 'bal', sport: 'nfl', league: 'team' },
+        'Pittsburgh Steelers': { slug: 'pit', sport: 'nfl', league: 'team' },
+        'Cleveland Browns': { slug: 'cle', sport: 'nfl', league: 'team' },
+        'Cincinnati Bengals': { slug: 'cin', sport: 'nfl', league: 'team' },
+        'Denver Broncos': { slug: 'den', sport: 'nfl', league: 'team' },
+        'Las Vegas Raiders': { slug: 'lv', sport: 'nfl', league: 'team' },
+        'Los Angeles Chargers': { slug: 'lac', sport: 'nfl', league: 'team' },
+        'Green Bay Packers': { slug: 'gb', sport: 'nfl', league: 'team' },
+        'Chicago Bears': { slug: 'chi', sport: 'nfl', league: 'team' },
+        'Detroit Lions': { slug: 'det', sport: 'nfl', league: 'team' },
+        'Minnesota Vikings': { slug: 'min', sport: 'nfl', league: 'team' },
+        'Tampa Bay Buccaneers': { slug: 'tb', sport: 'nfl', league: 'team' },
+        'Atlanta Falcons': { slug: 'atl', sport: 'nfl', league: 'team' },
+        'New Orleans Saints': { slug: 'no', sport: 'nfl', league: 'team' },
+        'Carolina Panthers': { slug: 'car', sport: 'nfl', league: 'team' },
+        'Seattle Seahawks': { slug: 'sea', sport: 'nfl', league: 'team' },
+        'Los Angeles Rams': { slug: 'lar', sport: 'nfl', league: 'team' },
+        'Arizona Cardinals': { slug: 'ari', sport: 'nfl', league: 'team' },
+        'Washington Commanders': { slug: 'wsh', sport: 'nfl', league: 'team' },
+        'Houston Texans': { slug: 'hou', sport: 'nfl', league: 'team' },
+        'Indianapolis Colts': { slug: 'ind', sport: 'nfl', league: 'team' },
+        'Tennessee Titans': { slug: 'ten', sport: 'nfl', league: 'team' },
+        'Jacksonville Jaguars': { slug: 'jax', sport: 'nfl', league: 'team' },
+        
+        // NBA Teams
+        'Los Angeles Lakers': { slug: 'lal', sport: 'nba', league: 'team' },
+        'Golden State Warriors': { slug: 'gs', sport: 'nba', league: 'team' },
+        'Boston Celtics': { slug: 'bos', sport: 'nba', league: 'team' },
+        'Milwaukee Bucks': { slug: 'mil', sport: 'nba', league: 'team' },
+        'Phoenix Suns': { slug: 'phx', sport: 'nba', league: 'team' },
+        'Dallas Mavericks': { slug: 'dal', sport: 'nba', league: 'team' },
+        'Miami Heat': { slug: 'mia', sport: 'nba', league: 'team' },
+        'Denver Nuggets': { slug: 'den', sport: 'nba', league: 'team' },
+        'Brooklyn Nets': { slug: 'bkn', sport: 'nba', league: 'team' },
+        'New York Knicks': { slug: 'ny', sport: 'nba', league: 'team' },
+        'Philadelphia 76ers': { slug: 'phi', sport: 'nba', league: 'team' },
+        'Toronto Raptors': { slug: 'tor', sport: 'nba', league: 'team' },
+        'Chicago Bulls': { slug: 'chi', sport: 'nba', league: 'team' },
+        'Cleveland Cavaliers': { slug: 'cle', sport: 'nba', league: 'team' },
+        'Detroit Pistons': { slug: 'det', sport: 'nba', league: 'team' },
+        'Indiana Pacers': { slug: 'ind', sport: 'nba', league: 'team' },
+        'Atlanta Hawks': { slug: 'atl', sport: 'nba', league: 'team' },
+        'Charlotte Hornets': { slug: 'cha', sport: 'nba', league: 'team' },
+        'Orlando Magic': { slug: 'orl', sport: 'nba', league: 'team' },
+        'Washington Wizards': { slug: 'wsh', sport: 'nba', league: 'team' },
+        'Houston Rockets': { slug: 'hou', sport: 'nba', league: 'team' },
+        'Memphis Grizzlies': { slug: 'mem', sport: 'nba', league: 'team' },
+        'New Orleans Pelicans': { slug: 'no', sport: 'nba', league: 'team' },
+        'San Antonio Spurs': { slug: 'sa', sport: 'nba', league: 'team' },
+        'Los Angeles Clippers': { slug: 'lac', sport: 'nba', league: 'team' },
+        'Sacramento Kings': { slug: 'sac', sport: 'nba', league: 'team' },
+        'Oklahoma City Thunder': { slug: 'okc', sport: 'nba', league: 'team' },
+        'Portland Trail Blazers': { slug: 'por', sport: 'nba', league: 'team' },
+        'Utah Jazz': { slug: 'uta', sport: 'nba', league: 'team' },
+        'Minnesota Timberwolves': { slug: 'min', sport: 'nba', league: 'team' },
+        
+        // NHL Teams
+        'Boston Bruins': { slug: 'bos', sport: 'nhl', league: 'team' },
+        'Buffalo Sabres': { slug: 'buf', sport: 'nhl', league: 'team' },
+        'Detroit Red Wings': { slug: 'det', sport: 'nhl', league: 'team' },
+        'Florida Panthers': { slug: 'fla', sport: 'nhl', league: 'team' },
+        'Montreal Canadiens': { slug: 'mtl', sport: 'nhl', league: 'team' },
+        'Ottawa Senators': { slug: 'ott', sport: 'nhl', league: 'team' },
+        'Tampa Bay Lightning': { slug: 'tb', sport: 'nhl', league: 'team' },
+        'Toronto Maple Leafs': { slug: 'tor', sport: 'nhl', league: 'team' },
+        'Carolina Hurricanes': { slug: 'car', sport: 'nhl', league: 'team' },
+        'Columbus Blue Jackets': { slug: 'cbj', sport: 'nhl', league: 'team' },
+        'New Jersey Devils': { slug: 'nj', sport: 'nhl', league: 'team' },
+        'New York Islanders': { slug: 'nyi', sport: 'nhl', league: 'team' },
+        'New York Rangers': { slug: 'nyr', sport: 'nhl', league: 'team' },
+        'Philadelphia Flyers': { slug: 'phi', sport: 'nhl', league: 'team' },
+        'Pittsburgh Penguins': { slug: 'pit', sport: 'nhl', league: 'team' },
+        'Washington Capitals': { slug: 'wsh', sport: 'nhl', league: 'team' },
+        'Arizona Coyotes': { slug: 'ari', sport: 'nhl', league: 'team' },
+        'Chicago Blackhawks': { slug: 'chi', sport: 'nhl', league: 'team' },
+        'Colorado Avalanche': { slug: 'col', sport: 'nhl', league: 'team' },
+        'Dallas Stars': { slug: 'dal', sport: 'nhl', league: 'team' },
+        'Minnesota Wild': { slug: 'min', sport: 'nhl', league: 'team' },
+        'Nashville Predators': { slug: 'nsh', sport: 'nhl', league: 'team' },
+        'St. Louis Blues': { slug: 'stl', sport: 'nhl', league: 'team' },
+        'Winnipeg Jets': { slug: 'wpg', sport: 'nhl', league: 'team' },
+        'Anaheim Ducks': { slug: 'ana', sport: 'nhl', league: 'team' },
+        'Calgary Flames': { slug: 'cgy', sport: 'nhl', league: 'team' },
+        'Edmonton Oilers': { slug: 'edm', sport: 'nhl', league: 'team' },
+        'Los Angeles Kings': { slug: 'la', sport: 'nhl', league: 'team' },
+        'San Jose Sharks': { slug: 'sj', sport: 'nhl', league: 'team' },
+        'Seattle Kraken': { slug: 'sea', sport: 'nhl', league: 'team' },
+        'Vancouver Canucks': { slug: 'van', sport: 'nhl', league: 'team' },
+        'Vegas Golden Knights': { slug: 'vgk', sport: 'nhl', league: 'team' },
+        
+        // MLB Teams
+        'Arizona Diamondbacks': { slug: 'ari', sport: 'mlb', league: 'team' },
+        'Atlanta Braves': { slug: 'atl', sport: 'mlb', league: 'team' },
+        'Baltimore Orioles': { slug: 'bal', sport: 'mlb', league: 'team' },
+        'Boston Red Sox': { slug: 'bos', sport: 'mlb', league: 'team' },
+        'Chicago Cubs': { slug: 'chc', sport: 'mlb', league: 'team' },
+        'Chicago White Sox': { slug: 'chw', sport: 'mlb', league: 'team' },
+        'Cincinnati Reds': { slug: 'cin', sport: 'mlb', league: 'team' },
+        'Cleveland Guardians': { slug: 'cle', sport: 'mlb', league: 'team' },
+        'Colorado Rockies': { slug: 'col', sport: 'mlb', league: 'team' },
+        'Detroit Tigers': { slug: 'det', sport: 'mlb', league: 'team' },
+        'Houston Astros': { slug: 'hou', sport: 'mlb', league: 'team' },
+        'Kansas City Royals': { slug: 'kc', sport: 'mlb', league: 'team' },
+        'Los Angeles Angels': { slug: 'laa', sport: 'mlb', league: 'team' },
+        'Los Angeles Dodgers': { slug: 'lad', sport: 'mlb', league: 'team' },
+        'Miami Marlins': { slug: 'mia', sport: 'mlb', league: 'team' },
+        'Milwaukee Brewers': { slug: 'mil', sport: 'mlb', league: 'team' },
+        'Minnesota Twins': { slug: 'min', sport: 'mlb', league: 'team' },
+        'New York Mets': { slug: 'nym', sport: 'mlb', league: 'team' },
+        'New York Yankees': { slug: 'nyy', sport: 'mlb', league: 'team' },
+        'Oakland Athletics': { slug: 'oak', sport: 'mlb', league: 'team' },
+        'Philadelphia Phillies': { slug: 'phi', sport: 'mlb', league: 'team' },
+        'Pittsburgh Pirates': { slug: 'pit', sport: 'mlb', league: 'team' },
+        'San Diego Padres': { slug: 'sd', sport: 'mlb', league: 'team' },
+        'San Francisco Giants': { slug: 'sf', sport: 'mlb', league: 'team' },
+        'Seattle Mariners': { slug: 'sea', sport: 'mlb', league: 'team' },
+        'St. Louis Cardinals': { slug: 'stl', sport: 'mlb', league: 'team' },
+        'Tampa Bay Rays': { slug: 'tb', sport: 'mlb', league: 'team' },
+        'Texas Rangers': { slug: 'tex', sport: 'mlb', league: 'team' },
+        'Toronto Blue Jays': { slug: 'tor', sport: 'mlb', league: 'team' },
+        'Washington Nationals': { slug: 'wsh', sport: 'mlb', league: 'team' },
+        
+        // College Basketball - Top Programs (using "Basketball" suffix to avoid conflicts with football)
+        'Duke Blue Devils': { slug: 'duke-blue-devils', sport: 'mens-college-basketball', league: 'team' },
+        'North Carolina Tar Heels': { slug: 'north-carolina-tar-heels', sport: 'mens-college-basketball', league: 'team' },
+        'Kansas Jayhawks': { slug: 'kansas-jayhawks', sport: 'mens-college-basketball', league: 'team' },
+        'Kentucky Wildcats': { slug: 'kentucky-wildcats', sport: 'mens-college-basketball', league: 'team' },
+        'UCLA Bruins': { slug: 'ucla-bruins', sport: 'mens-college-basketball', league: 'team' },
+        'Gonzaga Bulldogs': { slug: 'gonzaga-bulldogs', sport: 'mens-college-basketball', league: 'team' },
+        'UConn Huskies': { slug: 'connecticut-huskies', sport: 'mens-college-basketball', league: 'team' },
+        'Villanova Wildcats': { slug: 'villanova-wildcats', sport: 'mens-college-basketball', league: 'team' },
+        'Michigan State Spartans': { slug: 'michigan-state-spartans', sport: 'mens-college-basketball', league: 'team' },
+        'Arizona Wildcats': { slug: 'arizona-wildcats', sport: 'mens-college-basketball', league: 'team' },
+        'Purdue Boilermakers': { slug: 'purdue-boilermakers', sport: 'mens-college-basketball', league: 'team' },
+        'Houston Cougars': { slug: 'houston-cougars', sport: 'mens-college-basketball', league: 'team' },
+        'Baylor Bears': { slug: 'baylor-bears', sport: 'mens-college-basketball', league: 'team' },
+        'Indiana Hoosiers': { slug: 'indiana-hoosiers', sport: 'mens-college-basketball', league: 'team' },
+        'Louisville Cardinals': { slug: 'louisville-cardinals', sport: 'mens-college-basketball', league: 'team' },
+        'Syracuse Orange': { slug: 'syracuse-orange', sport: 'mens-college-basketball', league: 'team' },
+        'Auburn Tigers': { slug: 'auburn-tigers', sport: 'mens-college-basketball', league: 'team' },
+        'Arkansas Razorbacks': { slug: 'arkansas-razorbacks', sport: 'mens-college-basketball', league: 'team' },
+        'Iowa Hawkeyes': { slug: 'iowa-hawkeyes', sport: 'mens-college-basketball', league: 'team' },
+        'Wisconsin Badgers': { slug: 'wisconsin-badgers', sport: 'mens-college-basketball', league: 'team' },
+        'Virginia Cavaliers': { slug: 'virginia-cavaliers', sport: 'mens-college-basketball', league: 'team' },
+        'Marquette Golden Eagles': { slug: 'marquette-golden-eagles', sport: 'mens-college-basketball', league: 'team' },
+        'Creighton Bluejays': { slug: 'creighton-bluejays', sport: 'mens-college-basketball', league: 'team' },
+        'San Diego State Aztecs': { slug: 'san-diego-state-aztecs', sport: 'mens-college-basketball', league: 'team' },
+        'Illinois Fighting Illini': { slug: 'illinois-fighting-illini', sport: 'mens-college-basketball', league: 'team' },
+        'Xavier Musketeers': { slug: 'xavier-musketeers', sport: 'mens-college-basketball', league: 'team' },
+        'Memphis Tigers': { slug: 'memphis-tigers', sport: 'mens-college-basketball', league: 'team' },
+        'St. Johns Red Storm': { slug: 'st-johns-red-storm', sport: 'mens-college-basketball', league: 'team' },
+        'Seton Hall Pirates': { slug: 'seton-hall-pirates', sport: 'mens-college-basketball', league: 'team' },
+        'Georgetown Hoyas': { slug: 'georgetown-hoyas', sport: 'mens-college-basketball', league: 'team' },
+      };
+
+      // Find the team in our map
+      let teamInfo = espnTeamMap[teamName];
+      
+      // Try to find a partial match if exact match fails
+      if (!teamInfo) {
+        for (const [key, value] of Object.entries(espnTeamMap)) {
+          if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
+            teamInfo = value;
+            break;
+          }
+        }
+      }
+      
+      if (!teamInfo) {
+        console.log(`No ESPN mapping found for team: ${teamName}`);
         return null;
       }
+
+      // Construct ESPN API URL for team schedule
+      let espnApiUrl: string;
+      switch (teamInfo.sport) {
+        case 'college-football':
+          // College football uses numeric team IDs - we need to get the ID first
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
+          break;
+        case 'nfl':
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamInfo.slug}/schedule`;
+          break;
+        case 'nba':
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/nba/teams/${teamInfo.slug}/schedule`;
+          break;
+        case 'nhl':
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/hockey/nhl/teams/${teamInfo.slug}/schedule`;
+          break;
+        case 'mlb':
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/${teamInfo.slug}/schedule`;
+          break;
+        case 'mens-college-basketball':
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
+          break;
+        default:
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+      }
+
+      console.log(`Fetching ESPN schedule: ${espnApiUrl}`);
+      
+      const response = await fetch(espnApiUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+      });
+
+      if (!response.ok) {
+        console.log(`ESPN API returned ${response.status}`);
+        return null;
+      }
+
+      data = await response.json();
+      
+      // For college teams, we need a second request to get the schedule
+      if (teamInfo.sport === 'college-football' || teamInfo.sport === 'mens-college-basketball') {
+        const teams = data.sports?.[0]?.leagues?.[0]?.teams || data.teams || [];
+        if (teams.length > 0) {
+          const teamId = teams[0].team?.id || teams[0].id;
+          const sport = teamInfo.sport === 'college-football' ? 'football/college-football' : 'basketball/mens-college-basketball';
+          const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`;
+          console.log(`Fetching college team schedule: ${scheduleUrl}`);
+          
+          const scheduleResponse = await fetch(scheduleUrl, {
+            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+          });
+          
+          if (!scheduleResponse.ok) {
+            console.log(`ESPN schedule API returned ${scheduleResponse.status}`);
+            return null;
+          }
+          data = await scheduleResponse.json();
+        } else {
+          console.log('No team found in ESPN search');
+          return null;
+        }
+      }
+    }
+
+    if (!data) {
+      console.log('No ESPN data available after all attempts');
+      return null;
     }
     
     const events = data.events || [];
@@ -1018,7 +1056,7 @@ If no upcoming events found, return an empty array [].`
           const teamName = extractTeamFromEvent(event);
           if (teamName) {
             console.log(`Looking up ESPN info for team: ${teamName}, date: ${event.eventDate}`);
-            const espnInfo = await fetchESPNGameInfo(teamName, event.eventDate);
+            const espnInfo = await fetchESPNGameInfo(teamName, event.eventDate, event.link);
             if (espnInfo) {
               console.log(`Updated event from ESPN: time="${espnInfo.time}", opponent="${espnInfo.opponent}"`);
               return { 
