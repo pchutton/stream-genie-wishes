@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { useFavoriteTeams, LEAGUE_TEAMS, SportLeague } from '@/hooks/useFavoriteTeams';
 import { useLiveEventsSearch, LiveEvent } from '@/hooks/useLiveEventsSearch';
@@ -36,37 +37,37 @@ export default function MyEvents() {
   const { savedEvents, isLoading: savedEventsLoading, unsaveEvent } = useSavedEvents();
   const [selectedLeague, setSelectedLeague] = useState<SportLeague>('NFL');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
-  const [upcomingEvents, setUpcomingEvents] = useState<TeamEvent[]>([]);
-  const [eventsLoading, setEventsLoading] = useState(false);
 
-  // Fetch events for all favorite teams
-  useEffect(() => {
-    const fetchAllTeamEvents = async () => {
-      if (teams.length === 0) {
-        setUpcomingEvents([]);
-        return;
-      }
+  // Fetch events for all favorite teams with caching
+  const { data: upcomingEvents = [], isLoading: eventsLoading } = useQuery({
+    queryKey: ['team-events', teams.map(t => t.team_name).join(',')],
+    queryFn: async () => {
+      if (teams.length === 0) return [];
 
-      setEventsLoading(true);
       const allEvents: TeamEvent[] = [];
 
-      for (const team of teams) {
-        try {
+      // Fetch all teams in parallel for better performance
+      const results = await Promise.allSettled(
+        teams.map(async (team) => {
           const { data, error } = await supabase.functions.invoke('search-live-events', {
             body: { query: `${team.team_name} schedule` }
           });
 
           if (!error && data?.events) {
-            const teamEvents = data.events.map((event: LiveEvent) => ({
+            return data.events.map((event: LiveEvent) => ({
               ...event,
               teamName: team.team_name,
             }));
-            allEvents.push(...teamEvents);
           }
-        } catch (err) {
-          console.error(`Error fetching events for ${team.team_name}:`, err);
+          return [];
+        })
+      );
+
+      results.forEach((result) => {
+        if (result.status === 'fulfilled') {
+          allEvents.push(...result.value);
         }
-      }
+      });
 
       // Sort by date
       allEvents.sort((a, b) => {
@@ -75,12 +76,12 @@ export default function MyEvents() {
         return dateA.getTime() - dateB.getTime();
       });
 
-      setUpcomingEvents(allEvents);
-      setEventsLoading(false);
-    };
-
-    fetchAllTeamEvents();
-  }, [teams]);
+      return allEvents;
+    },
+    enabled: teams.length > 0,
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    gcTime: 30 * 60 * 1000, // Keep in cache for 30 minutes
+  });
 
   const handleAddTeam = async () => {
     if (!selectedTeam) return;
