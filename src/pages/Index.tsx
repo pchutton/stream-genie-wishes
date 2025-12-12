@@ -56,8 +56,7 @@ export default function Home() {
     return watchlist?.some(item => item.tmdb_id === tmdbId && item.media_type === mediaType && item.is_watched);
   };
 
-  // Filter out watched titles from results
-  const filteredSearchResults = searchResults.filter(item => !isWatched(item.tmdb_id, item.media_type));
+  // No longer filtering out watched titles - users can see all results
 
   // Landing page for non-authenticated users
   if (!user) {
@@ -107,9 +106,9 @@ export default function Home() {
         <div className="space-y-4">
           {searchMode === 'live' ? (
             <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} />
-          ) : filteredSearchResults.length > 0 ? (
+          ) : searchResults.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-              {filteredSearchResults.map((item) => (
+              {searchResults.map((item) => (
                 <MediaCard
                   key={`${item.media_type}-${item.tmdb_id}`}
                   item={item}
