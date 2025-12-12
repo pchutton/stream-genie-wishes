@@ -6,6 +6,82 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// ============ CACHING LAYER ============
+interface CacheEntry<T> {
+  data: T;
+  timestamp: number;
+  ttl: number;
+}
+
+// In-memory cache (persists during function warm period)
+const espnCache = new Map<string, CacheEntry<any>>();
+
+// Cache TTL constants (in milliseconds)
+const CACHE_TTL = {
+  SCHEDULE: 10 * 60 * 1000,      // 10 minutes for schedule data
+  SCOREBOARD: 2 * 60 * 1000,     // 2 minutes for live scoreboard
+  TEAM_SEARCH: 30 * 60 * 1000,   // 30 minutes for team search results
+};
+
+function getCached<T>(key: string): T | null {
+  const entry = espnCache.get(key);
+  if (!entry) return null;
+  
+  const now = Date.now();
+  if (now - entry.timestamp > entry.ttl) {
+    espnCache.delete(key);
+    console.log(`Cache expired for key: ${key}`);
+    return null;
+  }
+  
+  console.log(`Cache hit for key: ${key}`);
+  return entry.data as T;
+}
+
+function setCache<T>(key: string, data: T, ttl: number): void {
+  espnCache.set(key, { data, timestamp: Date.now(), ttl });
+  console.log(`Cache set for key: ${key} (TTL: ${ttl / 1000}s)`);
+  
+  // Cleanup old entries if cache gets too large (prevent memory bloat)
+  if (espnCache.size > 100) {
+    const now = Date.now();
+    for (const [k, v] of espnCache.entries()) {
+      if (now - v.timestamp > v.ttl) {
+        espnCache.delete(k);
+      }
+    }
+  }
+}
+
+// Cached fetch wrapper for ESPN API
+async function cachedFetch(url: string, ttl: number): Promise<any | null> {
+  const cacheKey = `espn:${url}`;
+  
+  // Check cache first
+  const cached = getCached<any>(cacheKey);
+  if (cached) return cached;
+  
+  // Fetch from ESPN
+  try {
+    const response = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+    });
+    
+    if (!response.ok) {
+      console.log(`ESPN API returned ${response.status} for: ${url}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    setCache(cacheKey, data, ttl);
+    return data;
+  } catch (error) {
+    console.error(`ESPN fetch error for ${url}:`, error);
+    return null;
+  }
+}
+
+// ============ INTERFACES ============
 interface PlatformInfo {
   name: string;
   status: string; // "Included", "Included with provider login", "Rent: $X.XX", etc.
@@ -52,30 +128,24 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
             const scoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/scoreboard?dates=${dateStr}&limit=100`;
             console.log(`Trying ESPN scoreboard for date: ${scoreboardUrl}`);
             
-            try {
-              const scoreboardResponse = await fetch(scoreboardUrl, {
-                headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
+            // Use cached fetch for scoreboard
+            const scoreboardData = await cachedFetch(scoreboardUrl, CACHE_TTL.SCOREBOARD);
+            
+            if (scoreboardData) {
+              // Look for game involving this team
+              const teamGame = scoreboardData.events?.find((event: any) => {
+                const competitors = event.competitions?.[0]?.competitors || [];
+                return competitors.some((c: any) => 
+                  c.team?.id === teamId || 
+                  c.team?.displayName?.toLowerCase().includes(teamName.toLowerCase().split(' ')[0])
+                );
               });
               
-              if (scoreboardResponse.ok) {
-                const scoreboardData = await scoreboardResponse.json();
-                // Look for game involving this team
-                const teamGame = scoreboardData.events?.find((event: any) => {
-                  const competitors = event.competitions?.[0]?.competitors || [];
-                  return competitors.some((c: any) => 
-                    c.team?.id === teamId || 
-                    c.team?.displayName?.toLowerCase().includes(teamName.toLowerCase().split(' ')[0])
-                  );
-                });
-                
-                if (teamGame) {
-                  const eventDateTime = new Date(teamGame.date);
-                  console.log(`Found game on scoreboard: ${teamGame.name} at ${eventDateTime.toISOString()}`);
-                  return extractGameInfo(teamGame, eventDateTime);
-                }
+              if (teamGame) {
+                const eventDateTime = new Date(teamGame.date);
+                console.log(`Found game on scoreboard: ${teamGame.name} at ${eventDateTime.toISOString()}`);
+                return extractGameInfo(teamGame, eventDateTime);
               }
-            } catch (scoreboardError) {
-              console.log(`Scoreboard fetch failed: ${scoreboardError}`);
             }
           }
         }
@@ -83,15 +153,8 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
 
       if (scheduleUrl) {
         console.log(`Fetching ESPN schedule from event link: ${scheduleUrl}`);
-        const scheduleResponse = await fetch(scheduleUrl, {
-          headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-        });
-
-        if (scheduleResponse.ok) {
-          data = await scheduleResponse.json();
-        } else {
-          console.log(`ESPN schedule from link returned ${scheduleResponse.status}`);
-        }
+        // Use cached fetch for schedule
+        data = await cachedFetch(scheduleUrl, CACHE_TTL.SCHEDULE);
       }
     }
 
@@ -327,18 +390,17 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
 
       console.log(`Fetching ESPN schedule: ${espnApiUrl}`);
       
-      const response = await fetch(espnApiUrl, {
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
-        }
-      });
+      // Determine TTL based on API type
+      const isTeamSearch = espnApiUrl.includes('?limit=1&search=');
+      const ttl = isTeamSearch ? CACHE_TTL.TEAM_SEARCH : CACHE_TTL.SCHEDULE;
+      
+      // Use cached fetch
+      data = await cachedFetch(espnApiUrl, ttl);
 
-      if (!response.ok) {
-        console.log(`ESPN API returned ${response.status}`);
+      if (!data) {
+        console.log(`ESPN API returned no data`);
         return null;
       }
-
-      data = await response.json();
       
       // For college teams, we need a second request to get the schedule
       if (teamInfo.sport === 'college-football' || teamInfo.sport === 'mens-college-basketball') {
@@ -349,15 +411,13 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
           const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`;
           console.log(`Fetching college team schedule: ${scheduleUrl}`);
           
-          const scheduleResponse = await fetch(scheduleUrl, {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36' }
-          });
+          // Use cached fetch for schedule
+          data = await cachedFetch(scheduleUrl, CACHE_TTL.SCHEDULE);
           
-          if (!scheduleResponse.ok) {
-            console.log(`ESPN schedule API returned ${scheduleResponse.status}`);
+          if (!data) {
+            console.log(`ESPN schedule API returned no data`);
             return null;
           }
-          data = await scheduleResponse.json();
         } else {
           console.log('No team found in ESPN search');
           return null;
