@@ -47,7 +47,7 @@ export function SearchBar({
   const isLive = mode === 'live';
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn('space-y-5', className)}>
       {/* Mode Toggle - Above search bar */}
       <div className="flex justify-center">
         <button
@@ -63,30 +63,51 @@ export function SearchBar({
             }
           }}
           className={cn(
-            "flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-300",
-            "active:scale-95",
+            "relative flex items-center gap-4 rounded-2xl px-5 py-4 transition-all duration-300",
+            "active:scale-[0.98]",
             "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-background",
             isLive 
-              ? "bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 focus:ring-emerald-500"
-              : "bg-primary/20 hover:bg-primary/30 border border-primary/40 focus:ring-primary"
+              ? "bg-emerald-500/15 hover:bg-emerald-500/25 border-2 border-emerald-500/50 focus:ring-emerald-500 shadow-[0_0_25px_rgba(16,185,129,0.25)]"
+              : "bg-primary/15 hover:bg-primary/25 border-2 border-primary/50 focus:ring-primary shadow-[0_0_25px_rgba(239,68,68,0.2)]"
           )}
           title={mode === 'media' ? 'Switch to Live Events' : 'Switch to TV/Movies'}
         >
+          {/* Left Label - TV/Movie */}
           <div className={cn(
-            "relative w-[60px] h-[32px] rounded-lg bg-background/80 border overflow-hidden transition-all duration-300 active:scale-90",
-            isLive ? "border-emerald-500/50" : "border-border"
+            "flex items-center gap-2 transition-all duration-300",
+            !isLive ? "opacity-100" : "opacity-40"
           )}>
+            <Tv className={cn(
+              "h-5 w-5 transition-colors duration-300",
+              !isLive ? "text-primary" : "text-muted-foreground"
+            )} />
+            <span className={cn(
+              "text-sm font-semibold transition-colors duration-300",
+              !isLive ? "text-primary" : "text-muted-foreground"
+            )}>
+              TV/Movie
+            </span>
+          </div>
+
+          {/* Toggle Track */}
+          <div className={cn(
+            "relative w-[72px] h-[40px] rounded-full border-2 overflow-hidden transition-all duration-300",
+            isLive 
+              ? "bg-emerald-500/20 border-emerald-500/60" 
+              : "bg-primary/20 border-primary/60"
+          )}>
+            {/* Toggle Knob */}
             <div 
               className={cn(
-                "absolute top-[2px] w-[28px] h-[28px] rounded-md flex items-center justify-center",
+                "absolute top-[4px] w-[32px] h-[32px] rounded-full flex items-center justify-center shadow-lg",
                 "transition-all duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
                 isLive 
-                  ? 'left-[28px] bg-emerald-500' 
-                  : 'left-[2px] bg-primary'
+                  ? 'left-[34px] bg-emerald-500 shadow-emerald-500/50' 
+                  : 'left-[4px] bg-primary shadow-primary/50'
               )}
             >
               <div className={cn(
-                "transition-transform duration-300",
+                "transition-transform duration-500",
                 isLive ? 'rotate-[360deg]' : 'rotate-0'
               )}>
                 {mode === 'media' ? (
@@ -97,12 +118,23 @@ export function SearchBar({
               </div>
             </div>
           </div>
-          <span className={cn(
-            "text-sm font-medium transition-colors duration-300",
-            isLive ? "text-emerald-400" : "text-foreground/80"
+
+          {/* Right Label - Live */}
+          <div className={cn(
+            "flex items-center gap-2 transition-all duration-300",
+            isLive ? "opacity-100" : "opacity-40"
           )}>
-            {mode === 'media' ? 'TV/Movie' : 'Live'}
-          </span>
+            <Radio className={cn(
+              "h-5 w-5 transition-colors duration-300",
+              isLive ? "text-emerald-400" : "text-muted-foreground"
+            )} />
+            <span className={cn(
+              "text-sm font-semibold transition-colors duration-300",
+              isLive ? "text-emerald-400" : "text-muted-foreground"
+            )}>
+              Live
+            </span>
+          </div>
         </button>
       </div>
 
