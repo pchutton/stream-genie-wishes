@@ -1,4 +1,4 @@
-import { Plus, Check, ThumbsUp, ThumbsDown, X, Calendar, Clock, Globe, Trophy, User, Users } from 'lucide-react';
+import { Plus, Check, X, Calendar, Clock, Globe, Trophy, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -256,19 +256,6 @@ export function MediaDetailsDialog({
                 </Button>
               )}
 
-              {/* Like Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  'gap-1',
-                  userRating === 'like' && 'bg-green-600 border-green-600 hover:bg-green-700'
-                )}
-                onClick={() => onRate?.(userRating === 'like' ? null : 'like')}
-              >
-                <ThumbsUp className="h-4 w-4" /> Like
-              </Button>
-
               {/* Mark as Seen */}
               <Button
                 variant="outline"
@@ -280,19 +267,6 @@ export function MediaDetailsDialog({
                 onClick={onToggleWatched}
               >
                 <Check className="h-4 w-4" /> Mark as Seen
-              </Button>
-
-              {/* Dislike Button */}
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  'gap-1',
-                  userRating === 'dislike' && 'bg-red-600 border-red-600 hover:bg-red-700'
-                )}
-                onClick={() => onRate?.(userRating === 'dislike' ? null : 'dislike')}
-              >
-                <ThumbsDown className="h-4 w-4" /> Dislike
               </Button>
             </div>
           </div>
