@@ -706,7 +706,11 @@ const teamNicknames: Record<string, string> = {
   "nuggets": "Denver Nuggets", "rockets": "Houston Rockets",
   "wolves": "Minnesota Timberwolves", "jazz": "Utah Jazz",
   "kings": "Sacramento Kings", "wizards": "Washington Wizards",
-  "bulls": "Chicago Bulls",
+  "bulls": "Chicago Bulls", "thunder": "Oklahoma City Thunder",
+  "okc": "Oklahoma City Thunder", "pacers": "Indiana Pacers",
+  "pistons": "Detroit Pistons", "hornets": "Charlotte Hornets",
+  "sixers": "Philadelphia 76ers", "76ers": "Philadelphia 76ers",
+  "cavs": "Cleveland Cavaliers", "cavaliers": "Cleveland Cavaliers",
   
   // MLB Teams
   "yanks": "New York Yankees", "yankees": "New York Yankees",
@@ -1053,15 +1057,71 @@ If no upcoming events found, return an empty array [].`
     if (events.length === 0) {
       console.log('No events from AI, trying direct ESPN lookup for query:', query);
       const preProcessed = preProcessQuery(query);
+      const lowerQuery = preProcessed.toLowerCase();
       
-      // Check if the preprocessed query contains a known team name
-      const teamNicknamesList = Object.values(teamNicknames);
       let matchedTeam: string | null = null;
       
+      // First, try to match against full team names from teamNicknames values
+      const teamNicknamesList = [...new Set(Object.values(teamNicknames))];
       for (const teamName of teamNicknamesList) {
-        if (preProcessed.toLowerCase().includes(teamName.toLowerCase().split(' ')[0])) {
+        if (lowerQuery.includes(teamName.toLowerCase())) {
           matchedTeam = teamName;
+          console.log(`Matched full team name: ${teamName}`);
           break;
+        }
+      }
+      
+      // If no full name match, try partial matches on distinctive words
+      if (!matchedTeam) {
+        const distinctiveWords: Record<string, string> = {
+          'thunder': 'Oklahoma City Thunder',
+          'cavaliers': 'Cleveland Cavaliers', 'cavs': 'Cleveland Cavaliers',
+          'timberwolves': 'Minnesota Timberwolves', 'wolves': 'Minnesota Timberwolves',
+          'trail blazers': 'Portland Trail Blazers', 'blazers': 'Portland Trail Blazers',
+          'golden state': 'Golden State Warriors', 'warriors': 'Golden State Warriors',
+          'mavericks': 'Dallas Mavericks', 'mavs': 'Dallas Mavericks',
+          'pelicans': 'New Orleans Pelicans', 'grizzlies': 'Memphis Grizzlies',
+          'lakers': 'Los Angeles Lakers', 'clippers': 'Los Angeles Clippers',
+          'celtics': 'Boston Celtics', 'knicks': 'New York Knicks',
+          'nets': 'Brooklyn Nets', 'heat': 'Miami Heat', 'magic': 'Orlando Magic',
+          'bucks': 'Milwaukee Bucks', 'bulls': 'Chicago Bulls', 'pacers': 'Indiana Pacers',
+          'pistons': 'Detroit Pistons', 'hawks': 'Atlanta Hawks', 'hornets': 'Charlotte Hornets',
+          'wizards': 'Washington Wizards', 'raptors': 'Toronto Raptors', 'suns': 'Phoenix Suns',
+          'spurs': 'San Antonio Spurs', 'nuggets': 'Denver Nuggets', 'rockets': 'Houston Rockets',
+          'jazz': 'Utah Jazz', 'kings': 'Sacramento Kings', 'sixers': 'Philadelphia 76ers',
+        };
+        
+        for (const [keyword, teamName] of Object.entries(distinctiveWords)) {
+          if (lowerQuery.includes(keyword)) {
+            matchedTeam = teamName;
+            console.log(`Matched distinctive word "${keyword}": ${teamName}`);
+            break;
+          }
+        }
+      }
+      
+      // If still no match, check the espnTeamMap keys directly
+      if (!matchedTeam) {
+        const espnTeamNames = [
+          'Oklahoma City Thunder', 'Los Angeles Lakers', 'Golden State Warriors',
+          'Boston Celtics', 'Milwaukee Bucks', 'Phoenix Suns', 'Dallas Mavericks',
+          'Miami Heat', 'Denver Nuggets', 'Brooklyn Nets', 'New York Knicks',
+          'Philadelphia 76ers', 'Toronto Raptors', 'Chicago Bulls', 'Cleveland Cavaliers',
+          'Detroit Pistons', 'Indiana Pacers', 'Atlanta Hawks', 'Charlotte Hornets',
+          'Orlando Magic', 'Washington Wizards', 'Houston Rockets', 'Memphis Grizzlies',
+          'New Orleans Pelicans', 'San Antonio Spurs', 'Los Angeles Clippers',
+          'Sacramento Kings', 'Portland Trail Blazers', 'Utah Jazz', 'Minnesota Timberwolves'
+        ];
+        
+        for (const teamName of espnTeamNames) {
+          // Check if any part of the team name is in the query
+          const nameParts = teamName.toLowerCase().split(' ');
+          const matchScore = nameParts.filter(part => lowerQuery.includes(part)).length;
+          if (matchScore >= 2 || (matchScore === 1 && nameParts.length === 2)) {
+            matchedTeam = teamName;
+            console.log(`Matched via ESPN team list: ${teamName} (score: ${matchScore})`);
+            break;
+          }
         }
       }
       
@@ -1080,7 +1140,11 @@ If no upcoming events found, return an empty array [].`
             summary: `Upcoming game for ${matchedTeam}`,
             eventDate: new Date().toISOString().split('T')[0]
           }];
+        } else {
+          console.log(`ESPN lookup returned no info for ${matchedTeam}`);
         }
+      } else {
+        console.log('No team matched from query');
       }
     }
 
