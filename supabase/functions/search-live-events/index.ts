@@ -368,7 +368,8 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
       switch (teamInfo.sport) {
         case 'college-football':
           // College football uses numeric team IDs - we need to get the ID first
-          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
+          // Use full team name for accurate search
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/college-football/teams?limit=1&search=${encodeURIComponent(teamName)}`;
           break;
         case 'nfl':
           espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/football/nfl/teams/${teamInfo.slug}/schedule`;
@@ -383,7 +384,8 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
           espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/baseball/mlb/teams/${teamInfo.slug}/schedule`;
           break;
         case 'mens-college-basketball':
-          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?limit=1&search=${encodeURIComponent(teamName.split(' ')[0])}`;
+          // Use full team name for accurate search
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?limit=1&search=${encodeURIComponent(teamName)}`;
           break;
         default:
           espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
