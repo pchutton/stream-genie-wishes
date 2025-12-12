@@ -50,7 +50,7 @@ export function SearchBar({
     <form onSubmit={handleSubmit} className={cn('relative group', className)}>
       {/* Glowing background effect */}
       <div className={cn(
-        "absolute -inset-1 rounded-2xl blur-md transition-opacity duration-300",
+        "absolute -top-1 -right-1 -bottom-1 left-0 rounded-2xl blur-md transition-opacity duration-300",
         "animate-glow-pulse group-hover:opacity-75",
         isLive 
           ? "bg-gradient-to-r from-emerald-500 via-emerald-400 to-emerald-500 opacity-40"
