@@ -206,7 +206,7 @@ export function useMarkAsSeen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['watchlist', user?.id] });
-      toast({ title: 'Marked as Seen', description: 'This title will no longer appear in results.' });
+      toast({ title: 'Marked as Seen', description: 'Added to your Watched list.' });
     },
     onError: () => {
       toast({ title: 'Error', description: 'Failed to mark as seen.', variant: 'destructive' });
