@@ -1,9 +1,12 @@
-import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign } from 'lucide-react';
+import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import type { LiveEvent, PlatformInfo } from '@/hooks/useLiveEventsSearch';
 import { NetworkLogo } from '@/components/media/NetworkLogos';
+import { useSavedEvents } from '@/hooks/useSavedEvents';
+import { cn } from '@/lib/utils';
 
 interface LiveEventsSearchProps {
   results: LiveEvent[];
@@ -183,13 +186,29 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
   );
 }
 
-function EventCard({ event }: { event: LiveEvent }) {
+function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved: boolean; onToggleSave: () => void }) {
   return (
     <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2">
-          {event.eventName}
-        </CardTitle>
+        <div className="flex items-start justify-between gap-2">
+          <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 flex-1">
+            {event.eventName}
+          </CardTitle>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onToggleSave}
+            className="shrink-0 h-8 w-8"
+            title={isSaved ? 'Remove from My Events' : 'Add to My Events'}
+          >
+            <Heart 
+              className={cn(
+                "h-5 w-5 transition-colors",
+                isSaved ? "fill-primary text-primary" : "text-muted-foreground hover:text-primary"
+              )} 
+            />
+          </Button>
+        </div>
       </CardHeader>
       <CardContent className="space-y-3">
         <div className="flex items-start gap-2 text-sm">
@@ -268,6 +287,8 @@ function LoadingSkeleton() {
 }
 
 export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) {
+  const { isEventSaved, toggleSaveEvent } = useSavedEvents();
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -301,7 +322,12 @@ export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {results.map((event, index) => (
-        <EventCard key={`${event.eventName}-${index}`} event={event} />
+        <EventCard 
+          key={`${event.eventName}-${index}`} 
+          event={event} 
+          isSaved={isEventSaved(event.eventName)}
+          onToggleSave={() => toggleSaveEvent(event)}
+        />
       ))}
     </div>
   );
