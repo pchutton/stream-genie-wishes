@@ -13,6 +13,7 @@ import { Heart, Plus, X, Calendar, Tv, Clock, Users, ExternalLink, Trash2 } from
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { NotificationSettings } from '@/components/notifications/NotificationSettings';
+import { NetworkLogo } from '@/components/media/NetworkLogos';
 
 interface TeamEvent extends LiveEvent {
   teamName: string;
@@ -268,6 +269,22 @@ export default function MyEvents() {
                         </div>
                       )}
                     </div>
+
+                    {/* Streaming Platform Logos */}
+                    {event.platform_details && event.platform_details.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <p className="text-xs text-muted-foreground mb-2">Watch on:</p>
+                        <div className="flex flex-wrap gap-2">
+                          {event.platform_details.map((platform, idx) => (
+                            <NetworkLogo 
+                              key={`${platform.name}-${idx}`}
+                              platform={platform.name}
+                              className="h-7"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {event.link && (
                       <a 
