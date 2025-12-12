@@ -124,7 +124,7 @@ export default function ExpandedSearch() {
 
         {/* Results Container - Hide default search box, only show results */}
         <div className="max-w-4xl mx-auto gcse-results-container">
-          <div className="gcse-searchresults-only"></div>
+          <div className="gcse-searchresults-only" data-linktarget="_blank"></div>
         </div>
       </div>
 
