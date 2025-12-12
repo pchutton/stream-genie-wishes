@@ -102,16 +102,6 @@ export default function Home() {
         {/* Search Bar */}
         <SearchBar onSearch={handleSearch} isLoading={isSearching || isSearchingLive} className="mb-4" />
 
-        {/* Dev utility: download full Live Events Edge Function code */}
-        <div className="mb-4 flex justify-end">
-          <a
-            href="/search-live-events-function.txt"
-            download
-            className="text-xs text-muted-foreground hover:text-primary underline"
-          >
-            Download Live Events edge function code (.txt)
-          </a>
-        </div>
 
         {/* Search Results */}
         <div className="space-y-4">
