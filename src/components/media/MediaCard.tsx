@@ -60,7 +60,7 @@ export function MediaCard({
     <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       {/* Poster */}
       <div 
-        className="relative aspect-[4/5] w-28 shrink-0 overflow-hidden rounded-lg bg-muted"
+        className="relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-muted"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
@@ -131,7 +131,7 @@ export function MediaCard({
 
       {/* Info */}
       <div className="flex min-w-0 flex-1 flex-col">
-        <h3 className="text-base font-semibold leading-tight">{item.title}</h3>
+        <h3 className="text-base font-semibold leading-tight line-clamp-2">{item.title}</h3>
         
         <div className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
           {item.release_year && <span>{item.release_year}</span>}
