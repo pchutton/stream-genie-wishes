@@ -301,17 +301,22 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string): Promise<
     
     const events = data.events || [];
     
-    // Find the event matching our date
-    for (const event of events) {
-      const eventDateStr = event.date;
-      if (!eventDateStr) continue;
-      
-      const eventDateTime = new Date(eventDateStr);
-      const targetDate = eventDate ? new Date(eventDate) : new Date();
-      
-      // Check if dates match (same day)
-      if (eventDateTime.toISOString().split('T')[0] === targetDate.toISOString().split('T')[0]) {
-        return extractGameInfo(event, eventDateTime);
+    // Find the event matching our requested date (allowing for timezone differences)
+    if (eventDate) {
+      const targetDate = new Date(eventDate);
+      for (const event of events) {
+        const eventDateStr = event.date;
+        if (!eventDateStr) continue;
+
+        const eventDateTime = new Date(eventDateStr);
+        const diffMs = Math.abs(eventDateTime.getTime() - targetDate.getTime());
+        const diffDays = diffMs / (1000 * 60 * 60 * 24);
+        console.log(`Comparing ESPN event date ${eventDateTime.toISOString()} with target ${targetDate.toISOString()} (diffDays=${diffDays})`);
+
+        // Treat events within ~1 day as the same matchup to account for UTC vs local date shifts
+        if (diffDays <= 1.1) {
+          return extractGameInfo(event, eventDateTime);
+        }
       }
     }
     
