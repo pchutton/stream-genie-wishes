@@ -29,12 +29,10 @@ interface MediaCardProps {
   item: MediaItem;
   isInWatchlist?: boolean;
   isWatched?: boolean;
-  rating?: 'like' | 'dislike' | null;
   onAddToWatchlist?: () => void;
   onRemoveFromWatchlist?: () => void;
   onToggleWatched?: () => void;
   onShowDetails?: () => void;
-  onRate?: (rating: 'like' | 'dislike' | null) => void;
   showActions?: boolean;
 }
 
@@ -44,12 +42,10 @@ export function MediaCard({
   item,
   isInWatchlist = false,
   isWatched = false,
-  rating = null,
   onAddToWatchlist,
   onRemoveFromWatchlist,
   onToggleWatched,
   onShowDetails,
-  onRate,
   showActions = true,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
