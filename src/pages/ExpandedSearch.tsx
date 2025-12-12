@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Layout } from '@/components/layout/Layout';
-import { Search, Loader2 } from 'lucide-react';
+import { Search, Loader2, Globe, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 
@@ -12,6 +12,7 @@ const MAGIC_SUFFIX = 'legal live stream -inurl:(signup login subscribe account)'
 export default function ExpandedSearch() {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
   const scriptLoaded = useRef(false);
   const searchExecuted = useRef(false);
 
@@ -61,6 +62,7 @@ export default function ExpandedSearch() {
         searchElement.execute(magicQuery);
         searchExecuted.current = true;
         setIsSearching(false);
+        setHasSearched(true);
       } else {
         // Retry after a short delay if element not ready
         setTimeout(() => executeSearch(searchQuery), 500);
@@ -85,25 +87,32 @@ export default function ExpandedSearch() {
 
   return (
     <Layout>
-      <div className="container mx-auto px-4 py-12">
-        <div className="max-w-4xl mx-auto text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 text-foreground">Expanded Search</h1>
+      <div className="container mx-auto max-w-4xl px-4 py-12">
+        {/* Hero Section */}
+        <div className="mb-10 text-center animate-fade-in">
+          <div className="mx-auto mb-6 flex h-16 w-16 animate-float items-center justify-center rounded-2xl bg-primary/10 border border-primary/20">
+            <Globe className="h-8 w-8 text-primary" />
+          </div>
+          <h1 className="mb-3 text-3xl font-bold tracking-tight sm:text-4xl">
+            <span className="text-gradient-gold">Expanded</span> Search
+          </h1>
           <p className="text-muted-foreground mb-2">
-            Find legal streaming options for live events
+            Find legal streaming options for live events across the web
           </p>
-          <p className="text-sm text-muted-foreground/60">
-            Automatically filters out signup walls and finds legitimate streams
+          <p className="text-sm text-muted-foreground/60 flex items-center justify-center gap-1">
+            <ExternalLink className="h-3 w-3" />
+            Results open in a new tab
           </p>
         </div>
 
-        {/* Custom Glowing Search Bar */}
-        <form onSubmit={handleSubmit} className="max-w-3xl mx-auto mb-8">
+        {/* Search Bar */}
+        <form onSubmit={handleSubmit} className="mb-10 animate-slide-up">
           <div className="relative group">
             {/* Glowing background effect */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-genie-gold to-primary rounded-xl blur-md opacity-75 animate-glow-pulse group-hover:opacity-100 transition-opacity duration-300" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-primary via-genie-gold to-primary rounded-xl blur-md opacity-50 animate-glow-pulse group-hover:opacity-75 transition-opacity duration-300" />
             
             {/* Search container */}
-            <div className="relative flex items-center bg-background rounded-xl border border-border overflow-hidden">
+            <div className="relative flex items-center bg-card rounded-xl border border-border overflow-hidden shadow-lg">
               <div className="flex items-center justify-center w-14 h-14">
                 <Search className="h-5 w-5 text-primary" />
               </div>
@@ -112,7 +121,7 @@ export default function ExpandedSearch() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search for live events... (e.g., UFC 309, Lakers vs Celtics)"
-                className="flex-1 h-14 border-0 bg-transparent text-lg focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+                className="flex-1 h-14 border-0 bg-transparent text-lg focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/50"
               />
               {query && (
                 <Button
@@ -129,7 +138,7 @@ export default function ExpandedSearch() {
                 type="submit"
                 size="lg"
                 disabled={isSearching || !query.trim()}
-                className="h-12 px-8 mr-1 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
+                className="h-12 px-8 mr-1 rounded-lg genie-glow font-semibold"
               >
                 {isSearching ? (
                   <Loader2 className="h-5 w-5 animate-spin" />
@@ -141,13 +150,25 @@ export default function ExpandedSearch() {
           </div>
         </form>
 
-        {/* Results Container - Hide default search box, only show results */}
-        <div className="max-w-4xl mx-auto gcse-results-container">
+        {/* Empty State */}
+        {!hasSearched && (
+          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+            <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+              <Search className="h-6 w-6 text-muted-foreground" />
+            </div>
+            <p className="text-muted-foreground">
+              Search for live events to find streaming options
+            </p>
+          </div>
+        )}
+
+        {/* Results Container */}
+        <div className="gcse-results-container animate-fade-in">
           <div id="live-events-results" className="gcse-searchresults-only"></div>
         </div>
       </div>
 
-      {/* Custom styles for Google CSE */}
+      {/* Custom styles for Google CSE using design system tokens */}
       <style>{`
         /* Hide the default Google search box since we use our own */
         .gsc-control-cse .gsc-search-box {
@@ -172,68 +193,73 @@ export default function ExpandedSearch() {
         }
         
         .gsc-webResult.gsc-result {
-          background: hsl(220 25% 12%) !important;
-          border: 1px solid hsl(220 20% 20%) !important;
-          padding: 16px !important;
-          border-radius: 12px !important;
-          margin-bottom: 12px !important;
-          transition: all 0.2s ease !important;
+          background: hsl(var(--card)) !important;
+          border: 1px solid hsl(var(--border)) !important;
+          padding: 20px !important;
+          border-radius: var(--radius) !important;
+          margin-bottom: 16px !important;
+          transition: all 0.3s ease !important;
         }
         
         .gsc-webResult.gsc-result:hover {
-          border-color: hsl(0 95% 55% / 0.5) !important;
-          box-shadow: 0 0 20px hsl(0 95% 55% / 0.2) !important;
+          border-color: hsl(var(--primary) / 0.5) !important;
+          box-shadow: 0 0 25px hsl(var(--primary) / 0.2), 0 4px 12px hsl(var(--background) / 0.5) !important;
           transform: translateY(-2px) !important;
         }
         
         .gs-title {
-          color: hsl(220 15% 95%) !important;
+          color: hsl(var(--foreground)) !important;
           text-decoration: none !important;
           font-size: 18px !important;
           font-weight: 600 !important;
+          line-height: 1.4 !important;
         }
         
         .gs-title:hover {
-          color: hsl(0 95% 55%) !important;
+          color: hsl(var(--primary)) !important;
         }
         
         .gs-title b {
-          color: hsl(0 95% 55%) !important;
+          color: hsl(var(--primary)) !important;
         }
         
         .gs-snippet {
-          color: hsl(220 15% 70%) !important;
-          line-height: 1.6 !important;
+          color: hsl(var(--muted-foreground)) !important;
+          line-height: 1.7 !important;
+          margin-top: 8px !important;
         }
         
         .gs-visibleUrl {
-          color: hsl(220 15% 50%) !important;
+          color: hsl(var(--muted-foreground) / 0.7) !important;
+          font-size: 13px !important;
         }
         
         .gsc-cursor-box {
-          margin-top: 20px !important;
+          margin-top: 24px !important;
           text-align: center !important;
         }
         
         .gsc-cursor-page {
-          background: hsl(220 25% 16%) !important;
-          color: hsl(220 15% 95%) !important;
-          border: 1px solid hsl(220 20% 20%) !important;
-          border-radius: 6px !important;
-          padding: 8px 14px !important;
+          background: hsl(var(--secondary)) !important;
+          color: hsl(var(--foreground)) !important;
+          border: 1px solid hsl(var(--border)) !important;
+          border-radius: calc(var(--radius) - 2px) !important;
+          padding: 10px 16px !important;
           margin-right: 8px !important;
           cursor: pointer !important;
           transition: all 0.2s ease !important;
+          font-weight: 500 !important;
         }
         
         .gsc-cursor-page:hover {
-          background: hsl(220 25% 20%) !important;
-          border-color: hsl(0 95% 55% / 0.5) !important;
+          background: hsl(var(--muted)) !important;
+          border-color: hsl(var(--primary) / 0.5) !important;
         }
         
         .gsc-cursor-current-page {
-          background: hsl(0 95% 55%) !important;
-          border-color: hsl(0 95% 55%) !important;
+          background: hsl(var(--primary)) !important;
+          border-color: hsl(var(--primary)) !important;
+          color: hsl(var(--primary-foreground)) !important;
         }
         
         /* Hide Google branding elements */
@@ -246,43 +272,59 @@ export default function ExpandedSearch() {
         }
         
         .gsc-above-wrapper-area {
-          border-bottom: none !important;
-          padding-bottom: 0 !important;
+          border-bottom: 1px solid hsl(var(--border)) !important;
+          padding-bottom: 12px !important;
+          margin-bottom: 16px !important;
         }
         
         .gsc-result-info {
-          color: hsl(220 15% 60%) !important;
+          color: hsl(var(--muted-foreground)) !important;
           padding-left: 0 !important;
+          font-size: 14px !important;
         }
         
         /* Thumbnail styling */
         .gs-image-box {
-          border-radius: 8px !important;
+          border-radius: calc(var(--radius) - 4px) !important;
           overflow: hidden !important;
         }
         
         /* No results message */
         .gs-no-results-result .gs-snippet {
-          color: hsl(220 15% 60%) !important;
+          color: hsl(var(--muted-foreground)) !important;
           font-size: 16px !important;
+          text-align: center !important;
+          padding: 32px !important;
         }
         
         /* Refinement tabs if present */
         .gsc-tabsArea {
-          border-bottom: 1px solid hsl(220 20% 20%) !important;
-          margin-bottom: 16px !important;
+          border-bottom: 1px solid hsl(var(--border)) !important;
+          margin-bottom: 20px !important;
         }
         
         .gsc-tabHeader {
           background: transparent !important;
-          color: hsl(220 15% 70%) !important;
+          color: hsl(var(--muted-foreground)) !important;
           border: none !important;
-          padding: 8px 16px !important;
+          padding: 12px 20px !important;
+          font-weight: 500 !important;
+          transition: all 0.2s ease !important;
+        }
+        
+        .gsc-tabHeader:hover {
+          color: hsl(var(--foreground)) !important;
         }
         
         .gsc-tabHeader.gsc-tabhActive {
-          color: hsl(0 95% 55%) !important;
-          border-bottom: 2px solid hsl(0 95% 55%) !important;
+          color: hsl(var(--primary)) !important;
+          border-bottom: 2px solid hsl(var(--primary)) !important;
+        }
+
+        /* Promoted results */
+        .gsc-webResult.gsc-result.gsc-promotion {
+          background: hsl(var(--secondary)) !important;
+          border-color: hsl(var(--primary) / 0.3) !important;
         }
       `}</style>
     </Layout>
