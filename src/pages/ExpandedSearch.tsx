@@ -165,6 +165,11 @@ export default function ExpandedSearch() {
         .gsc-results {
           background: transparent !important;
         }
+
+        /* Hide any embedded preview iframes that external sites may block */
+        .gsc-results iframe {
+          display: none !important;
+        }
         
         .gsc-webResult.gsc-result {
           background: hsl(220 25% 12%) !important;
