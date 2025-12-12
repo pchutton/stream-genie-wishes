@@ -469,6 +469,7 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
 
 // Helper to extract game info from ESPN event
 function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
+  console.log('Raw ESPN event:', JSON.stringify(event, null, 2));
   // Check if the event actually has a specific time or is TBD
   // ESPN returns midnight UTC (00:00:00Z) for TBD games
   const isTimeTBD = eventDateTime.getUTCHours() === 0 && 
