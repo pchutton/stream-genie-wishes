@@ -1,4 +1,4 @@
-import { List, Eye, EyeOff, Trash2, Sparkles } from 'lucide-react';
+import { List, Eye, EyeOff, Search } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { MediaCard } from '@/components/media/MediaCard';
 import { Button } from '@/components/ui/button';
@@ -36,8 +36,8 @@ function WatchlistContent() {
         <p className="mb-6 text-muted-foreground">Start adding movies and shows to build your watchlist</p>
         <Link to="/">
           <Button className="gap-2 genie-glow">
-            <Sparkles className="h-4 w-4" />
-            Make a Wish
+            <Search className="h-4 w-4" />
+            Search for titles
           </Button>
         </Link>
       </div>
