@@ -131,7 +131,14 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <SearchIcon className="mb-4 h-12 w-12 text-muted-foreground/50" />
               <p className="text-muted-foreground">
-                {isSearching ? 'Searching...' : 'Search for movies or TV shows to see results here'}
+                {isSearching ? 'Searching...' : (
+                  <>
+                    Not seeing the results you want? Try{' '}
+                    <Link to="/expanded-search" className="text-primary hover:underline font-medium">
+                      "Expanded Search"
+                    </Link>
+                  </>
+                )}
               </p>
             </div>
           )}
