@@ -21,7 +21,10 @@ export function Header() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <header className="sticky top-0 z-50 border-b border-border bg-background/80 backdrop-blur-md">
+    <header className={cn(
+      "sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md transition-colors duration-500",
+      isLiveMode ? "border-emerald-500/40" : "border-primary/40"
+    )}>
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
