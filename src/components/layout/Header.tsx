@@ -2,6 +2,8 @@ import { Link, useLocation } from 'react-router-dom';
 import { Sparkles, List, User, LogOut, Search, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { useSearchMode } from '@/contexts/SearchModeContext';
+import { cn } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +15,9 @@ import {
 export function Header() {
   const { user, signOut } = useAuth();
   const location = useLocation();
-
+  const { searchMode } = useSearchMode();
+  
+  const isLiveMode = searchMode === 'live';
   const isActive = (path: string) => location.pathname === path;
 
   return (
@@ -21,11 +25,20 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-primary transition-all duration-300 group-hover:scale-110 logo-backlit">
-            <div className="absolute inset-0 rounded-lg bg-primary animate-logo-pulse" />
+          <div className={cn(
+            "relative flex h-9 w-9 items-center justify-center rounded-lg transition-all duration-500 group-hover:scale-110",
+            isLiveMode ? "bg-emerald-500 logo-backlit-live" : "bg-primary logo-backlit"
+          )}>
+            <div className={cn(
+              "absolute inset-0 rounded-lg",
+              isLiveMode ? "bg-emerald-500 animate-logo-pulse-live" : "bg-primary animate-logo-pulse"
+            )} />
             <Sparkles className="relative z-10 h-5 w-5 text-primary-foreground" />
           </div>
-          <span className="text-xl font-bold text-gradient-gold logo-glow">StreamGenie</span>
+          <span className={cn(
+            "text-xl font-bold transition-all duration-500",
+            isLiveMode ? "text-gradient-live logo-glow-live" : "text-gradient-gold logo-glow"
+          )}>StreamGenie</span>
         </Link>
 
         {/* Navigation */}
