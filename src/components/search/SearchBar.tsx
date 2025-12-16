@@ -3,8 +3,9 @@ import { Search, X, Loader2, Tv, Radio } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useSearchMode, SearchMode } from '@/contexts/SearchModeContext';
 
-export type SearchMode = 'media' | 'live';
+export type { SearchMode };
 
 interface SearchBarProps {
   onSearch: (query: string, mode: SearchMode) => void;
@@ -20,7 +21,7 @@ export function SearchBar({
   className,
 }: SearchBarProps) {
   const [query, setQuery] = useState('');
-  const [mode, setMode] = useState<SearchMode>('media');
+  const { searchMode: mode, setSearchMode } = useSearchMode();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +35,7 @@ export function SearchBar({
   };
 
   const toggleMode = () => {
-    setMode(prev => prev === 'media' ? 'live' : 'media');
+    setSearchMode(mode === 'media' ? 'live' : 'media');
     setQuery('');
   };
 

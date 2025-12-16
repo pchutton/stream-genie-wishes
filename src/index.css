@@ -170,11 +170,27 @@
     background-clip: text;
   }
 
+  /* Gradient text - Live mode (green) */
+  .text-gradient-live {
+    background: linear-gradient(135deg, hsl(160 84% 60%), hsl(160 84% 45%));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
   /* Logo glow animation */
   .logo-glow {
     filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6));
     text-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3);
     animation: logo-text-pulse 2.5s ease-in-out infinite;
+    animation-delay: 0.4s;
+  }
+
+  /* Logo glow animation - Live mode (green) */
+  .logo-glow-live {
+    filter: drop-shadow(0 0 8px hsl(160 84% 50% / 0.6));
+    text-shadow: 0 0 20px hsl(160 84% 50% / 0.5), 0 0 40px hsl(160 84% 50% / 0.3);
+    animation: logo-text-pulse-live 2.5s ease-in-out infinite;
     animation-delay: 0.4s;
   }
 
@@ -185,6 +201,16 @@
 
   .logo-backlit .animate-logo-pulse {
     animation: logo-backlit-pulse 2s ease-in-out infinite;
+    opacity: 0.8;
+  }
+
+  /* Logo backlit pulsing effect - Live mode (green) */
+  .logo-backlit-live {
+    animation: logo-backlit-pulse-live 2s ease-in-out infinite;
+  }
+
+  .logo-backlit-live .animate-logo-pulse-live {
+    animation: logo-backlit-pulse-live 2s ease-in-out infinite;
     opacity: 0.8;
   }
 
@@ -260,6 +286,32 @@
   50% {
     filter: drop-shadow(0 0 12px hsl(var(--primary) / 0.7));
     text-shadow: 0 0 25px hsl(var(--primary) / 0.6), 0 0 50px hsl(var(--primary) / 0.35);
+  }
+}
+
+@keyframes logo-backlit-pulse-live {
+  0%, 100% {
+    box-shadow: 
+      0 0 15px hsl(160 84% 50% / 0.6),
+      0 0 30px hsl(160 84% 50% / 0.4),
+      0 0 45px hsl(160 84% 50% / 0.2);
+  }
+  50% {
+    box-shadow: 
+      0 0 25px hsl(160 84% 50% / 0.8),
+      0 0 50px hsl(160 84% 50% / 0.5),
+      0 0 75px hsl(160 84% 50% / 0.3);
+  }
+}
+
+@keyframes logo-text-pulse-live {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px hsl(160 84% 50% / 0.5));
+    text-shadow: 0 0 20px hsl(160 84% 50% / 0.4), 0 0 40px hsl(160 84% 50% / 0.2);
+  }
+  50% {
+    filter: drop-shadow(0 0 12px hsl(160 84% 50% / 0.7));
+    text-shadow: 0 0 25px hsl(160 84% 50% / 0.6), 0 0 50px hsl(160 84% 50% / 0.35);
   }
 }
 
