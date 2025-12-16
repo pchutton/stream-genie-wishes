@@ -30,15 +30,22 @@ export function Header() {
             isLiveMode ? "bg-emerald-500 logo-backlit-live" : "bg-primary logo-backlit"
           )}>
             <div className={cn(
-              "absolute inset-0 rounded-lg",
+              "absolute inset-0 rounded-lg transition-colors duration-500",
               isLiveMode ? "bg-emerald-500 animate-logo-pulse-live" : "bg-primary animate-logo-pulse"
             )} />
             <Sparkles className="relative z-10 h-5 w-5 text-primary-foreground" />
           </div>
-          <span className={cn(
-            "text-xl font-bold transition-all duration-500",
-            isLiveMode ? "text-gradient-live logo-glow-live" : "text-gradient-gold logo-glow"
-          )}>StreamGenie</span>
+          {/* Layered text for smooth gradient transition */}
+          <span className="relative text-xl font-bold">
+            <span className={cn(
+              "text-gradient-gold logo-glow transition-opacity duration-500",
+              isLiveMode ? "opacity-0" : "opacity-100"
+            )}>StreamGenie</span>
+            <span className={cn(
+              "absolute inset-0 text-gradient-live logo-glow-live transition-opacity duration-500",
+              isLiveMode ? "opacity-100" : "opacity-0"
+            )}>StreamGenie</span>
+          </span>
         </Link>
 
         {/* Navigation */}
