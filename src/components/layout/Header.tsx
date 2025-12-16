@@ -21,8 +21,9 @@ export function Header() {
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary transition-all duration-300 group-hover:scale-110">
-            <Sparkles className="h-5 w-5 text-primary-foreground" />
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-primary transition-all duration-300 group-hover:scale-110 logo-backlit">
+            <div className="absolute inset-0 rounded-lg bg-primary animate-logo-pulse" />
+            <Sparkles className="relative z-10 h-5 w-5 text-primary-foreground" />
           </div>
           <span className="text-xl font-bold text-gradient-gold logo-glow">StreamGenie</span>
         </Link>
