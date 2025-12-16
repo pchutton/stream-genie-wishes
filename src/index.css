@@ -174,7 +174,8 @@
   .logo-glow {
     filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6));
     text-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 40px hsl(var(--primary) / 0.3);
-    animation: logo-text-pulse 2s ease-in-out infinite;
+    animation: logo-text-pulse 2.5s ease-in-out infinite;
+    animation-delay: 0.4s;
   }
 
   /* Logo backlit pulsing effect */
