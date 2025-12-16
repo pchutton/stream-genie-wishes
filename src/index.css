@@ -178,6 +178,12 @@
     background-clip: text;
   }
 
+  /* Logo glow base styles with transition */
+  .logo-glow,
+  .logo-glow-live {
+    transition: filter 0.5s ease-in-out, text-shadow 0.5s ease-in-out;
+  }
+
   /* Logo glow animation */
   .logo-glow {
     filter: drop-shadow(0 0 8px hsl(var(--primary) / 0.6));
@@ -194,6 +200,12 @@
     animation-delay: 0.4s;
   }
 
+  /* Logo backlit base styles with transition */
+  .logo-backlit,
+  .logo-backlit-live {
+    transition: box-shadow 0.5s ease-in-out, background-color 0.5s ease-in-out;
+  }
+
   /* Logo backlit pulsing effect */
   .logo-backlit {
     animation: logo-backlit-pulse 2s ease-in-out infinite;
@@ -202,6 +214,7 @@
   .logo-backlit .animate-logo-pulse {
     animation: logo-backlit-pulse 2s ease-in-out infinite;
     opacity: 0.8;
+    transition: background-color 0.5s ease-in-out;
   }
 
   /* Logo backlit pulsing effect - Live mode (green) */
@@ -212,6 +225,7 @@
   .logo-backlit-live .animate-logo-pulse-live {
     animation: logo-backlit-pulse-live 2s ease-in-out infinite;
     opacity: 0.8;
+    transition: background-color 0.5s ease-in-out;
   }
 
   /* Card hover glow */
