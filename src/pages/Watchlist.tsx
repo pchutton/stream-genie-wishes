@@ -2,7 +2,6 @@ import { List, Eye, EyeOff, Search } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { MediaCard } from '@/components/media/MediaCard';
 import { Button } from '@/components/ui/button';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { useWatchlist, useRemoveFromWatchlist, useToggleWatched } from '@/hooks/useWatchlist';
 import { useProfile } from '@/hooks/useProfile';
 import { Link } from 'react-router-dom';
@@ -135,16 +134,14 @@ function WatchlistContent() {
 
 export default function Watchlist() {
   return (
-    <ProtectedRoute>
-      <Layout>
-        <div className="container mx-auto max-w-6xl px-4 py-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold">My Watchlist</h1>
-            <p className="text-muted-foreground">Your saved movies and TV shows</p>
-          </div>
-          <WatchlistContent />
+    <Layout>
+      <div className="container mx-auto max-w-6xl px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold">My Watchlist</h1>
+          <p className="text-muted-foreground">Your saved movies and TV shows</p>
         </div>
-      </Layout>
-    </ProtectedRoute>
+        <WatchlistContent />
+      </div>
+    </Layout>
   );
 }

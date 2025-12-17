@@ -1,6 +1,5 @@
 import { Sparkles, Check, Zap, Infinity } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
-import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useProfile } from '@/hooks/useProfile';
@@ -144,12 +143,10 @@ function ProContent() {
 
 export default function Pro() {
   return (
-    <ProtectedRoute>
-      <Layout>
-        <div className="container mx-auto px-4 py-8">
-          <ProContent />
-        </div>
-      </Layout>
-    </ProtectedRoute>
+    <Layout>
+      <div className="container mx-auto px-4 py-8">
+        <ProContent />
+      </div>
+    </Layout>
   );
 }
