@@ -358,7 +358,6 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         'Utah Utes': { slug: 'utah-utes', sport: 'mens-college-basketball', league: 'team' },
         'UCF Knights': { slug: 'ucf-knights', sport: 'mens-college-basketball', league: 'team' },
         'Texas Longhorns Basketball': { slug: 'texas-longhorns', sport: 'mens-college-basketball', league: 'team' },
-        // Additional top programs
         'Tennessee Volunteers Basketball': { slug: 'tennessee-volunteers', sport: 'mens-college-basketball', league: 'team' },
         'Florida Gators Basketball': { slug: 'florida-gators', sport: 'mens-college-basketball', league: 'team' },
         'Alabama Crimson Tide Basketball': { slug: 'alabama-crimson-tide', sport: 'mens-college-basketball', league: 'team' },
@@ -373,6 +372,75 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         'Missouri Tigers': { slug: 'missouri-tigers', sport: 'mens-college-basketball', league: 'team' },
         'Vanderbilt Commodores': { slug: 'vanderbilt-commodores', sport: 'mens-college-basketball', league: 'team' },
         'Georgia Bulldogs Basketball': { slug: 'georgia-bulldogs', sport: 'mens-college-basketball', league: 'team' },
+        
+        // MLS Soccer Teams
+        'LA Galaxy': { slug: 'la-galaxy', sport: 'soccer', league: 'usa.1' },
+        'Los Angeles FC': { slug: 'lafc', sport: 'soccer', league: 'usa.1' },
+        'LAFC': { slug: 'lafc', sport: 'soccer', league: 'usa.1' },
+        'Inter Miami': { slug: 'inter-miami-cf', sport: 'soccer', league: 'usa.1' },
+        'Inter Miami CF': { slug: 'inter-miami-cf', sport: 'soccer', league: 'usa.1' },
+        'Atlanta United': { slug: 'atlanta-united-fc', sport: 'soccer', league: 'usa.1' },
+        'Seattle Sounders': { slug: 'seattle-sounders-fc', sport: 'soccer', league: 'usa.1' },
+        'Portland Timbers': { slug: 'portland-timbers', sport: 'soccer', league: 'usa.1' },
+        'New York Red Bulls': { slug: 'new-york-red-bulls', sport: 'soccer', league: 'usa.1' },
+        'New York City FC': { slug: 'new-york-city-fc', sport: 'soccer', league: 'usa.1' },
+        'NYCFC': { slug: 'new-york-city-fc', sport: 'soccer', league: 'usa.1' },
+        'Columbus Crew': { slug: 'columbus-crew', sport: 'soccer', league: 'usa.1' },
+        'FC Cincinnati': { slug: 'fc-cincinnati', sport: 'soccer', league: 'usa.1' },
+        'Philadelphia Union': { slug: 'philadelphia-union', sport: 'soccer', league: 'usa.1' },
+        'Nashville SC': { slug: 'nashville-sc', sport: 'soccer', league: 'usa.1' },
+        'Austin FC': { slug: 'austin-fc', sport: 'soccer', league: 'usa.1' },
+        'FC Dallas': { slug: 'fc-dallas', sport: 'soccer', league: 'usa.1' },
+        'Houston Dynamo': { slug: 'houston-dynamo-fc', sport: 'soccer', league: 'usa.1' },
+        'Sporting Kansas City': { slug: 'sporting-kansas-city', sport: 'soccer', league: 'usa.1' },
+        'Minnesota United': { slug: 'minnesota-united-fc', sport: 'soccer', league: 'usa.1' },
+        'Real Salt Lake': { slug: 'real-salt-lake', sport: 'soccer', league: 'usa.1' },
+        'Colorado Rapids': { slug: 'colorado-rapids', sport: 'soccer', league: 'usa.1' },
+        'San Jose Earthquakes': { slug: 'san-jose-earthquakes', sport: 'soccer', league: 'usa.1' },
+        'Vancouver Whitecaps': { slug: 'vancouver-whitecaps-fc', sport: 'soccer', league: 'usa.1' },
+        'Toronto FC': { slug: 'toronto-fc', sport: 'soccer', league: 'usa.1' },
+        'CF Montreal': { slug: 'cf-montreal', sport: 'soccer', league: 'usa.1' },
+        'Chicago Fire': { slug: 'chicago-fire-fc', sport: 'soccer', league: 'usa.1' },
+        'DC United': { slug: 'd.c.-united', sport: 'soccer', league: 'usa.1' },
+        'Orlando City': { slug: 'orlando-city-sc', sport: 'soccer', league: 'usa.1' },
+        'Charlotte FC': { slug: 'charlotte-fc', sport: 'soccer', league: 'usa.1' },
+        'St Louis City SC': { slug: 'st.-louis-city-sc', sport: 'soccer', league: 'usa.1' },
+        
+        // Premier League Teams (Top 20)
+        'Manchester United': { slug: 'man-united', sport: 'soccer', league: 'eng.1' },
+        'Manchester City': { slug: 'man-city', sport: 'soccer', league: 'eng.1' },
+        'Liverpool': { slug: 'liverpool', sport: 'soccer', league: 'eng.1' },
+        'Arsenal': { slug: 'arsenal', sport: 'soccer', league: 'eng.1' },
+        'Chelsea': { slug: 'chelsea', sport: 'soccer', league: 'eng.1' },
+        'Tottenham': { slug: 'tottenham-hotspur', sport: 'soccer', league: 'eng.1' },
+        'Tottenham Hotspur': { slug: 'tottenham-hotspur', sport: 'soccer', league: 'eng.1' },
+        'Newcastle United': { slug: 'newcastle-united', sport: 'soccer', league: 'eng.1' },
+        'Aston Villa': { slug: 'aston-villa', sport: 'soccer', league: 'eng.1' },
+        'West Ham': { slug: 'west-ham-united', sport: 'soccer', league: 'eng.1' },
+        'Brighton': { slug: 'brighton-and-hove-albion', sport: 'soccer', league: 'eng.1' },
+        'Everton': { slug: 'everton', sport: 'soccer', league: 'eng.1' },
+        'Fulham': { slug: 'fulham', sport: 'soccer', league: 'eng.1' },
+        'Crystal Palace': { slug: 'crystal-palace', sport: 'soccer', league: 'eng.1' },
+        'Brentford': { slug: 'brentford', sport: 'soccer', league: 'eng.1' },
+        'Wolverhampton': { slug: 'wolverhampton-wanderers', sport: 'soccer', league: 'eng.1' },
+        'Wolves': { slug: 'wolverhampton-wanderers', sport: 'soccer', league: 'eng.1' },
+        'Nottingham Forest': { slug: 'nottingham-forest', sport: 'soccer', league: 'eng.1' },
+        'Bournemouth': { slug: 'afc-bournemouth', sport: 'soccer', league: 'eng.1' },
+        'Leicester City': { slug: 'leicester-city', sport: 'soccer', league: 'eng.1' },
+        'Ipswich Town': { slug: 'ipswich-town', sport: 'soccer', league: 'eng.1' },
+        'Southampton': { slug: 'southampton', sport: 'soccer', league: 'eng.1' },
+        
+        // La Liga Teams (Top teams)
+        'Real Madrid': { slug: 'real-madrid', sport: 'soccer', league: 'esp.1' },
+        'Barcelona': { slug: 'barcelona', sport: 'soccer', league: 'esp.1' },
+        'Atletico Madrid': { slug: 'atletico-madrid', sport: 'soccer', league: 'esp.1' },
+        'Sevilla': { slug: 'sevilla', sport: 'soccer', league: 'esp.1' },
+        'Real Sociedad': { slug: 'real-sociedad', sport: 'soccer', league: 'esp.1' },
+        'Real Betis': { slug: 'real-betis', sport: 'soccer', league: 'esp.1' },
+        'Villarreal': { slug: 'villarreal-cf', sport: 'soccer', league: 'esp.1' },
+        'Athletic Bilbao': { slug: 'athletic-club', sport: 'soccer', league: 'esp.1' },
+        'Valencia': { slug: 'valencia-cf', sport: 'soccer', league: 'esp.1' },
+        'Girona': { slug: 'girona-fc', sport: 'soccer', league: 'esp.1' },
       };
 
       // Find the team in our map
@@ -457,6 +525,10 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
           // Use full team name for accurate search
           espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/mens-college-basketball/teams?limit=1&search=${encodeURIComponent(teamName)}`;
           break;
+        case 'soccer':
+          // Soccer uses league-based lookups - e.g., usa.1 for MLS, eng.1 for Premier League
+          espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${teamInfo.league}/teams?limit=1&search=${encodeURIComponent(teamName)}`;
+          break;
         default:
           espnApiUrl = `https://site.api.espn.com/apis/site/v2/sports/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
       }
@@ -475,14 +547,20 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         return null;
       }
       
-      // For college teams, we need a second request to get the schedule
-      if (teamInfo.sport === 'college-football' || teamInfo.sport === 'mens-college-basketball') {
+      // For college teams and soccer, we need a second request to get the schedule
+      if (teamInfo.sport === 'college-football' || teamInfo.sport === 'mens-college-basketball' || teamInfo.sport === 'soccer') {
         const teams = data.sports?.[0]?.leagues?.[0]?.teams || data.teams || [];
         if (teams.length > 0) {
           const teamId = teams[0].team?.id || teams[0].id;
-          const sport = teamInfo.sport === 'college-football' ? 'football/college-football' : 'basketball/mens-college-basketball';
-          const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`;
-          console.log(`Fetching college team schedule: ${scheduleUrl}`);
+          let scheduleUrl: string;
+          
+          if (teamInfo.sport === 'soccer') {
+            scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${teamInfo.league}/teams/${teamId}/schedule`;
+          } else {
+            const sport = teamInfo.sport === 'college-football' ? 'football/college-football' : 'basketball/mens-college-basketball';
+            scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sport}/teams/${teamId}/schedule`;
+          }
+          console.log(`Fetching team schedule: ${scheduleUrl}`);
           
           // Use cached fetch for schedule
           data = await cachedFetch(scheduleUrl, CACHE_TTL.SCHEDULE);
@@ -734,6 +812,7 @@ const channelToStreamingMap: Record<string, string[]> = {
   'ESPN+': ['ESPN+'],
   'FOX': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'FS1': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
+  'FS2': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'Fox Sports': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'CBS': ['Paramount+', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
   'NBC': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
@@ -746,6 +825,24 @@ const channelToStreamingMap: Record<string, string[]> = {
   'NBA TV': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
   'MLB Network': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
   'USA Network': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  // Soccer channels
+  'NBCSN': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  'USA': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  'Telemundo': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo'],
+  'Universo': ['YouTube TV', 'Fubo'],
+  'beIN Sports': ['Fubo', 'Sling Orange'],
+  'Apple TV': ['Apple TV+'],
+  'Apple TV+': ['Apple TV+'],
+  'MLS Season Pass': ['Apple TV+'],
+  // UFC/Boxing channels
+  'PPV': ['ESPN+ PPV', 'DAZN'],
+  'ESPN PPV': ['ESPN+ PPV'],
+  'DAZN': ['DAZN'],
+  'Showtime': ['Paramount+', 'YouTube TV', 'Fubo'],
+  // Tennis channels
+  'Tennis Channel': ['YouTube TV', 'Fubo', 'Sling Orange'],
+  // Golf channels
+  'Golf Channel': ['Peacock', 'YouTube TV', 'Fubo', 'Sling Blue'],
 };
 
 async function enrichWithStreamingPlatforms(
@@ -1030,6 +1127,30 @@ const teamNicknames: Record<string, string> = {
   "gamecocks": "South Carolina Gamecocks", "mizzou": "Missouri Tigers",
   "commodores": "Vanderbilt Commodores", "vandy": "Vanderbilt Commodores",
   "wolfpack": "North Carolina State Wolfpack", "nc state": "North Carolina State Wolfpack",
+  
+  // Soccer - MLS
+  "galaxy": "LA Galaxy", "la galaxy": "LA Galaxy",
+  "lafc": "Los Angeles FC", "inter miami": "Inter Miami CF",
+  "sounders": "Seattle Sounders", "timbers": "Portland Timbers",
+  "red bulls": "New York Red Bulls", "nycfc": "New York City FC",
+  "crew": "Columbus Crew", "union": "Philadelphia Union",
+  "austin fc": "Austin FC", "dynamo": "Houston Dynamo",
+  
+  // Soccer - Premier League
+  "man united": "Manchester United", "man u": "Manchester United", "united": "Manchester United",
+  "man city": "Manchester City", "city": "Manchester City",
+  "liverpool": "Liverpool", "reds": "Liverpool",
+  "arsenal": "Arsenal", "gunners": "Arsenal",
+  "chelsea": "Chelsea", "blues": "Chelsea",
+  "tottenham spurs": "Tottenham Hotspur", "tottenham": "Tottenham Hotspur",
+  "newcastle": "Newcastle United", "magpies": "Newcastle United",
+  "villa": "Aston Villa", "west ham": "West Ham",
+  "everton": "Everton", "toffees": "Everton",
+  
+  // Soccer - La Liga
+  "real madrid": "Real Madrid", "madrid": "Real Madrid",
+  "barca": "Barcelona", "barcelona": "Barcelona",
+  "atletico": "Atletico Madrid", "sevilla": "Sevilla",
 };
 
 // Convert dictionary to string for AI prompt
@@ -1123,11 +1244,22 @@ NBA: "dubs" → "Golden State Warriors", "lakers" → "Los Angeles Lakers", "war
 MLB: "yanks" → "New York Yankees", "dodgers" → "Los Angeles Dodgers", "sox" → "Chicago White Sox"...
 NHL: "bruins" → "Boston Bruins", "pens" → "Pittsburgh Penguins", "caps" → "Washington Capitals"...
 College: "bama" → "Alabama Crimson Tide", "sooners" → "Oklahoma Sooners", "buckeyes" → "Ohio State Buckeyes"...
+MLS Soccer: "galaxy" → "LA Galaxy", "lafc" → "Los Angeles FC", "inter miami" → "Inter Miami CF", "sounders" → "Seattle Sounders"...
+Premier League: "man u" → "Manchester United", "arsenal" → "Arsenal", "chelsea" → "Chelsea", "liverpool" → "Liverpool"...
+La Liga: "barca" → "Barcelona", "real madrid" → "Real Madrid", "atletico" → "Atletico Madrid"...
+
+SPORTS DETECTION:
+- UFC/MMA: Look for "UFC", "MMA", "fight", fighter names → add "UFC event schedule broadcast"
+- Boxing: Look for boxing-related terms → add "boxing fight schedule broadcast"
+- Tennis: Look for "US Open", "Wimbledon", "Australian Open", "French Open", "ATP", "WTA" → add "tennis schedule broadcast"
+- Golf: Look for "PGA", "Masters", "US Open golf", "British Open", "Ryder Cup" → add "golf tournament schedule broadcast"
+- Soccer: Look for "Premier League", "La Liga", "MLS", "Champions League", "World Cup" → add "soccer match schedule broadcast"
 
 RULES:
 1. If any nickname or partial team name is detected, REPLACE it with the full official team name
 2. Add sports context: "schedule", "next game", "upcoming match", or "broadcast information"
 3. Ensure the query is optimized for retrieving live event schedules and broadcast info
+4. For UFC/Boxing events, include event name and date if mentioned
 
 EXAMPLES:
 "nuggets" → "Denver Nuggets basketball next game schedule"
@@ -1136,6 +1268,10 @@ EXAMPLES:
 "bama football" → "Alabama Crimson Tide football schedule"
 "chiefs vs raiders" → "Kansas City Chiefs vs Las Vegas Raiders NFL game schedule"
 "UFC this weekend" → "UFC next event schedule broadcast"
+"inter miami" → "Inter Miami CF MLS soccer next match schedule"
+"arsenal vs chelsea" → "Arsenal vs Chelsea Premier League match schedule broadcast"
+"US Open tennis" → "US Open tennis tournament schedule broadcast"
+"PGA championship" → "PGA Championship golf tournament schedule broadcast"
 
 Return ONLY the rewritten query text. Do NOT explain.`
           },

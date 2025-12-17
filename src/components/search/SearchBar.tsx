@@ -42,7 +42,7 @@ export function SearchBar({
   const currentPlaceholder = placeholder || (
     mode === 'media' 
       ? 'Find Your Show. Compare Every Streaming Option.' 
-      : 'Search for live events, sports, concerts...'
+      : 'Search any game. Any team. Any sport.'
   );
 
   const isLive = mode === 'live';
