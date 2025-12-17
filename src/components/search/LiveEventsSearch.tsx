@@ -103,11 +103,11 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
   const url = getPlatformUrl(platform.name);
 
   const content = (
-    <div className="flex flex-col items-center gap-2 w-24 shrink-0">
-      <NetworkLogo platform={platform.name} className="h-14 w-14" />
-      <span className="text-xs font-medium truncate w-full text-center text-foreground">{platform.name}</span>
+    <div className="flex flex-col items-center gap-2 w-28 shrink-0">
+      <NetworkLogo platform={platform.name} className="h-16 w-16" />
+      <span className="text-sm font-medium truncate w-full text-center text-foreground">{platform.name}</span>
       {platform.status && (
-        <span className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap ${style.bg} ${style.text}`}>
+        <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 whitespace-nowrap ${style.bg} ${style.text}`}>
           {style.icon}
           <span>{platform.status}</span>
         </span>
@@ -115,25 +115,21 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
     </div>
   );
 
-  if (url) {
-    return (
-      <a
-        href={url}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="transition-transform hover:scale-105 active:scale-95"
-        title={`Open ${platform.name}`}
-      >
-        {content}
-      </a>
-    );
-  }
-
-  return content;
+  return url ? (
+    <a
+      href={url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="transition-transform hover:scale-105 active:scale-95"
+      title={`Open ${platform.name}`}
+    >
+      {content}
+    </a>
+  ) : content;
 }
 
 function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: string[]; platformDetails?: PlatformInfo[] }) {
-  const items = platformDetails && platformDetails.length > 0 ? platformDetails : (platforms || []);
+  const items = (platformDetails && platformDetails.length > 0 ? platformDetails : platforms || []) as (string | PlatformInfo)[];
 
   if (items.length === 0) {
     return (
@@ -146,19 +142,23 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
   return (
     <div className="relative">
       <p className="text-sm font-semibold text-foreground mb-3">Watch on:</p>
-      <div className="flex overflow-x-auto gap-4 pb-3 -mx-4 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {items.map((item, index) => {
-          const platform = typeof item === 'string' ? { name: item, status: '' } : item;
+      <div className="flex overflow-x-auto gap-5 pb-3 -mx-4 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {items.map((item, idx) => {
+          const platform = typeof item === 'string' ? { name: item, status: 'Check platform' } : item;
           return (
-            <div key={`${platform.name}-${index}`} className="snap-start">
+            <div key={`${platform.name}-${idx}`} className="snap-start">
               <PlatformWithStatus platform={platform} />
             </div>
           );
         })}
       </div>
-      {/* Subtle fade edges for scroll indication */}
-      <div className="pointer-events-none absolute left-0 top-8 bottom-0 w-6 bg-gradient-to-r from-card to-transparent" />
-      <div className="pointer-events-none absolute right-0 top-8 bottom-0 w-6 bg-gradient-to-l from-card to-transparent" />
+      {/* Subtle fade edges for scroll hint - only show if many items */}
+      {items.length > 3 && (
+        <>
+          <div className="pointer-events-none absolute left-0 top-8 bottom-0 w-8 bg-gradient-to-r from-card to-transparent" />
+          <div className="pointer-events-none absolute right-0 top-8 bottom-0 w-8 bg-gradient-to-l from-card to-transparent" />
+        </>
+      )}
     </div>
   );
 }
@@ -258,20 +258,20 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
       <CardHeader className="pb-3">
         {/* Team logos row */}
         {showTeamLogos && teams && (
-          <div className="flex items-center justify-center gap-4 mb-3">
+          <div className="flex items-center justify-center gap-5 mb-3">
             {awayLogoUrl ? (
-              <img src={awayLogoUrl} alt={teams.away} className="h-12 w-12 object-contain" />
+              <img src={awayLogoUrl} alt={teams.away} className="h-14 w-14 object-contain" />
             ) : (
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Users className="h-6 w-6 text-muted-foreground" />
+              <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-7 w-7 text-muted-foreground" />
               </div>
             )}
-            <span className="text-sm font-medium text-muted-foreground">vs</span>
+            <span className="text-base font-semibold text-muted-foreground">@</span>
             {homeLogoUrl ? (
-              <img src={homeLogoUrl} alt={teams.home} className="h-12 w-12 object-contain" />
+              <img src={homeLogoUrl} alt={teams.home} className="h-14 w-14 object-contain" />
             ) : (
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Users className="h-6 w-6 text-muted-foreground" />
+              <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-7 w-7 text-muted-foreground" />
               </div>
             )}
           </div>
@@ -280,7 +280,7 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
           {event.eventName}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 pt-0">
+      <CardContent className="space-y-4 px-5 py-4">
         <div className="flex items-start gap-2 text-sm">
           <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <span className="text-muted-foreground">{localTime}</span>
