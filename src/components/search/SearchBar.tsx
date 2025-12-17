@@ -48,7 +48,12 @@ export function SearchBar({
   const isLive = mode === 'live';
 
   return (
-    <div className={cn('space-y-5', className)}>
+    <div className={cn('space-y-5 px-4 sm:px-0', className)}>
+      {/* Screen reader announcement for mode changes */}
+      <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+        Search mode: {mode === 'media' ? 'TV and Movies' : 'Live Events'}
+      </div>
+
       {/* Mode Toggle - Above search bar */}
       <div className="flex justify-center">
         <button
