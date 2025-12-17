@@ -318,10 +318,11 @@ export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) 
           Try "Lakers game tonight" or "UFC this weekend"
         </p>
         <p className="text-sm text-muted-foreground mt-3">
-          Not seeing the results you want? Try{' '}
+          Try{' '}
           <Link to="/expanded-search" className="text-primary hover:underline font-medium">
-            "Expanded Search"
+            Expanded Search
           </Link>
+          {' '}for concerts, international leagues, or any live event.
         </p>
       </div>
     );
