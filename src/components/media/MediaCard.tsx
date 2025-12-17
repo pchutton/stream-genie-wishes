@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, memo } from 'react';
 import { Plus, Check, Eye, EyeOff, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ interface MediaCardProps {
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
 
-export function MediaCard({
+export const MediaCard = memo(function MediaCard({
   item,
   isInWatchlist = false,
   isWatched = false,
@@ -52,20 +52,41 @@ export function MediaCard({
     ? `${TMDB_IMAGE_BASE}${item.poster_path}`
     : null;
 
+  // Memoized handlers to prevent re-renders
+  const handleDetailsClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onShowDetails?.();
+  }, [onShowDetails]);
+
+  const handleWatchedClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleWatched?.();
+  }, [onToggleWatched]);
+
+  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
+  const handleImageError = useCallback(() => setImageError(true), []);
+
   return (
     <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       {/* Poster with group hover */}
       <div className="group relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-900 cursor-pointer">
+        {/* Shimmer placeholder while loading */}
+        {posterUrl && !imageLoaded && !imageError && (
+          <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
+        )}
+        
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
             alt={item.title}
+            loading="lazy"
+            decoding="async"
             className={cn(
-              'h-full w-full object-contain transition-all duration-300 pointer-events-none group-hover:scale-110',
+              'h-full w-full object-contain transition-all duration-300 pointer-events-none group-hover:scale-105',
               imageLoaded ? 'opacity-100' : 'opacity-0'
             )}
-            onLoad={() => setImageLoaded(true)}
-            onError={() => setImageError(true)}
+            onLoad={handleImageLoad}
+            onError={handleImageError}
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -79,10 +100,7 @@ export function MediaCard({
           <Button
             size="sm"
             className="w-full genie-glow text-xs"
-            onClick={(e) => {
-              e.stopPropagation();
-              onShowDetails?.();
-            }}
+            onClick={handleDetailsClick}
           >
             <Play className="mr-1 h-3 w-3" /> Details
           </Button>
@@ -95,10 +113,7 @@ export function MediaCard({
               'w-full h-7 text-xs bg-zinc-800/80 hover:bg-zinc-700',
               isWatched && 'bg-primary/80 hover:bg-primary/60'
             )}
-            onClick={(e) => {
-              e.stopPropagation();
-              onToggleWatched?.();
-            }}
+            onClick={handleWatchedClick}
           >
             <Eye className="mr-1 h-3 w-3" />
             {isWatched ? 'Watched' : 'Mark Seen'}
@@ -180,4 +195,4 @@ export function MediaCard({
       </div>
     </div>
   );
-}
+});
