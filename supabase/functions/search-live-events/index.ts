@@ -903,21 +903,34 @@ Current broadcast info: ${event.whereToWatch}
             messages: [
               {
                 role: 'system',
-                content: `You determine which major US broadcasting networks will show sports events.
-Identify the PRIMARY broadcast channel(s) from this list: ABC, ESPN, ESPN2, ESPN+, FOX, FS1, CBS, NBC, Peacock, Prime Video, TNT, TBS, NFL Network, NBA TV, MLB Network, USA Network.
+                content: `You are a sports broadcasting expert. Determine which major US broadcasting networks will show sports events.
+
+IMPORTANT BROADCAST KNOWLEDGE:
+- College Football Playoff (CFP) games are on ESPN/ABC
+- NFL games: CBS, FOX, NBC, ESPN, Prime Video, NFL Network
+- NBA games: TNT, ESPN, ABC, NBA TV
+- College basketball: ESPN, ESPN2, CBS, FOX, FS1
+- MLB playoffs: FOX, FS1, TBS
+- NHL: ESPN, TNT, ABC
+- MLS: Apple TV, ESPN, FOX
+
+Identify the PRIMARY broadcast channel(s) from: ABC, ESPN, ESPN2, ESPN+, FOX, FS1, CBS, NBC, Peacock, Prime Video, TNT, TBS, NFL Network, NBA TV, MLB Network, USA Network.
 Return ONLY a valid JSON object with broadcast_channels array. No markdown or explanation.`
               },
               {
                 role: 'user',
-                content: `Based on the following sports event information, identify which major US broadcasting networks will show this event.
+                content: `Based on the following sports event information, identify which major US broadcasting networks will show this event. Use your knowledge of typical sports broadcasting rights.
 
 EVENT DETAILS:
 ${eventDetails}
 
-Step 1: Identify the primary broadcast channels (e.g., ABC, ESPN, FOX, CBS, NBC, ESPN+, Peacock, Prime Video, TNT, FS1).
+IMPORTANT: Even if broadcast info says "TBD", use your knowledge of the sport/league to determine likely broadcasters. For example:
+- College football playoff games are on ESPN/ABC
+- NFL primetime games are on ESPN, NBC, or Prime Video
+- Major college bowl games are on ESPN networks
 
 Respond with a JSON object like: {"broadcast_channels": ["ESPN", "ABC"]}
-If unknown, return: {"broadcast_channels": []}`
+Only return empty array if you truly cannot determine any likely broadcasters.`
               }
             ],
           }),
