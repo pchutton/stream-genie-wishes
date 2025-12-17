@@ -308,9 +308,9 @@ function StreamingCard({ offer }: { offer: StreamingOffer }) {
   const { bg, text, label } = getBadgeStyles();
 
   const content = (
-    <div className="flex flex-col items-center gap-2 rounded-xl bg-zinc-700/50 p-3 min-w-[100px] snap-start transition-all duration-200 hover:bg-zinc-600/50 hover:scale-105">
-      {/* Large logo */}
-      <div className="h-16 w-16 flex items-center justify-center rounded-lg bg-white/10 p-2">
+    <div className="flex flex-col items-center gap-2 rounded-xl bg-zinc-700/50 p-4 min-w-[110px] snap-start transition-all duration-200 hover:bg-zinc-600/50 hover:scale-105">
+      {/* Large logo - 80px for instant recognition */}
+      <div className="h-20 w-20 flex items-center justify-center rounded-xl bg-white/10 p-2">
         {offer.logo ? (
           <img 
             src={offer.logo} 
@@ -318,7 +318,7 @@ function StreamingCard({ offer }: { offer: StreamingOffer }) {
             className="h-full w-full object-contain"
           />
         ) : (
-          <span className="text-2xl font-bold text-white/60">
+          <span className="text-3xl font-bold text-white/60">
             {offer.shortName.charAt(0)}
           </span>
         )}
