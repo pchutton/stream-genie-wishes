@@ -137,6 +137,16 @@
     border-radius: 3px;
   }
 
+  /* Hide scrollbar but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
   /* Genie glow effect for CTAs */
   .genie-glow {
     box-shadow: 0 0 20px hsl(var(--genie-gold) / 0.3),
