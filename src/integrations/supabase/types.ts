@@ -14,33 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      favorite_teams: {
-        Row: {
-          created_at: string
-          espn_team_id: string | null
-          id: string
-          league: Database["public"]["Enums"]["sport_league"]
-          team_name: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          espn_team_id?: string | null
-          id?: string
-          league: Database["public"]["Enums"]["sport_league"]
-          team_name: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          espn_team_id?: string | null
-          id?: string
-          league?: Database["public"]["Enums"]["sport_league"]
-          team_name?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       notification_preferences: {
         Row: {
           created_at: string
