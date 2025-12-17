@@ -18,6 +18,7 @@ import { NetworkLogo } from '@/components/media/NetworkLogos';
 
 interface TeamEvent extends LiveEvent {
   teamName: string;
+  teamLeague?: SportLeague;
   eventDate?: string;
 }
 
@@ -38,9 +39,23 @@ export default function MyEvents() {
   const [selectedLeague, setSelectedLeague] = useState<SportLeague>('NFL');
   const [selectedTeam, setSelectedTeam] = useState<string>('');
 
+  // Map league to sport keyword for search query
+  const getSportKeyword = (league: SportLeague): string => {
+    switch (league) {
+      case 'NCAAB': return 'basketball';
+      case 'NCAAF': return 'football';
+      case 'NFL': return 'football';
+      case 'NBA': return 'basketball';
+      case 'MLB': return 'baseball';
+      case 'NHL': return 'hockey';
+      case 'MLS': return 'soccer';
+      default: return '';
+    }
+  };
+
   // Fetch events for all favorite teams with caching
   const { data: upcomingEvents = [], isLoading: eventsLoading } = useQuery({
-    queryKey: ['team-events', teams.map(t => t.team_name).join(',')],
+    queryKey: ['team-events', teams.map(t => `${t.team_name}-${t.league}`).join(',')],
     queryFn: async () => {
       if (teams.length === 0) return [];
 
@@ -49,14 +64,20 @@ export default function MyEvents() {
       // Fetch all teams in parallel for better performance
       const results = await Promise.allSettled(
         teams.map(async (team) => {
+          const sportKeyword = getSportKeyword(team.league as SportLeague);
+          const searchQuery = sportKeyword 
+            ? `${team.team_name} ${sportKeyword} schedule`
+            : `${team.team_name} schedule`;
+          
           const { data, error } = await supabase.functions.invoke('search-live-events', {
-            body: { query: `${team.team_name} schedule` }
+            body: { query: searchQuery }
           });
 
           if (!error && data?.events) {
             return data.events.map((event: LiveEvent) => ({
               ...event,
               teamName: team.team_name,
+              teamLeague: team.league as SportLeague,
             }));
           }
           return [];
@@ -333,7 +354,10 @@ export default function MyEvents() {
               {upcomingEvents.map((event, idx) => (
                 <Card key={idx} className="hover:border-primary/50 transition-colors">
                   <CardContent className="pt-6">
-                    <Badge variant="outline" className="mb-3">{event.teamName}</Badge>
+                    <Badge variant="outline" className="mb-3">
+                      {event.teamName}
+                      {event.teamLeague && <span className="ml-1 text-xs opacity-70">({event.teamLeague})</span>}
+                    </Badge>
                     <h3 className="font-semibold text-lg mb-2 line-clamp-2">{event.eventName}</h3>
                     
                     <div className="space-y-2 text-sm text-muted-foreground">
