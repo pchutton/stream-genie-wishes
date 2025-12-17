@@ -19,9 +19,6 @@ export interface MediaItem {
   director?: string | null;
   cast?: string[];
   tmdb_rating?: number | null;
-  imdb_rating?: string | null;
-  rotten_tomatoes?: string | null;
-  metacritic?: string | null;
   origin_country?: string[];
 }
 
