@@ -67,7 +67,7 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-zinc-800 p-0 backdrop-blur-sm">
-        <div className="flex flex-col sm:flex-row">
+        <div className="flex flex-col sm:flex-row pt-6 sm:pt-0">
           {/* Poster with lazy loading - compact on mobile */}
           <div className="relative mx-auto w-32 aspect-[2/3] shrink-0 sm:mx-0 sm:w-72 bg-zinc-900 rounded-lg overflow-hidden">
             {/* Shimmer placeholder */}
