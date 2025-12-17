@@ -3,11 +3,49 @@ import { Layout } from '@/components/layout/Layout';
 import { Search, Loader2, Globe, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { getLogoForUrl } from '@/lib/streamingDomainLogos';
 
 const SEARCH_ENGINE_ID = 'f14f3e698611345bf';
 
 // Magic query suffix to find legal streaming options and filter out signup pages
 const MAGIC_SUFFIX = 'legal live stream -inurl:(signup login subscribe account)';
+
+// Inject streaming platform logos into search results
+function injectLogosIntoResults() {
+  const results = document.querySelectorAll('.gsc-webResult.gsc-result');
+  
+  results.forEach((result) => {
+    // Skip if already processed
+    if (result.querySelector('.streaming-logo-badge')) return;
+    
+    // Find the URL element
+    const urlElement = result.querySelector('.gs-visibleUrl');
+    const linkElement = result.querySelector('a.gs-title');
+    
+    const url = linkElement?.getAttribute('href') || urlElement?.textContent || '';
+    
+    if (!url) return;
+    
+    const platform = getLogoForUrl(url);
+    
+    if (platform) {
+      // Create logo badge
+      const badge = document.createElement('div');
+      badge.className = 'streaming-logo-badge';
+      badge.innerHTML = `
+        <img src="${platform.logo}" alt="${platform.name}" title="${platform.name}" />
+      `;
+      
+      // Insert at the top of the result card
+      const resultContent = result.querySelector('.gsc-thumbnail-inside, .gsc-table-result');
+      if (resultContent) {
+        result.insertBefore(badge, result.firstChild);
+      } else {
+        result.appendChild(badge);
+      }
+    }
+  });
+}
 
 export default function ExpandedSearch() {
   const [query, setQuery] = useState('');
@@ -15,6 +53,7 @@ export default function ExpandedSearch() {
   const [hasSearched, setHasSearched] = useState(false);
   const scriptLoaded = useRef(false);
   const searchExecuted = useRef(false);
+  const observerRef = useRef<MutationObserver | null>(null);
 
   useEffect(() => {
     if (scriptLoaded.current) return;
@@ -32,12 +71,12 @@ export default function ExpandedSearch() {
               div: 'live-events-results',
               tag: 'searchresults-only',
               attributes: { 
-                linkTarget: '_blank',  // Fallback for basic links
-                enableHistory: false   // Keeps it snappy, no URL changes
+                linkTarget: '_blank',
+                enableHistory: false
               },
             });
 
-            // Bulletproof: Override ALL clickable elements to open externally
+            // Set up MutationObserver to inject logos when results load
             setTimeout(() => {
               const resultsContainer = document.getElementById('live-events-results');
               if (resultsContainer) {
@@ -45,8 +84,8 @@ export default function ExpandedSearch() {
                 resultsContainer.addEventListener('click', function(e) {
                   const link = (e.target as HTMLElement).closest('a');
                   if (link && link.href) {
-                    e.preventDefault();  // Stop iframe nonsense
-                    window.open(link.href, '_blank', 'noopener,noreferrer');  // Full external open
+                    e.preventDefault();
+                    window.open(link.href, '_blank', 'noopener,noreferrer');
                   }
                 });
 
@@ -60,8 +99,18 @@ export default function ExpandedSearch() {
                     }
                   });
                 });
+
+                // MutationObserver to detect when results are added/changed
+                observerRef.current = new MutationObserver(() => {
+                  injectLogosIntoResults();
+                });
+                
+                observerRef.current.observe(resultsContainer, {
+                  childList: true,
+                  subtree: true
+                });
               }
-            }, 500);  // Wait for results to render
+            }, 500);
           }
         } catch (err) {
           console.error('Error rendering Google CSE element', err);
@@ -77,6 +126,10 @@ export default function ExpandedSearch() {
 
     const firstScript = document.getElementsByTagName('script')[0];
     firstScript.parentNode?.insertBefore(script, firstScript);
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
   }, []);
 
   const executeSearch = (searchQuery: string) => {
@@ -354,6 +407,33 @@ export default function ExpandedSearch() {
         .gsc-webResult.gsc-result.gsc-promotion {
           background: hsl(var(--secondary)) !important;
           border-color: hsl(var(--primary) / 0.3) !important;
+        }
+
+        /* Streaming logo badge */
+        .streaming-logo-badge {
+          position: absolute;
+          top: 12px;
+          right: 12px;
+          height: 28px;
+          background: hsl(var(--background) / 0.9);
+          border: 1px solid hsl(var(--border));
+          border-radius: 6px;
+          padding: 4px 8px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 10;
+          box-shadow: 0 2px 8px hsl(var(--background) / 0.5);
+        }
+
+        .streaming-logo-badge img {
+          height: 18px;
+          width: auto;
+          object-fit: contain;
+        }
+
+        .gsc-webResult.gsc-result {
+          position: relative !important;
         }
       `}</style>
     </Layout>
