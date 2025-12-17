@@ -47,7 +47,6 @@ export function MediaCard({
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [imageError, setImageError] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
 
   const posterUrl = item.poster_path 
     ? `${TMDB_IMAGE_BASE}${item.poster_path}`
@@ -55,18 +54,14 @@ export function MediaCard({
 
   return (
     <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
-      {/* Poster */}
-      <div 
-        className="relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-900"
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      {/* Poster with group hover */}
+      <div className="group relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-900 cursor-pointer">
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
             alt={item.title}
             className={cn(
-              'h-full w-full object-contain transition-all duration-300 pointer-events-none',
+              'h-full w-full object-contain transition-all duration-300 pointer-events-none group-hover:scale-110',
               imageLoaded ? 'opacity-100' : 'opacity-0'
             )}
             onLoad={() => setImageLoaded(true)}
@@ -78,16 +73,12 @@ export function MediaCard({
           </div>
         )}
 
-        {/* Hover Overlay with Actions */}
-        {isHovered && (
-        <div 
-          className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-black/80"
-          onMouseEnter={() => setIsHovered(true)}
-        >
+        {/* Hover Overlay - uses @media (hover: hover) automatically */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-end gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2">
           {/* Details Button */}
           <Button
             size="sm"
-            className="w-24 bg-gradient-to-r from-pink-500 to-purple-500 hover:from-pink-600 hover:to-purple-600 text-white text-xs"
+            className="w-full genie-glow text-xs"
             onClick={(e) => {
               e.stopPropagation();
               onShowDetails?.();
@@ -96,29 +87,27 @@ export function MediaCard({
             <Play className="mr-1 h-3 w-3" /> Details
           </Button>
           
-          {/* Action Icons Row */}
-          <div className="flex items-center gap-1">
-            <Button
-              size="icon"
-              variant="ghost"
-              className={cn(
-                'h-8 w-8 rounded-full bg-zinc-700 hover:bg-zinc-600',
-                isWatched && 'bg-primary hover:bg-primary/80'
-              )}
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleWatched?.();
-              }}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-          </div>
+          {/* Mark as watched */}
+          <Button
+            size="sm"
+            variant="ghost"
+            className={cn(
+              'w-full h-7 text-xs bg-zinc-800/80 hover:bg-zinc-700',
+              isWatched && 'bg-primary/80 hover:bg-primary/60'
+            )}
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleWatched?.();
+            }}
+          >
+            <Eye className="mr-1 h-3 w-3" />
+            {isWatched ? 'Watched' : 'Mark Seen'}
+          </Button>
         </div>
-        )}
 
         {/* Watched overlay (when not hovering) */}
-        {isWatched && !isHovered && (
-          <div className="absolute inset-0 flex items-center justify-center bg-background/60">
+        {isWatched && (
+          <div className="absolute inset-0 flex items-center justify-center bg-background/60 group-hover:opacity-0 transition-opacity duration-300">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary">
               <Check className="h-5 w-5 text-primary-foreground" />
             </div>
