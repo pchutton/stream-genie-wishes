@@ -106,6 +106,56 @@ interface ESPNGameInfo {
   eventDate?: string;
 }
 
+// ============ TIMEZONE HELPERS ============
+// Deno Edge Functions don't support toLocaleString timeZone properly, so we manually convert
+
+function isInDaylightSavingTime(date: Date): boolean {
+  // US DST: Second Sunday of March to First Sunday of November
+  const year = date.getUTCFullYear();
+  
+  // Second Sunday of March (DST starts at 2:00 AM local)
+  const marchFirst = new Date(Date.UTC(year, 2, 1)); // March 1
+  const dstStart = new Date(Date.UTC(year, 2, (14 - marchFirst.getUTCDay()) % 7 + 8, 8)); // 2AM CST = 8AM UTC
+  
+  // First Sunday of November (DST ends at 2:00 AM local)
+  const novFirst = new Date(Date.UTC(year, 10, 1)); // November 1
+  const dstEnd = new Date(Date.UTC(year, 10, (7 - novFirst.getUTCDay()) % 7 + 1, 7)); // 2AM CDT = 7AM UTC
+  
+  return date >= dstStart && date < dstEnd;
+}
+
+function formatTimeInCentral(utcDate: Date, includeDateOnly: boolean = false): string {
+  // Determine if date is in CDT (-5) or CST (-6)
+  const isDST = isInDaylightSavingTime(utcDate);
+  const offsetHours = isDST ? -5 : -6;
+  
+  // Create adjusted date by applying offset
+  const centralTime = new Date(utcDate.getTime() + (offsetHours * 60 * 60 * 1000));
+  
+  const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  
+  const dayName = days[centralTime.getUTCDay()];
+  const monthName = months[centralTime.getUTCMonth()];
+  const dayNum = centralTime.getUTCDate();
+  
+  if (includeDateOnly) {
+    return `${dayName}, ${monthName} ${dayNum}`;
+  }
+  
+  let hours = centralTime.getUTCHours();
+  const minutes = centralTime.getUTCMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12 || 12;
+  
+  const minuteStr = minutes.toString().padStart(2, '0');
+  const tzSuffix = isDST ? 'CDT' : 'CST';
+  
+  console.log(`Timezone conversion: UTC ${utcDate.toISOString()} -> Central ${dayName}, ${monthName} ${dayNum}, ${hours}:${minuteStr} ${ampm} ${tzSuffix} (offset: ${offsetHours}h, DST: ${isDST})`);
+  
+  return `${dayName}, ${monthName} ${dayNum}, ${hours}:${minuteStr} ${ampm} ${tzSuffix}`;
+}
+
 // Helper function to fetch ESPN schedule page and extract game time
 // sportHint: 'basketball' | 'football' | null - helps disambiguate college teams
 async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink?: string, sportHint?: string): Promise<ESPNGameInfo | null> {
@@ -667,34 +717,11 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
   let formattedTime: string;
   
   if (isTimeTBD && !hasBroadcast) {
-    // Time is truly TBD - just format the date
-    const dateOptions: Intl.DateTimeFormatOptions = {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric'
-    };
-    formattedTime = eventDateTime.toLocaleDateString('en-US', dateOptions) + ' - Time TBD';
+    // Time is truly TBD - use manual Central Time formatter for date only
+    formattedTime = formatTimeInCentral(eventDateTime, true) + ' - Time TBD';
   } else {
-    // Format with Central Time for US sports
-    const options: Intl.DateTimeFormatOptions = {
-      weekday: 'short',
-      month: 'short',
-      day: 'numeric',
-      hour: 'numeric',
-      minute: '2-digit',
-      timeZoneName: 'short'
-    };
-    // Use Central Time as primary since user appears to be in CT
-    formattedTime = eventDateTime.toLocaleString('en-US', { ...options, timeZone: 'America/Chicago' });
-    
-    // Also provide EST for reference if different
-    const estTime = eventDateTime.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York' });
-    const cstTime = eventDateTime.toLocaleString('en-US', { hour: 'numeric', minute: '2-digit', timeZone: 'America/Chicago' });
-    
-    // If times are different, append EST equivalent
-    if (estTime !== cstTime) {
-      formattedTime = formattedTime.replace(' CST', ' CT').replace(' CDT', ' CT');
-    }
+    // Use manual Central Time formatter (Deno doesn't support toLocaleString timeZone properly)
+    formattedTime = formatTimeInCentral(eventDateTime);
   }
   
   // Extract opponent from competitions
