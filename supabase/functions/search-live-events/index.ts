@@ -97,6 +97,7 @@ interface LiveEvent {
   streamingPlatforms?: string[];
   platformDetails?: PlatformInfo[];
   eventDate?: string; // ISO date for filtering
+  eventDateTimeUTC?: string; // Full ISO timestamp for frontend timezone conversion
 }
 
 interface ESPNGameInfo {
@@ -104,6 +105,7 @@ interface ESPNGameInfo {
   opponent: string;
   eventName: string;
   eventDate?: string;
+  eventDateTimeUTC?: string; // Full ISO timestamp
 }
 
 // ============ TIMEZONE HELPERS ============
@@ -762,10 +764,11 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
   
   console.log(`Found ESPN game: ${eventName} at ${formattedTime}`);
   
-  // Include eventDate from the eventDateTime
+  // Include eventDate and full UTC timestamp from the eventDateTime
   const eventDateStr = eventDateTime.toISOString().split('T')[0];
+  const eventDateTimeUTC = eventDateTime.toISOString();
   
-  return { time: formattedTime, opponent, eventName, eventDate: eventDateStr };
+  return { time: formattedTime, opponent, eventName, eventDate: eventDateStr, eventDateTimeUTC };
 }
 
 // Helper function to extract team name from event for ESPN lookup
