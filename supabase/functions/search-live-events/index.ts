@@ -1478,14 +1478,8 @@ serve(async (req) => {
         
         if (upcomingGame) {
           const gameDate = new Date(upcomingGame.date);
-          const timeStr = gameDate.toLocaleString('en-US', { 
-            weekday: 'short', 
-            month: 'short', 
-            day: 'numeric',
-            hour: 'numeric',
-            minute: '2-digit',
-            timeZoneName: 'short'
-          });
+          // Use manual timezone formatter (Deno doesn't support toLocaleString timeZone properly)
+          const timeStr = formatTimeInCentral(gameDate);
           
           const competitors = upcomingGame.competitions?.[0]?.competitors || [];
           const homeTeam = competitors.find((c: any) => c.homeAway === 'home')?.team?.displayName || '';
@@ -1504,6 +1498,7 @@ serve(async (req) => {
             link: `https://www.espn.com/${sportHint === 'basketball' ? 'mens-college-basketball' : 'college-football'}/team/_/id/${directCollegeMatch.espnId}`,
             summary: `${directCollegeMatch.name} ${sportHint === 'basketball' ? 'basketball' : 'football'} game`,
             eventDate: gameDate.toISOString().split('T')[0],
+            eventDateTimeUTC: gameDate.toISOString(),
             streamingPlatforms: broadcastNames,
           };
           
