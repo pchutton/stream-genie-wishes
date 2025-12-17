@@ -98,8 +98,10 @@ export default function Home() {
           <p className="text-muted-foreground">Search for movies, TV shows, or live events</p>
         </div>
 
-        {/* Search Bar */}
-        <SearchBar onSearch={handleSearch} isLoading={isSearching || isSearchingLive} className="mb-4" />
+        {/* Sticky Search Bar Container */}
+        <div className="sticky top-0 z-40 -mx-4 bg-background/95 backdrop-blur-sm px-4 py-3 mb-4">
+          <SearchBar onSearch={handleSearch} isLoading={isSearching || isSearchingLive} />
+        </div>
 
 
         {/* Search Results */}
