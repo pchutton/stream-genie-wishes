@@ -1,3 +1,4 @@
+import { memo, useState, useCallback, useMemo } from 'react';
 import { Plus, Check, X, Calendar, Clock, Globe, Trophy, User, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,7 +25,7 @@ interface MediaDetailsDialogProps {
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w500';
 
-export function MediaDetailsDialog({
+export const MediaDetailsDialog = memo(function MediaDetailsDialog({
   item,
   open,
   onOpenChange,
@@ -34,23 +35,57 @@ export function MediaDetailsDialog({
   onRemoveFromWatchlist,
   onToggleWatched,
 }: MediaDetailsDialogProps) {
-  if (!item) return null;
+  const [imageLoaded, setImageLoaded] = useState(false);
 
-  const posterUrl = item.poster_path
-    ? `${TMDB_IMAGE_BASE}${item.poster_path}`
-    : null;
+  // Reset image loaded state when item changes
+  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
+
+  // Memoized computed values
+  const posterUrl = useMemo(() => 
+    item?.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null,
+    [item?.poster_path]
+  );
+
+  const genresText = useMemo(() => 
+    item?.genres?.join(', ') || '',
+    [item?.genres]
+  );
+
+  const countriesText = useMemo(() => 
+    item?.origin_country?.join(', ') || '',
+    [item?.origin_country]
+  );
+
+  const castText = useMemo(() => 
+    item?.cast?.join(', ') || '',
+    [item?.cast]
+  );
+
+  // Don't render content when closed for performance
+  if (!open || !item) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-zinc-800 p-0">
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-zinc-800 p-0 backdrop-blur-sm">
         <div className="flex flex-col sm:flex-row">
-          {/* Poster */}
-          <div className="relative aspect-[2/3] w-full shrink-0 sm:w-72">
+          {/* Poster with lazy loading */}
+          <div className="relative aspect-[2/3] w-full shrink-0 sm:w-72 bg-zinc-900">
+            {/* Shimmer placeholder */}
+            {posterUrl && !imageLoaded && (
+              <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
+            )}
+            
             {posterUrl ? (
               <img
                 src={posterUrl}
                 alt={item.title}
-                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+                className={cn(
+                  'h-full w-full object-cover transition-opacity duration-300',
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                )}
+                onLoad={handleImageLoad}
               />
             ) : (
               <div className="flex h-full items-center justify-center bg-muted">
@@ -91,15 +126,13 @@ export function MediaDetailsDialog({
                     {item.runtime}
                   </span>
                 )}
-                {item.origin_country && item.origin_country.length > 0 && (
+                {countriesText && (
                   <span className="flex items-center gap-1">
                     <Globe className="h-4 w-4" />
-                    {item.origin_country.join(', ')}
+                    {countriesText}
                   </span>
                 )}
-                {item.genres && item.genres.length > 0 && (
-                  <span>{item.genres.join(', ')}</span>
-                )}
+                {genresText && <span>{genresText}</span>}
               </div>
             </DialogHeader>
 
@@ -142,12 +175,12 @@ export function MediaDetailsDialog({
             )}
 
             {/* Cast */}
-            {item.cast && item.cast.length > 0 && (
+            {castText && (
               <div className="mb-4 flex items-start gap-2 text-sm">
                 <Users className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
                 <div>
                   <span className="text-muted-foreground">Cast: </span>
-                  <span className="text-zinc-200">{item.cast.join(', ')}</span>
+                  <span className="text-zinc-200">{castText}</span>
                 </div>
               </div>
             )}
@@ -202,4 +235,4 @@ export function MediaDetailsDialog({
       </DialogContent>
     </Dialog>
   );
-}
+});
