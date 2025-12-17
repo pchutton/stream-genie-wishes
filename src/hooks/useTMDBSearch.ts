@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -53,15 +53,17 @@ export function useTMDBSearch() {
     retry: 1,
   });
 
-  // Show error toast
-  if (error) {
-    const message = error instanceof Error ? error.message : 'Failed to search';
-    toast({
-      title: 'Search failed',
-      description: message,
-      variant: 'destructive',
-    });
-  }
+  // Show error toast in effect, not during render
+  useEffect(() => {
+    if (error) {
+      const message = error instanceof Error ? error.message : 'Failed to search';
+      toast({
+        title: 'Search failed',
+        description: message,
+        variant: 'destructive',
+      });
+    }
+  }, [error, toast]);
 
   const search = useCallback((query: string) => {
     setSearchQuery(query);
