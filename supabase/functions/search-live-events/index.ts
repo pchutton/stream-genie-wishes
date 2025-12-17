@@ -378,11 +378,27 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
       // Find the team in our map
       let teamInfo = espnTeamMap[teamName];
       
+      // Try exact match with "Basketball" suffix for college basketball searches
+      if (!teamInfo && sportHint === 'basketball') {
+        teamInfo = espnTeamMap[`${teamName} Basketball`];
+        if (teamInfo) {
+          console.log(`Exact match with Basketball suffix: ${teamName} Basketball`);
+        }
+      }
+      
       // Try to find a partial match if exact match fails
       if (!teamInfo) {
-        for (const [key, value] of Object.entries(espnTeamMap)) {
-          // Check if team name matches
-          if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
+        // Sort by key length descending to prioritize more specific matches
+        // e.g., "Oklahoma State Cowboys" should be checked before partial matches
+        const sortedEntries = Object.entries(espnTeamMap).sort((a, b) => b[0].length - a[0].length);
+        
+        for (const [key, value] of sortedEntries) {
+          const keyLower = key.toLowerCase();
+          const teamNameLower = teamName.toLowerCase();
+          
+          // Check if team name is contained in the key or vice versa
+          // Use full team name comparison, not just first word
+          if (keyLower.includes(teamNameLower) || teamNameLower.includes(keyLower.replace(' basketball', '').trim())) {
             // If we have a sport hint, prioritize matching sport
             if (sportHint === 'basketball' && value.sport === 'mens-college-basketball') {
               teamInfo = value;
@@ -400,10 +416,12 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         }
       }
       
-      // If still no match with hint, try without hint
+      // If still no match with hint, try without hint for broader match
       if (!teamInfo && sportHint) {
         for (const [key, value] of Object.entries(espnTeamMap)) {
-          if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
+          const keyLower = key.toLowerCase();
+          const teamNameLower = teamName.toLowerCase();
+          if (keyLower.includes(teamNameLower) || teamNameLower.includes(keyLower.replace(' basketball', '').trim())) {
             teamInfo = value;
             break;
           }
