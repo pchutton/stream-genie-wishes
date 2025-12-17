@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { StreamingBadges } from './StreamingBadges';
+import { StreamingCarousel } from './StreamingCarousel';
 import { MediaItem } from './MediaCard';
 import { Badge } from '@/components/ui/badge';
 
@@ -155,10 +155,10 @@ export function MediaDetailsDialog({
             {/* Streaming Platforms */}
             <div className="mb-6">
               <h4 className="mb-2 text-sm font-medium text-muted-foreground">Where to Watch</h4>
-              <StreamingBadges
-                platforms={item.streaming_platforms}
-                rentPlatforms={item.rent_platforms}
-                buyPlatforms={item.buy_platforms}
+              <StreamingCarousel
+                streaming={item.streaming_platforms}
+                rent={item.rent_platforms}
+                buy={item.buy_platforms}
               />
             </div>
 

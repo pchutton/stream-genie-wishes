@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Plus, Check, Eye, EyeOff, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { StreamingBadges } from './StreamingBadges';
+import { StreamingCarousel } from './StreamingCarousel';
 
 export interface MediaItem {
   tmdb_id: number;
@@ -142,13 +142,12 @@ export function MediaCard({
           <span className="capitalize">{item.media_type === 'movie' ? 'Movie' : 'TV Show'}</span>
         </div>
 
-        {/* Streaming Services */}
         <div className="mt-3">
           <p className="mb-2 text-xs text-muted-foreground">Available on:</p>
-          <StreamingBadges 
-            platforms={item.streaming_platforms} 
-            rentPlatforms={item.rent_platforms}
-            buyPlatforms={item.buy_platforms}
+          <StreamingCarousel 
+            streaming={item.streaming_platforms} 
+            rent={item.rent_platforms}
+            buy={item.buy_platforms}
           />
         </div>
 
