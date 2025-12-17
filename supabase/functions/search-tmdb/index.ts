@@ -220,91 +220,84 @@ const tvGenres: Record<number, string> = {
   10767: 'Talk', 10768: 'War & Politics', 37: 'Western'
 };
 
-async function getWatchProviders(mediaType: string, id: number, region: string = 'US'): Promise<WatchProviderResult> {
-  try {
-    const response = await fetch(
-      `${TMDB_BASE_URL}/${mediaType}/${id}/watch/providers?api_key=${TMDB_API_KEY}`
-    );
-    
-    if (!response.ok) {
-      console.log(`Watch providers request failed for ${mediaType}/${id}`);
-      return { streaming: [], rent: [], buy: [] };
-    }
-    
-    const data = await response.json();
-    const regionData = data.results?.[region] as TMDBWatchProviders | undefined;
-    
-    if (!regionData) return { streaming: [], rent: [], buy: [] };
-    
-    const streaming = new Set<string>();
-    const rent = new Set<string>();
-    const buy = new Set<string>();
-    
-    regionData.flatrate?.forEach(p => streaming.add(p.provider_name));
-    regionData.free?.forEach(p => streaming.add(p.provider_name));
-    regionData.ads?.forEach(p => streaming.add(p.provider_name));
-    regionData.rent?.forEach(p => rent.add(p.provider_name));
-    regionData.buy?.forEach(p => buy.add(p.provider_name));
-    
-    return {
-      streaming: Array.from(streaming),
-      rent: Array.from(rent),
-      buy: Array.from(buy),
-    };
-  } catch (error) {
-    console.error(`Error fetching watch providers for ${mediaType}/${id}:`, error);
-    return { streaming: [], rent: [], buy: [] };
-  }
-}
-
-async function getDetails(mediaType: string, id: number): Promise<{
+// Combined function using append_to_response to reduce API calls (3 → 1 per item!)
+async function getMediaDetails(mediaType: string, id: number, region: string = 'US'): Promise<{
   runtime: number | null;
   director: string | null;
   cast: string[];
   vote_average: number | null;
   origin_country: string[];
+  streaming: string[];
+  rent: string[];
+  buy: string[];
 }> {
   try {
-    const [detailsRes, creditsRes] = await Promise.all([
-      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${TMDB_API_KEY}`),
-      fetch(`${TMDB_BASE_URL}/${mediaType}/${id}/credits?api_key=${TMDB_API_KEY}`)
-    ]);
-
-    const details = detailsRes.ok ? await detailsRes.json() : null;
-    const credits = creditsRes.ok ? await creditsRes.json() : null;
-
+    // Single API call with append_to_response
+    const response = await fetch(
+      `${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits,watch/providers`
+    );
+    
+    if (!response.ok) {
+      console.log(`Details request failed for ${mediaType}/${id}: ${response.status}`);
+      return { runtime: null, director: null, cast: [], vote_average: null, origin_country: [], streaming: [], rent: [], buy: [] };
+    }
+    
+    const data = await response.json();
+    
+    // Extract runtime
     let runtime: number | null = null;
-    if (mediaType === 'movie' && details?.runtime) {
-      runtime = details.runtime;
-    } else if (mediaType === 'tv' && details?.episode_run_time?.length > 0) {
-      runtime = details.episode_run_time[0];
+    if (mediaType === 'movie' && data.runtime) {
+      runtime = data.runtime;
+    } else if (mediaType === 'tv' && data.episode_run_time?.length > 0) {
+      runtime = data.episode_run_time[0];
     }
 
+    // Extract director/creator
     let director: string | null = null;
-    if (mediaType === 'movie' && credits?.crew) {
-      const directorData = (credits.crew as CrewMember[]).find(c => c.job === 'Director');
+    if (mediaType === 'movie' && data.credits?.crew) {
+      const directorData = (data.credits.crew as CrewMember[]).find(c => c.job === 'Director');
       director = directorData?.name || null;
-    } else if (mediaType === 'tv' && details?.created_by?.length > 0) {
-      director = details.created_by[0]?.name || null;
+    } else if (mediaType === 'tv' && data.created_by?.length > 0) {
+      director = data.created_by[0]?.name || null;
     }
 
-    const cast: string[] = credits?.cast
-      ? (credits.cast as CastMember[]).slice(0, 5).map(c => c.name)
+    // Extract cast
+    const cast: string[] = data.credits?.cast
+      ? (data.credits.cast as CastMember[]).slice(0, 5).map(c => c.name)
       : [];
 
-    const origin_country: string[] = details?.origin_country || 
-      (details?.production_countries?.map((c: { iso_3166_1: string }) => c.iso_3166_1) || []);
+    // Extract origin country
+    const origin_country: string[] = data.origin_country || 
+      (data.production_countries?.map((c: { iso_3166_1: string }) => c.iso_3166_1) || []);
+
+    // Extract watch providers for region
+    const regionData = data['watch/providers']?.results?.[region] as TMDBWatchProviders | undefined;
+    
+    const streaming = new Set<string>();
+    const rent = new Set<string>();
+    const buy = new Set<string>();
+    
+    if (regionData) {
+      regionData.flatrate?.forEach(p => streaming.add(p.provider_name));
+      regionData.free?.forEach(p => streaming.add(p.provider_name));
+      regionData.ads?.forEach(p => streaming.add(p.provider_name));
+      regionData.rent?.forEach(p => rent.add(p.provider_name));
+      regionData.buy?.forEach(p => buy.add(p.provider_name));
+    }
 
     return {
       runtime,
       director,
       cast,
-      vote_average: details?.vote_average || null,
+      vote_average: data.vote_average || null,
       origin_country: origin_country.slice(0, 2),
+      streaming: Array.from(streaming),
+      rent: Array.from(rent),
+      buy: Array.from(buy),
     };
   } catch (error) {
     console.error(`Error fetching details for ${mediaType}/${id}:`, error);
-    return { runtime: null, director: null, cast: [], vote_average: null, origin_country: [] };
+    return { runtime: null, director: null, cast: [], vote_average: null, origin_country: [], streaming: [], rent: [], buy: [] };
   }
 }
 
@@ -393,10 +386,8 @@ serve(async (req) => {
 
     const resultsWithProviders = await Promise.all(
       mediaResults.map(async (item) => {
-        const [watchProviders, details] = await Promise.all([
-          getWatchProviders(item.media_type, item.id, region),
-          getDetails(item.media_type, item.id)
-        ]);
+        // Single optimized call per item (was 3 calls before)
+        const details = await getMediaDetails(item.media_type, item.id, region);
         
         const releaseDate = item.release_date || item.first_air_date;
         
@@ -407,9 +398,9 @@ serve(async (req) => {
           poster_path: item.poster_path,
           release_year: releaseDate ? parseInt(releaseDate.split('-')[0]) : null,
           genres: getGenreNames(item.genre_ids, item.media_type),
-          streaming_platforms: watchProviders.streaming,
-          rent_platforms: watchProviders.rent,
-          buy_platforms: watchProviders.buy,
+          streaming_platforms: details.streaming,
+          rent_platforms: details.rent,
+          buy_platforms: details.buy,
           overview: item.overview,
           runtime: formatRuntime(details.runtime),
           director: details.director,

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -20,65 +21,73 @@ export interface TMDBSearchResult {
   origin_country: string[];
 }
 
+async function searchTMDB(query: string): Promise<TMDBSearchResult[]> {
+  if (!query.trim()) return [];
+
+  const { data, error } = await supabase.functions.invoke('search-tmdb', {
+    body: { query, region: 'US' },
+  });
+
+  if (error) throw error;
+  if (data.error) throw new Error(data.error);
+
+  // Sort by release year, newest first
+  return (data.results || []).sort((a: TMDBSearchResult, b: TMDBSearchResult) => {
+    const yearA = a.release_year || 0;
+    const yearB = b.release_year || 0;
+    return yearB - yearA;
+  });
+}
+
 export function useTMDBSearch() {
-  const [results, setResults] = useState<TMDBSearchResult[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const search = async (query: string) => {
-    if (!query.trim()) {
-      setResults([]);
-      return;
+  const { data: results = [], isLoading, error } = useQuery({
+    queryKey: ['tmdb-search', searchQuery],
+    queryFn: () => searchTMDB(searchQuery),
+    enabled: searchQuery.trim().length > 0,
+    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
+    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    retry: 1,
+  });
+
+  // Show error toast
+  if (error) {
+    const message = error instanceof Error ? error.message : 'Failed to search';
+    toast({
+      title: 'Search failed',
+      description: message,
+      variant: 'destructive',
+    });
+  }
+
+  const search = useCallback((query: string) => {
+    setSearchQuery(query);
+  }, []);
+
+  const clearResults = useCallback(() => {
+    setSearchQuery('');
+  }, []);
+
+  // Prefetch function for hover optimization
+  const prefetchSearch = useCallback((query: string) => {
+    if (query.trim()) {
+      queryClient.prefetchQuery({
+        queryKey: ['tmdb-search', query],
+        queryFn: () => searchTMDB(query),
+        staleTime: 1000 * 60 * 10,
+      });
     }
-
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const { data, error: fnError } = await supabase.functions.invoke('search-tmdb', {
-        body: { query, region: 'US' },
-      });
-
-      if (fnError) {
-        throw fnError;
-      }
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // Sort by release year, newest first
-      const sortedResults = (data.results || []).sort((a: TMDBSearchResult, b: TMDBSearchResult) => {
-        const yearA = a.release_year || 0;
-        const yearB = b.release_year || 0;
-        return yearB - yearA;
-      });
-      setResults(sortedResults);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to search';
-      setError(message);
-      toast({
-        title: 'Search failed',
-        description: message,
-        variant: 'destructive',
-      });
-      setResults([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const clearResults = () => {
-    setResults([]);
-    setError(null);
-  };
+  }, [queryClient]);
 
   return {
     results,
     isLoading,
-    error,
+    error: error ? (error instanceof Error ? error.message : 'Failed to search') : null,
     search,
     clearResults,
+    prefetchSearch,
   };
 }
