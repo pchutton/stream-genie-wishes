@@ -18,11 +18,18 @@ function injectLogosIntoResults() {
     // Skip if already processed
     if (result.querySelector('.streaming-logo-badge')) return;
     
-    // Find the URL element
-    const urlElement = result.querySelector('.gs-visibleUrl');
-    const linkElement = result.querySelector('a.gs-title');
+    // Find all possible link elements and get the actual href
+    const allLinks = result.querySelectorAll('a[href]');
+    let url = '';
     
-    const url = linkElement?.getAttribute('href') || urlElement?.textContent || '';
+    // Try to find the main result link (usually the title link)
+    for (const link of allLinks) {
+      const href = link.getAttribute('href');
+      if (href && href.startsWith('http') && !href.includes('google.com')) {
+        url = href;
+        break;
+      }
+    }
     
     if (!url) return;
     
@@ -37,12 +44,7 @@ function injectLogosIntoResults() {
       `;
       
       // Insert at the top of the result card
-      const resultContent = result.querySelector('.gsc-thumbnail-inside, .gsc-table-result');
-      if (resultContent) {
-        result.insertBefore(badge, result.firstChild);
-      } else {
-        result.appendChild(badge);
-      }
+      result.insertBefore(badge, result.firstChild);
     }
   });
 }
