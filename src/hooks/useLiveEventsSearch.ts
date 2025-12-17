@@ -16,6 +16,7 @@ export interface LiveEvent {
   summary: string;
   streamingPlatforms?: string[];
   platformDetails?: PlatformInfo[];
+  eventDateTimeUTC?: string; // Full ISO timestamp for local timezone conversion
 }
 
 export function useLiveEventsSearch() {

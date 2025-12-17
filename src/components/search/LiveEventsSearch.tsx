@@ -186,7 +186,32 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
   );
 }
 
+// Format event time in user's local timezone
+function formatEventTimeLocal(event: LiveEvent): string {
+  if (event.eventDateTimeUTC) {
+    try {
+      const date = new Date(event.eventDateTimeUTC);
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+          hour: 'numeric',
+          minute: '2-digit',
+          timeZoneName: 'short'
+        });
+      }
+    } catch (e) {
+      console.error('Error formatting date:', e);
+    }
+  }
+  // Fallback to backend-provided time
+  return event.time;
+}
+
 function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved: boolean; onToggleSave: () => void }) {
+  const localTime = formatEventTimeLocal(event);
+  
   return (
     <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
       <CardHeader className="pb-2">
@@ -197,7 +222,7 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
       <CardContent className="space-y-3">
         <div className="flex items-start gap-2 text-sm">
           <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <span className="text-muted-foreground">{event.time}</span>
+          <span className="text-muted-foreground">{localTime}</span>
         </div>
         
         {event.participants && (
