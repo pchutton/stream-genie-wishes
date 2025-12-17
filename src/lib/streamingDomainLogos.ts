@@ -33,6 +33,7 @@ const domainToLogo: Record<string, StreamingPlatform> = {
   'amazon.com/gp/video': { logo: primeVideoLogo, name: 'Prime Video' },
   'hulu.com': { logo: huluLogo, name: 'Hulu' },
   'tv.youtube.com': { logo: youtubeTvLogo, name: 'YouTube TV' },
+  'youtube.com/tv': { logo: youtubeTvLogo, name: 'YouTube TV' },
   'fubo.tv': { logo: fubotvLogo, name: 'FuboTV' },
   'sling.com': { logo: slingLogo, name: 'Sling TV' },
   'max.com': { logo: maxLogo, name: 'Max' },
