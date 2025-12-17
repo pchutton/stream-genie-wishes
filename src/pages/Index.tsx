@@ -133,10 +133,11 @@ export default function Home() {
               <p className="text-muted-foreground">
                 {isSearching ? 'Searching...' : (
                   <>
-                    Not seeing the results you want? Try{' '}
+                    Try{' '}
                     <Link to="/expanded-search" className="text-primary hover:underline font-medium">
-                      "Expanded Search"
+                      Expanded Search
                     </Link>
+                    {' '}for concerts, international leagues, or any live event.
                   </>
                 )}
               </p>
