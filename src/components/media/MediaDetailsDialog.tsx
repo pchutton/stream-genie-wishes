@@ -100,6 +100,9 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
             )}
           </div>
 
+          {/* Mobile divider */}
+          <div className="mx-6 my-4 h-px bg-zinc-600/50 sm:hidden" />
+
           {/* Content */}
           <div className="flex flex-1 flex-col p-6">
             {/* Type Badge */}
