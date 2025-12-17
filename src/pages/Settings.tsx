@@ -1,6 +1,8 @@
-import { User, Loader2 } from 'lucide-react';
+import { User, Loader2, LogOut } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,8 +10,14 @@ import { useProfile } from '@/hooks/useProfile';
 import { useAuth } from '@/lib/auth';
 
 function SettingsContent() {
-  const { user } = useAuth();
-  const { data: profile, isLoading } = useProfile();
+  const { user, signOut } = useAuth();
+  const { isLoading } = useProfile();
+  const navigate = useNavigate();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   if (isLoading) {
     return (
@@ -37,6 +45,16 @@ function SettingsContent() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Sign Out */}
+      <Button 
+        variant="destructive" 
+        onClick={handleSignOut} 
+        className="gap-2"
+      >
+        <LogOut className="h-4 w-4" />
+        Sign Out
+      </Button>
     </div>
   );
 }
