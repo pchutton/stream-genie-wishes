@@ -68,8 +68,8 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto bg-zinc-800 p-0 backdrop-blur-sm">
         <div className="flex flex-col sm:flex-row">
-          {/* Poster with lazy loading */}
-          <div className="relative aspect-[2/3] w-full shrink-0 sm:w-72 bg-zinc-900">
+          {/* Poster with lazy loading - compact on mobile */}
+          <div className="relative mx-auto w-32 aspect-[2/3] shrink-0 sm:mx-0 sm:w-72 bg-zinc-900 rounded-lg overflow-hidden">
             {/* Shimmer placeholder */}
             {posterUrl && !imageLoaded && (
               <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
@@ -89,13 +89,13 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
               />
             ) : (
               <div className="flex h-full items-center justify-center bg-muted">
-                <span className="text-6xl">🎬</span>
+                <span className="text-4xl sm:text-6xl">🎬</span>
               </div>
             )}
             {/* Watched badge */}
             {isWatched && (
-              <div className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center rounded-full bg-primary">
-                <Check className="h-5 w-5 text-primary-foreground" />
+              <div className="absolute right-2 top-2 flex h-8 w-8 sm:h-10 sm:w-10 items-center justify-center rounded-full bg-primary">
+                <Check className="h-4 w-4 sm:h-5 sm:w-5 text-primary-foreground" />
               </div>
             )}
           </div>
