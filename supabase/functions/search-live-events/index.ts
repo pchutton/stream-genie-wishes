@@ -356,6 +356,23 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         'Colorado Buffaloes': { slug: 'colorado-buffaloes', sport: 'mens-college-basketball', league: 'team' },
         'Arizona State Sun Devils': { slug: 'arizona-state-sun-devils', sport: 'mens-college-basketball', league: 'team' },
         'Utah Utes': { slug: 'utah-utes', sport: 'mens-college-basketball', league: 'team' },
+        'UCF Knights': { slug: 'ucf-knights', sport: 'mens-college-basketball', league: 'team' },
+        'Texas Longhorns Basketball': { slug: 'texas-longhorns', sport: 'mens-college-basketball', league: 'team' },
+        // Additional top programs
+        'Tennessee Volunteers Basketball': { slug: 'tennessee-volunteers', sport: 'mens-college-basketball', league: 'team' },
+        'Florida Gators Basketball': { slug: 'florida-gators', sport: 'mens-college-basketball', league: 'team' },
+        'Alabama Crimson Tide Basketball': { slug: 'alabama-crimson-tide', sport: 'mens-college-basketball', league: 'team' },
+        'Michigan Wolverines Basketball': { slug: 'michigan-wolverines', sport: 'mens-college-basketball', league: 'team' },
+        'Ohio State Buckeyes Basketball': { slug: 'ohio-state-buckeyes', sport: 'mens-college-basketball', league: 'team' },
+        'North Carolina State Wolfpack': { slug: 'nc-state-wolfpack', sport: 'mens-college-basketball', league: 'team' },
+        'Texas A&M Aggies Basketball': { slug: 'texas-am-aggies', sport: 'mens-college-basketball', league: 'team' },
+        'Mississippi State Bulldogs': { slug: 'mississippi-state-bulldogs', sport: 'mens-college-basketball', league: 'team' },
+        'Ole Miss Rebels': { slug: 'ole-miss-rebels', sport: 'mens-college-basketball', league: 'team' },
+        'LSU Tigers': { slug: 'lsu-tigers', sport: 'mens-college-basketball', league: 'team' },
+        'South Carolina Gamecocks': { slug: 'south-carolina-gamecocks', sport: 'mens-college-basketball', league: 'team' },
+        'Missouri Tigers': { slug: 'missouri-tigers', sport: 'mens-college-basketball', league: 'team' },
+        'Vanderbilt Commodores': { slug: 'vanderbilt-commodores', sport: 'mens-college-basketball', league: 'team' },
+        'Georgia Bulldogs Basketball': { slug: 'georgia-bulldogs', sport: 'mens-college-basketball', league: 'team' },
       };
 
       // Find the team in our map
@@ -979,6 +996,22 @@ const teamNicknames: Record<string, string> = {
   "dukies": "Duke Blue Devils", "blue devils": "Duke Blue Devils",
   "huskies": "UConn Huskies", "spartans": "Michigan State Spartans",
   "kansas": "Kansas Jayhawks", "villanova": "Villanova Wildcats",
+  // Big 12 Basketball
+  "red raiders": "Texas Tech Red Raiders", "tech": "Texas Tech Red Raiders",
+  "cyclones": "Iowa State Cyclones", "horned frogs": "TCU Horned Frogs",
+  "tcu": "TCU Horned Frogs", "mountaineers": "West Virginia Mountaineers",
+  "wvu": "West Virginia Mountaineers", "bearcats": "Cincinnati Bearcats",
+  "cincy": "Cincinnati Bearcats", "cougars": "Houston Cougars",
+  "byu": "BYU Cougars", "buffs": "Colorado Buffaloes",
+  "buffaloes": "Colorado Buffaloes", "utes": "Utah Utes",
+  "sun devils": "Arizona State Sun Devils", "asu": "Arizona State Sun Devils",
+  "ucf": "UCF Knights", "k-state": "Kansas State Wildcats",
+  "pokes": "Oklahoma State Cowboys",
+  // SEC Basketball
+  "lsu": "LSU Tigers", "ole miss": "Ole Miss Rebels", "rebels": "Ole Miss Rebels",
+  "gamecocks": "South Carolina Gamecocks", "mizzou": "Missouri Tigers",
+  "commodores": "Vanderbilt Commodores", "vandy": "Vanderbilt Commodores",
+  "wolfpack": "North Carolina State Wolfpack", "nc state": "North Carolina State Wolfpack",
 };
 
 // Convert dictionary to string for AI prompt
