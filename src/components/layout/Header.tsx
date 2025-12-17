@@ -112,12 +112,6 @@ export function Header() {
                   Settings
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link to="/pro" className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-genie-gold" />
-                  Go Pro
-                </Link>
-              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 text-destructive">
                 <LogOut className="h-4 w-4" />
