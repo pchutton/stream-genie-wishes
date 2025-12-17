@@ -828,8 +828,6 @@ function extractTeamFromEvent(event: LiveEvent): string | null {
 // Helper function to check if an event date is in the past
 function isEventInPast(eventTime: string, eventDate?: string): boolean {
   const now = new Date();
-  // Get today's date at midnight for comparison (be lenient - include all events today)
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
   console.log(`Checking if event is past - eventTime: "${eventTime}", eventDate: "${eventDate}", now: ${now.toISOString()}`);
   
@@ -837,9 +835,12 @@ function isEventInPast(eventTime: string, eventDate?: string): boolean {
   if (eventDate) {
     try {
       const eventDateTime = new Date(eventDate);
-      // Only filter if the event date is BEFORE today (not today itself)
-      const isPast = eventDateTime < todayStart;
-      console.log(`  Parsed eventDate: ${eventDateTime.toISOString()}, isPast: ${isPast}`);
+      // Include buffer for timezone issues (~1 day), but check vs current time
+      // Event is past if it's more than 24 hours ago
+      const diffMs = now.getTime() - eventDateTime.getTime();
+      const oneDayMs = 1000 * 60 * 60 * 24;
+      const isPast = diffMs > oneDayMs;
+      console.log(`  Parsed eventDate: ${eventDateTime.toISOString()}, diffMs: ${diffMs}, isPast: ${isPast}`);
       return isPast;
     } catch {
       console.log(`  Failed to parse eventDate`);
@@ -850,13 +851,15 @@ function isEventInPast(eventTime: string, eventDate?: string): boolean {
   // Try to parse the time string
   try {
     // Common patterns: "December 19, 2025", "Aug 30, 2025", "November 2, 2025 at 2:30 PM"
-    const dateStr = eventTime.replace(/\s+at\s+/i, ' ').replace(/\s+CT|\s+ET|\s+PT|\s+MT/gi, '');
+    const dateStr = eventTime.replace(/\s+at\s+/i, ' ').replace(/\s+CT|\s+ET|\s+PT|\s+MT|\s+CDT|\s+CST|\s+EDT|\s+EST/gi, '');
     const eventDateTime = new Date(dateStr);
     
     if (!isNaN(eventDateTime.getTime())) {
-      // Only filter if the event date is BEFORE today
-      const isPast = eventDateTime < todayStart;
-      console.log(`  Parsed eventTime: ${eventDateTime.toISOString()}, isPast: ${isPast}`);
+      // Event is past if it's more than 24 hours ago (buffer for timezones)
+      const diffMs = now.getTime() - eventDateTime.getTime();
+      const oneDayMs = 1000 * 60 * 60 * 24;
+      const isPast = diffMs > oneDayMs;
+      console.log(`  Parsed eventTime: ${eventDateTime.toISOString()}, diffMs: ${diffMs}, isPast: ${isPast}`);
       return isPast;
     }
   } catch {
@@ -869,27 +872,82 @@ function isEventInPast(eventTime: string, eventDate?: string): boolean {
   return false;
 }
 
+// Robust JSON parsing helper - handles markdown, extra text, etc.
+function parseJSONRobust(content: string): any {
+  // First try direct parse
+  try {
+    return JSON.parse(content);
+  } catch {}
+  
+  // Remove markdown code blocks
+  let cleaned = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  
+  try {
+    return JSON.parse(cleaned);
+  } catch {}
+  
+  // Find first { and last } for object extraction
+  const jsonStart = cleaned.indexOf('{');
+  const jsonEnd = cleaned.lastIndexOf('}');
+  
+  if (jsonStart !== -1 && jsonEnd !== -1 && jsonEnd > jsonStart) {
+    const jsonStr = cleaned.substring(jsonStart, jsonEnd + 1);
+    try {
+      return JSON.parse(jsonStr);
+    } catch {}
+  }
+  
+  // Try array extraction
+  const arrStart = cleaned.indexOf('[');
+  const arrEnd = cleaned.lastIndexOf(']');
+  
+  if (arrStart !== -1 && arrEnd !== -1 && arrEnd > arrStart) {
+    const jsonStr = cleaned.substring(arrStart, arrEnd + 1);
+    try {
+      return JSON.parse(jsonStr);
+    } catch {}
+  }
+  
+  console.error('Failed to parse JSON from:', content.substring(0, 200));
+  return null;
+}
+
 // Mapping of broadcast channels to streaming platforms
 const channelToStreamingMap: Record<string, string[]> = {
   'ABC': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'DirecTV Stream'],
   'ESPN': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
   'ESPN2': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
+  'ESPNU': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
+  'ESPNEWS': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
   'ESPN+': ['ESPN+'],
   'FOX': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'FS1': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'FS2': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'Fox Sports': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'CBS': ['Paramount+', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  'CBS Sports Network': ['Paramount+', 'YouTube TV', 'Fubo', 'DirecTV Stream'],
   'NBC': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
   'Peacock': ['Peacock'],
   'Prime Video': ['Prime Video'],
   'Amazon Prime': ['Prime Video'],
   'TNT': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
   'TBS': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
+  'truTV': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
   'NFL Network': ['YouTube TV', 'Fubo', 'Sling Blue', 'DirecTV Stream'],
   'NBA TV': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
   'MLB Network': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
+  'NHL Network': ['YouTube TV', 'Fubo', 'DirecTV Stream'],
   'USA Network': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
+  // College sports networks
+  'SEC Network': ['ESPN+', 'Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
+  'SEC Network+': ['ESPN+', 'ESPN App'],
+  'Big Ten Network': ['Peacock', 'YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream'],
+  'BTN': ['Peacock', 'YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream'],
+  'ACC Network': ['ESPN+', 'Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
+  'ACC Network Extra': ['ESPN+', 'ESPN App'],
+  'Longhorn Network': ['ESPN+', 'Sling Orange'],
+  'Big 12 Now': ['ESPN+'],
+  'PAC-12 Network': ['Fubo', 'Sling Orange'],
   // Soccer channels
   'NBCSN': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
   'USA': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
@@ -982,30 +1040,29 @@ Only return empty array if you truly cannot determine any likely broadcasters.`
         let streamingPlatforms: string[] = [];
         let broadcastChannels: string[] = [];
         
-        try {
-          const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-          const parsed = JSON.parse(cleanContent);
+        const parsed = parseJSONRobust(content);
           
-          broadcastChannels = parsed.broadcast_channels || [];
-          console.log(`Broadcast channels for ${event.eventName}:`, broadcastChannels);
-          
-          // Map broadcast channels to all available streaming platforms
-          const streamingSet = new Set<string>();
-          
-          broadcastChannels.forEach(channel => {
-            streamingSet.add(channel);
-            const platforms = channelToStreamingMap[channel];
-            if (platforms) {
-              platforms.forEach(platform => streamingSet.add(platform));
-            }
-          });
-          
-          streamingPlatforms = Array.from(streamingSet);
-          console.log(`All streaming options for ${event.eventName}:`, streamingPlatforms);
-        } catch (parseError) {
-          console.error('Failed to parse platforms:', parseError);
-          return { ...event, streamingPlatforms: [], platformDetails: [] };
-        }
+          if (parsed) {
+            broadcastChannels = parsed.broadcast_channels || [];
+            console.log(`Broadcast channels for ${event.eventName}:`, broadcastChannels);
+            
+            // Map broadcast channels to all available streaming platforms
+            const streamingSet = new Set<string>();
+            
+            broadcastChannels.forEach(channel => {
+              streamingSet.add(channel);
+              const platforms = channelToStreamingMap[channel];
+              if (platforms) {
+                platforms.forEach(platform => streamingSet.add(platform));
+              }
+            });
+            
+            streamingPlatforms = Array.from(streamingSet);
+            console.log(`All streaming options for ${event.eventName}:`, streamingPlatforms);
+          } else {
+            console.error('Failed to parse platforms for:', event.eventName);
+            return { ...event, streamingPlatforms: [], platformDetails: [] };
+          }
 
         // Step 2b: Get pricing/availability status for each platform
         if (streamingPlatforms.length > 0) {
@@ -1050,22 +1107,21 @@ Return JSON like:
             const pricingData = await pricingResponse.json();
             const pricingContent = pricingData.choices?.[0]?.message?.content || '{}';
             
-            try {
-              const cleanPricing = pricingContent.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-              const pricingParsed = JSON.parse(cleanPricing);
-              const platformDetails: PlatformInfo[] = pricingParsed.platforms || [];
+            const pricingParsed = parseJSONRobust(pricingContent);
               
-              console.log(`Platform details for ${event.eventName}:`, platformDetails);
-              return { ...event, streamingPlatforms, platformDetails };
-            } catch (pricingParseError) {
-              console.error('Failed to parse pricing:', pricingParseError);
-              // Fallback: generate default statuses
-              const defaultDetails = streamingPlatforms.map(name => ({
-                name,
-                status: getDefaultStatus(name)
-              }));
-              return { ...event, streamingPlatforms, platformDetails: defaultDetails };
-            }
+              if (pricingParsed) {
+                const platformDetails: PlatformInfo[] = pricingParsed.platforms || [];
+                console.log(`Platform details for ${event.eventName}:`, platformDetails);
+                return { ...event, streamingPlatforms, platformDetails };
+              } else {
+                console.error('Failed to parse pricing, using defaults');
+                // Fallback: generate default statuses
+                const defaultDetails = streamingPlatforms.map(name => ({
+                  name,
+                  status: getDefaultStatus(name)
+                }));
+                return { ...event, streamingPlatforms, platformDetails: defaultDetails };
+              }
           }
         }
         
@@ -1356,8 +1412,17 @@ async function normalizeQuery(query: string, apiKey: string): Promise<string> {
   const preProcessed = preProcessQuery(query);
   console.log('Pre-processed query:', preProcessed);
   
-  // If pre-processing already expanded the query significantly, we may skip AI
-  // But still run AI to add context like "schedule" or "next game"
+  // OPTIMIZATION: If dictionary already resolved the query, skip AI call to save ~500ms latency
+  // Only skip if the query was actually transformed and looks like a full team name
+  if (preProcessed !== query && preProcessed.includes(' ')) {
+    // Dictionary resolved it - just add context suffix and return
+    const hasScheduleContext = /schedule|game|match|broadcast|next|tonight|today|tomorrow|this week/i.test(preProcessed);
+    if (!hasScheduleContext) {
+      console.log('Dictionary resolved query, skipping AI normalization');
+      return preProcessed + ' next game schedule';
+    }
+    return preProcessed;
+  }
   
   try {
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -1737,23 +1802,20 @@ If no upcoming events found, return an empty array [].`
     console.log('AI extraction raw response:', content.substring(0, 500));
     
     let events: LiveEvent[] = [];
-    try {
-      // Try to parse the AI response as JSON
-      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      events = JSON.parse(cleanContent);
-      
-      if (!Array.isArray(events)) {
-        events = [events];
-      }
-      
+    
+    // Use robust JSON parsing
+    const parsed = parseJSONRobust(content);
+    
+    if (parsed) {
+      events = Array.isArray(parsed) ? parsed : [parsed];
       console.log(`AI extracted ${events.length} events before filtering`);
       
       // Filter out past events as a safety net
       const upcomingEvents = events.filter(event => !isEventInPast(event.time, event.eventDate));
       console.log(`Filtered ${events.length - upcomingEvents.length} past events, ${upcomingEvents.length} upcoming`);
       events = upcomingEvents;
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
+    } else {
+      console.error('Failed to parse AI response, using fallback');
       // Fallback to raw search results
       events = searchResults.slice(0, 4).map((item: any) => ({
         eventName: item.title,
