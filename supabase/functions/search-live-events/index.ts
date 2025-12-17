@@ -1191,6 +1191,108 @@ serve(async (req) => {
 
     // Step 0: Normalize query using AI
     const normalizedQuery = await normalizeQuery(query, LOVABLE_API_KEY!);
+    const lowerQuery = normalizedQuery.toLowerCase();
+    
+    // Step 0.5: For college team queries with sport hints, try direct ESPN lookup first
+    // This bypasses Google PSE which often returns wrong results for similar team names
+    const sportHint = lowerQuery.includes('basketball') ? 'basketball' : 
+                      lowerQuery.includes('football') ? 'football' : null;
+    
+    // College teams that need disambiguation (similar names exist across schools)
+    const collegeTeamMatches: Record<string, { name: string, espnId: string }> = {
+      'oklahoma sooners': { name: 'Oklahoma Sooners', espnId: '201' },
+      'oklahoma state cowboys': { name: 'Oklahoma State Cowboys', espnId: '197' },
+      'texas longhorns': { name: 'Texas Longhorns', espnId: '251' },
+      'texas tech red raiders': { name: 'Texas Tech Red Raiders', espnId: '2641' },
+      'ohio state buckeyes': { name: 'Ohio State Buckeyes', espnId: '194' },
+      'michigan wolverines': { name: 'Michigan Wolverines', espnId: '130' },
+      'michigan state spartans': { name: 'Michigan State Spartans', espnId: '127' },
+      'alabama crimson tide': { name: 'Alabama Crimson Tide', espnId: '333' },
+      'auburn tigers': { name: 'Auburn Tigers', espnId: '2' },
+      'georgia bulldogs': { name: 'Georgia Bulldogs', espnId: '61' },
+      'florida gators': { name: 'Florida Gators', espnId: '57' },
+      'florida state seminoles': { name: 'Florida State Seminoles', espnId: '52' },
+    };
+    
+    // Check if query matches a college team with sport hint
+    let directCollegeMatch: { name: string, espnId: string } | null = null;
+    for (const [key, value] of Object.entries(collegeTeamMatches)) {
+      if (lowerQuery.includes(key)) {
+        directCollegeMatch = value;
+        console.log(`Direct college team match found: ${value.name} (ESPN ID: ${value.espnId})`);
+        break;
+      }
+    }
+    
+    // If we have a college team with sport hint, do direct ESPN API lookup
+    if (directCollegeMatch && sportHint) {
+      console.log(`Bypassing Google PSE for college team: ${directCollegeMatch.name}, sport: ${sportHint}`);
+      
+      const sport = sportHint === 'basketball' ? 'mens-college-basketball' : 'college-football';
+      const espnScheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${sportHint === 'basketball' ? 'basketball' : 'football'}/${sport}/teams/${directCollegeMatch.espnId}/schedule`;
+      
+      console.log(`Direct ESPN lookup URL: ${espnScheduleUrl}`);
+      const espnData = await cachedFetch(espnScheduleUrl, CACHE_TTL.SCHEDULE);
+      
+      if (espnData?.events) {
+        const now = new Date();
+        // Find next upcoming game
+        const upcomingGame = espnData.events.find((event: any) => {
+          const gameDate = new Date(event.date);
+          return gameDate > now;
+        });
+        
+        if (upcomingGame) {
+          const gameDate = new Date(upcomingGame.date);
+          const timeStr = gameDate.toLocaleString('en-US', { 
+            weekday: 'short', 
+            month: 'short', 
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+            timeZoneName: 'short'
+          });
+          
+          const competitors = upcomingGame.competitions?.[0]?.competitors || [];
+          const homeTeam = competitors.find((c: any) => c.homeAway === 'home')?.team?.displayName || '';
+          const awayTeam = competitors.find((c: any) => c.homeAway === 'away')?.team?.displayName || '';
+          const opponent = `${awayTeam} at ${homeTeam}`;
+          
+          // Get broadcast info
+          const broadcasts = upcomingGame.competitions?.[0]?.broadcasts || [];
+          const broadcastNames = broadcasts.flatMap((b: any) => b.names || []);
+          
+          const directEvent: LiveEvent = {
+            eventName: upcomingGame.name || `${directCollegeMatch.name} ${sportHint === 'basketball' ? 'Basketball' : 'Football'}`,
+            time: timeStr,
+            participants: opponent,
+            whereToWatch: broadcastNames.length > 0 ? broadcastNames.join(', ') : 'TBD',
+            link: `https://www.espn.com/${sportHint === 'basketball' ? 'mens-college-basketball' : 'college-football'}/team/_/id/${directCollegeMatch.espnId}`,
+            summary: `${directCollegeMatch.name} ${sportHint === 'basketball' ? 'basketball' : 'football'} game`,
+            eventDate: gameDate.toISOString().split('T')[0],
+            streamingPlatforms: broadcastNames,
+          };
+          
+          console.log(`Direct ESPN found game: ${directEvent.eventName} at ${directEvent.time}`);
+          
+          // Enrich with streaming platforms
+          const enrichedEvents = await enrichWithStreamingPlatforms([directEvent], LOVABLE_API_KEY!);
+          
+          return new Response(
+            JSON.stringify({ events: enrichedEvents, aiProcessed: true, directESPNLookup: true }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log(`No upcoming games found for ${directCollegeMatch.name} ${sportHint}`);
+          return new Response(
+            JSON.stringify({ events: [], aiProcessed: true, directESPNLookup: true, message: `No upcoming ${sportHint} games found for ${directCollegeMatch.name}` }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      console.log('Direct ESPN lookup failed, falling back to Google PSE');
+    }
     
     // Search with Google PSE using normalized query
     const searchQuery = `${normalizedQuery} live stream schedule broadcast`;
