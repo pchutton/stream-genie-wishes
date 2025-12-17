@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, List, User, LogOut, Search, Heart } from 'lucide-react';
+import { Sparkles, List, User, LogOut, Search, Heart, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useSearchMode } from '@/contexts/SearchModeContext';
@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 export function Header() {
-  const { user, signOut } = useAuth();
+  const { user, isAnonymous } = useAuth();
   const location = useLocation();
   const { searchMode } = useSearchMode();
   
@@ -51,84 +51,89 @@ export function Header() {
           </span>
         </Link>
 
-        {/* Navigation */}
-        {user && (
-          <nav className="flex items-center gap-1">
-            <Link to="/">
-              <Button
-                variant={isActive('/') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="gap-2"
-              >
-                <Sparkles className="h-4 w-4" />
-                <span className="hidden sm:inline">Home</span>
-              </Button>
-            </Link>
-            <Link to="/watchlist">
-              <Button
-                variant={isActive('/watchlist') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="gap-2"
-              >
-                <List className="h-4 w-4" />
-                <span className="hidden sm:inline">Watchlist</span>
-              </Button>
-            </Link>
-            <Link to="/my-events">
-              <Button
-                variant={isActive('/my-events') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="gap-2"
-              >
-                <Heart className="h-4 w-4" />
-                <span className="hidden sm:inline">My Events</span>
-              </Button>
-            </Link>
-            <Link to="/expanded-search">
-              <Button
-                variant={isActive('/expanded-search') ? 'secondary' : 'ghost'}
-                size="sm"
-                className="gap-2"
-              >
-                <Search className="h-4 w-4" />
-                <span className="hidden sm:inline">Expanded Search</span>
-              </Button>
-            </Link>
-          </nav>
-        )}
+        {/* Navigation - Always show since anonymous users are logged in */}
+        <nav className="flex items-center gap-1">
+          <Link to="/">
+            <Button
+              variant={isActive('/') ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2"
+            >
+              <Sparkles className="h-4 w-4" />
+              <span className="hidden sm:inline">Home</span>
+            </Button>
+          </Link>
+          <Link to="/watchlist">
+            <Button
+              variant={isActive('/watchlist') ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2"
+            >
+              <List className="h-4 w-4" />
+              <span className="hidden sm:inline">Watchlist</span>
+            </Button>
+          </Link>
+          <Link to="/my-events">
+            <Button
+              variant={isActive('/my-events') ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2"
+            >
+              <Heart className="h-4 w-4" />
+              <span className="hidden sm:inline">My Events</span>
+            </Button>
+          </Link>
+          <Link to="/expanded-search">
+            <Button
+              variant={isActive('/expanded-search') ? 'secondary' : 'ghost'}
+              size="sm"
+              className="gap-2"
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden sm:inline">Expanded</span>
+            </Button>
+          </Link>
+        </nav>
 
         {/* User Menu */}
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="rounded-full">
-                <User className="h-5 w-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link to="/settings" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Settings
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 text-destructive">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Link to="/login">
-              <Button variant="ghost" size="sm">Sign In</Button>
-            </Link>
-            <Link to="/signup">
-              <Button size="sm" className="genie-glow">Get Started</Button>
-            </Link>
-          </div>
-        )}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <User className="h-5 w-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
+            {isAnonymous ? (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Create Account
+                  </Link>
+                </DropdownMenuItem>
+                <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                  Save your data across devices
+                </p>
+              </>
+            ) : (
+              <>
+                <DropdownMenuItem asChild>
+                  <Link to="/settings" className="flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    Settings
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/login" className="flex items-center gap-2 text-destructive">
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </Link>
+                </DropdownMenuItem>
+              </>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );
