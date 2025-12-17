@@ -1151,6 +1151,63 @@ const teamNicknames: Record<string, string> = {
   "real madrid": "Real Madrid", "madrid": "Real Madrid",
   "barca": "Barcelona", "barcelona": "Barcelona",
   "atletico": "Atletico Madrid", "sevilla": "Sevilla",
+  
+  // ============ COMMON MISSPELLINGS ============
+  // NFL misspellings
+  "cheifs": "Kansas City Chiefs", "chefs": "Kansas City Chiefs", "kc cheifs": "Kansas City Chiefs",
+  "cowbys": "Dallas Cowboys", "cowbois": "Dallas Cowboys", "dalls cowboys": "Dallas Cowboys",
+  "ninrs": "San Francisco 49ers", "nners": "San Francisco 49ers", "9ers": "San Francisco 49ers",
+  "eagels": "Philadelphia Eagles", "egles": "Philadelphia Eagles", "philly eagles": "Philadelphia Eagles",
+  "packrs": "Green Bay Packers", "greenbay": "Green Bay Packers",
+  "stelers": "Pittsburgh Steelers", "steelrs": "Pittsburgh Steelers", "pitt steelers": "Pittsburgh Steelers",
+  "ravnes": "Baltimore Ravens", "balitmore": "Baltimore Ravens", "bmore ravens": "Baltimore Ravens",
+  "broncs": "Denver Broncos", "brocos": "Denver Broncos",
+  "sehawks": "Seattle Seahawks", "seahwks": "Seattle Seahawks",
+  "patritos": "New England Patriots", "patiots": "New England Patriots",
+  "dolhpins": "Miami Dolphins", "dolfins": "Miami Dolphins",
+  
+  // NBA misspellings
+  "lakrs": "Los Angeles Lakers", "lkaers": "Los Angeles Lakers", "la lakers": "Los Angeles Lakers",
+  "wariors": "Golden State Warriors", "warriros": "Golden State Warriors", "gsw": "Golden State Warriors",
+  "celitcs": "Boston Celtics", "cetics": "Boston Celtics",
+  "buks": "Milwaukee Bucks", "bux": "Milwaukee Bucks",
+  "knics": "New York Knicks", "nicks": "New York Knicks", "ny knicks": "New York Knicks",
+  "mavricks": "Dallas Mavericks", "maveriks": "Dallas Mavericks",
+  "sixxers": "Philadelphia 76ers", "sixrs": "Philadelphia 76ers",
+  "thunders": "Oklahoma City Thunder", "okc thunder": "Oklahoma City Thunder",
+  "nugets": "Denver Nuggets", "nuggts": "Denver Nuggets",
+  "suuns": "Phoenix Suns", "phoneix suns": "Phoenix Suns",
+  
+  // MLB misspellings
+  "yankess": "New York Yankees", "yankes": "New York Yankees", "ny yankees": "New York Yankees",
+  "dodgrs": "Los Angeles Dodgers", "la dodgers": "Los Angeles Dodgers",
+  "redsox": "Boston Red Sox", "red socks": "Boston Red Sox",
+  "cubbs": "Chicago Cubs", "chicao cubs": "Chicago Cubs",
+  "astro": "Houston Astros", "houton astros": "Houston Astros",
+  "brves": "Atlanta Braves", "atlnta braves": "Atlanta Braves",
+  
+  // NHL misspellings
+  "bruens": "Boston Bruins", "bruns": "Boston Bruins",
+  "peguins": "Pittsburgh Penguins", "pengins": "Pittsburgh Penguins",
+  "capitols": "Washington Capitals", "captials": "Washington Capitals",
+  "maple leafs": "Toronto Maple Leafs", "leafes": "Toronto Maple Leafs",
+  
+  // College misspellings
+  "alabma": "Alabama Crimson Tide", "bamma": "Alabama Crimson Tide",
+  "ohoi state": "Ohio State Buckeyes", "ohio st": "Ohio State Buckeyes",
+  "michgan": "Michigan Wolverines", "michagan": "Michigan Wolverines",
+  "goergia": "Georgia Bulldogs", "georiga": "Georgia Bulldogs",
+  "texsa": "Texas Longhorns", "teaxs": "Texas Longhorns",
+  "okalhoma": "Oklahoma Sooners", "oklhoma": "Oklahoma Sooners",
+  "notre dam": "Notre Dame Fighting Irish", "notredame": "Notre Dame Fighting Irish",
+  
+  // Soccer misspellings
+  "manchster": "Manchester United", "manchetser": "Manchester United",
+  "liverpol": "Liverpool", "liverpoool": "Liverpool",
+  "chlesea": "Chelsea", "chelesa": "Chelsea",
+  "arseanl": "Arsenal", "aresenal": "Arsenal",
+  "barcleona": "Barcelona", "bareclona": "Barcelona",
+  "real madird": "Real Madrid", "realmadrid": "Real Madrid",
 };
 
 // Convert dictionary to string for AI prompt
@@ -1238,6 +1295,20 @@ async function normalizeQuery(query: string, apiKey: string): Promise<string> {
             role: 'system',
             content: `You rewrite sports search queries into fully qualified sports search phrases.
 
+CRITICAL: FIX TYPOS AND MISSPELLINGS FIRST
+Before doing anything else, correct common typos and misspellings in team names:
+- "lakrs", "lkaers" → "Lakers"
+- "cheifs", "chefs" → "Chiefs"  
+- "cowbys", "cowbois" → "Cowboys"
+- "wariors", "warriros" → "Warriors"
+- "celitcs", "cetics" → "Celtics"
+- "yankess", "yankes" → "Yankees"
+- "dodgrs" → "Dodgers"
+- "manchster", "manchetser" → "Manchester"
+- "liverpol" → "Liverpool"
+- "barcleona" → "Barcelona"
+Use your best judgment to identify and fix ANY misspelled team, player, or sport name.
+
 TEAM NICKNAME DICTIONARY (partial list):
 NFL: "niners" → "San Francisco 49ers", "cowboys" → "Dallas Cowboys", "chiefs" → "Kansas City Chiefs", "pats" → "New England Patriots"...
 NBA: "dubs" → "Golden State Warriors", "lakers" → "Los Angeles Lakers", "warriors" → "Golden State Warriors", "celtics" → "Boston Celtics"...
@@ -1256,22 +1327,19 @@ SPORTS DETECTION:
 - Soccer: Look for "Premier League", "La Liga", "MLS", "Champions League", "World Cup" → add "soccer match schedule broadcast"
 
 RULES:
-1. If any nickname or partial team name is detected, REPLACE it with the full official team name
-2. Add sports context: "schedule", "next game", "upcoming match", or "broadcast information"
-3. Ensure the query is optimized for retrieving live event schedules and broadcast info
-4. For UFC/Boxing events, include event name and date if mentioned
+1. ALWAYS fix typos and misspellings first - use context clues to determine the intended team
+2. If any nickname or partial team name is detected, REPLACE it with the full official team name
+3. Add sports context: "schedule", "next game", "upcoming match", or "broadcast information"
+4. Ensure the query is optimized for retrieving live event schedules and broadcast info
+5. For UFC/Boxing events, include event name and date if mentioned
 
 EXAMPLES:
-"nuggets" → "Denver Nuggets basketball next game schedule"
-"lakers game" → "Los Angeles Lakers basketball game schedule"  
-"warriors tonight" → "Golden State Warriors basketball game tonight broadcast"
+"lakrs game" → "Los Angeles Lakers basketball game schedule"
+"cheifs vs broncos" → "Kansas City Chiefs vs Denver Broncos NFL game schedule"
+"wariors tonight" → "Golden State Warriors basketball game tonight broadcast"
+"manchster united" → "Manchester United Premier League match schedule"
 "bama football" → "Alabama Crimson Tide football schedule"
-"chiefs vs raiders" → "Kansas City Chiefs vs Las Vegas Raiders NFL game schedule"
 "UFC this weekend" → "UFC next event schedule broadcast"
-"inter miami" → "Inter Miami CF MLS soccer next match schedule"
-"arsenal vs chelsea" → "Arsenal vs Chelsea Premier League match schedule broadcast"
-"US Open tennis" → "US Open tennis tournament schedule broadcast"
-"PGA championship" → "PGA Championship golf tournament schedule broadcast"
 
 Return ONLY the rewritten query text. Do NOT explain.`
           },
