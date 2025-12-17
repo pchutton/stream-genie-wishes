@@ -107,7 +107,8 @@ interface ESPNGameInfo {
 }
 
 // Helper function to fetch ESPN schedule page and extract game time
-async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink?: string): Promise<ESPNGameInfo | null> {
+// sportHint: 'basketball' | 'football' | null - helps disambiguate college teams
+async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink?: string, sportHint?: string): Promise<ESPNGameInfo | null> {
   try {
     let data: any | null = null;
 
@@ -343,6 +344,18 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
         'St. Johns Red Storm': { slug: 'st-johns-red-storm', sport: 'mens-college-basketball', league: 'team' },
         'Seton Hall Pirates': { slug: 'seton-hall-pirates', sport: 'mens-college-basketball', league: 'team' },
         'Georgetown Hoyas': { slug: 'georgetown-hoyas', sport: 'mens-college-basketball', league: 'team' },
+        'Oklahoma State Cowboys': { slug: 'oklahoma-state-cowboys', sport: 'mens-college-basketball', league: 'team' },
+        'Texas Tech Red Raiders': { slug: 'texas-tech-red-raiders', sport: 'mens-college-basketball', league: 'team' },
+        'Oklahoma Sooners Basketball': { slug: 'oklahoma-sooners', sport: 'mens-college-basketball', league: 'team' },
+        'TCU Horned Frogs': { slug: 'tcu-horned-frogs', sport: 'mens-college-basketball', league: 'team' },
+        'West Virginia Mountaineers': { slug: 'west-virginia-mountaineers', sport: 'mens-college-basketball', league: 'team' },
+        'Iowa State Cyclones': { slug: 'iowa-state-cyclones', sport: 'mens-college-basketball', league: 'team' },
+        'Kansas State Wildcats': { slug: 'kansas-state-wildcats', sport: 'mens-college-basketball', league: 'team' },
+        'Cincinnati Bearcats': { slug: 'cincinnati-bearcats', sport: 'mens-college-basketball', league: 'team' },
+        'BYU Cougars': { slug: 'byu-cougars', sport: 'mens-college-basketball', league: 'team' },
+        'Colorado Buffaloes': { slug: 'colorado-buffaloes', sport: 'mens-college-basketball', league: 'team' },
+        'Arizona State Sun Devils': { slug: 'arizona-state-sun-devils', sport: 'mens-college-basketball', league: 'team' },
+        'Utah Utes': { slug: 'utah-utes', sport: 'mens-college-basketball', league: 'team' },
       };
 
       // Find the team in our map
@@ -350,6 +363,28 @@ async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink
       
       // Try to find a partial match if exact match fails
       if (!teamInfo) {
+        for (const [key, value] of Object.entries(espnTeamMap)) {
+          // Check if team name matches
+          if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
+            // If we have a sport hint, prioritize matching sport
+            if (sportHint === 'basketball' && value.sport === 'mens-college-basketball') {
+              teamInfo = value;
+              console.log(`Matched with basketball hint: ${key}`);
+              break;
+            } else if (sportHint === 'football' && (value.sport === 'college-football' || value.sport === 'nfl')) {
+              teamInfo = value;
+              console.log(`Matched with football hint: ${key}`);
+              break;
+            } else if (!sportHint) {
+              teamInfo = value;
+              break;
+            }
+          }
+        }
+      }
+      
+      // If still no match with hint, try without hint
+      if (!teamInfo && sportHint) {
         for (const [key, value] of Object.entries(espnTeamMap)) {
           if (teamName.toLowerCase().includes(key.toLowerCase().split(' ')[0])) {
             teamInfo = value;
@@ -1288,6 +1323,16 @@ If no upcoming events found, return an empty array [].`
       const preProcessed = preProcessQuery(query);
       const lowerQuery = preProcessed.toLowerCase();
       
+      // Detect sport hint from query
+      let sportHint: string | undefined;
+      if (lowerQuery.includes('basketball') || lowerQuery.includes('hoops') || lowerQuery.includes('ncaab')) {
+        sportHint = 'basketball';
+        console.log('Sport hint detected: basketball');
+      } else if (lowerQuery.includes('football') || lowerQuery.includes('ncaaf')) {
+        sportHint = 'football';
+        console.log('Sport hint detected: football');
+      }
+      
       let matchedTeam: string | null = null;
       
       // First, try to match against full team names from teamNicknames values
@@ -1355,8 +1400,8 @@ If no upcoming events found, return an empty array [].`
       }
       
       if (matchedTeam) {
-        console.log(`Attempting direct ESPN lookup for team: ${matchedTeam}`);
-        const espnInfo = await fetchESPNGameInfo(matchedTeam);
+        console.log(`Attempting direct ESPN lookup for team: ${matchedTeam} (sport hint: ${sportHint || 'none'})`);
+        const espnInfo = await fetchESPNGameInfo(matchedTeam, undefined, undefined, sportHint);
         
         if (espnInfo) {
           console.log(`Direct ESPN lookup found game: ${espnInfo.eventName} at ${espnInfo.time}`);
