@@ -101,87 +101,64 @@ function getStatusBadgeStyle(status: string): { bg: string; text: string; icon: 
 function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
   const style = getStatusBadgeStyle(platform.status);
   const url = getPlatformUrl(platform.name);
-  
+
   const content = (
-    <div className="flex flex-col items-center gap-1">
-      <NetworkLogo platform={platform.name} className="h-9" />
-      <span className={`text-[10px] px-1.5 py-0.5 rounded border flex items-center gap-1 ${style.bg} ${style.text}`}>
-        {style.icon}
-        <span className="truncate max-w-[80px]">{platform.status}</span>
-      </span>
+    <div className="flex flex-col items-center gap-2 w-24 shrink-0">
+      <NetworkLogo platform={platform.name} className="h-14 w-14" />
+      <span className="text-xs font-medium truncate w-full text-center text-foreground">{platform.name}</span>
+      {platform.status && (
+        <span className={`text-xs px-2.5 py-1 rounded-full flex items-center gap-1.5 whitespace-nowrap ${style.bg} ${style.text}`}>
+          {style.icon}
+          <span>{platform.status}</span>
+        </span>
+      )}
     </div>
   );
-  
+
   if (url) {
     return (
-      <a 
-        href={url} 
-        target="_blank" 
+      <a
+        href={url}
+        target="_blank"
         rel="noopener noreferrer"
-        className="transition-transform hover:scale-105 hover:opacity-80"
+        className="transition-transform hover:scale-105 active:scale-95"
         title={`Open ${platform.name}`}
       >
         {content}
       </a>
     );
   }
-  
+
   return content;
 }
 
 function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: string[]; platformDetails?: PlatformInfo[] }) {
-  // If we have detailed platform info with status, use that
-  if (platformDetails && platformDetails.length > 0) {
+  const items = platformDetails && platformDetails.length > 0 ? platformDetails : (platforms || []);
+
+  if (items.length === 0) {
     return (
-      <div className="flex flex-wrap gap-3 items-start">
-        {platformDetails.map((platform, index) => (
-          <PlatformWithStatus 
-            key={`${platform.name}-${index}`}
-            platform={platform}
-          />
-        ))}
-      </div>
-    );
-  }
-  
-  // Fallback to just logos if no details available
-  if (!platforms || platforms.length === 0) {
-    return (
-      <p className="text-xs text-muted-foreground italic">
-        Streaming platform unavailable — check local listings.
+      <p className="text-sm text-muted-foreground italic">
+        Streaming details TBD — check local listings.
       </p>
     );
   }
 
   return (
-    <div className="flex flex-wrap gap-2 items-center">
-      {platforms.map((platform, index) => {
-        const url = getPlatformUrl(platform);
-        const logo = (
-          <NetworkLogo 
-            key={`${platform}-${index}`}
-            platform={platform}
-            className="h-9"
-          />
-        );
-        
-        if (url) {
+    <div className="relative">
+      <p className="text-sm font-semibold text-foreground mb-3">Watch on:</p>
+      <div className="flex overflow-x-auto gap-4 pb-3 -mx-4 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+        {items.map((item, index) => {
+          const platform = typeof item === 'string' ? { name: item, status: '' } : item;
           return (
-            <a 
-              key={`${platform}-${index}`}
-              href={url} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="transition-transform hover:scale-105 hover:opacity-80"
-              title={`Open ${platform}`}
-            >
-              {logo}
-            </a>
+            <div key={`${platform.name}-${index}`} className="snap-start">
+              <PlatformWithStatus platform={platform} />
+            </div>
           );
-        }
-        
-        return logo;
-      })}
+        })}
+      </div>
+      {/* Subtle fade edges for scroll indication */}
+      <div className="pointer-events-none absolute left-0 top-8 bottom-0 w-6 bg-gradient-to-r from-card to-transparent" />
+      <div className="pointer-events-none absolute right-0 top-8 bottom-0 w-6 bg-gradient-to-l from-card to-transparent" />
     </div>
   );
 }
@@ -209,17 +186,101 @@ function formatEventTimeLocal(event: LiveEvent): string {
   return event.time;
 }
 
+// Parse team IDs from participants for ESPN logos
+function getTeamLogoUrl(teamName: string): string | null {
+  // Map common team names to ESPN team IDs
+  const teamIdMap: Record<string, { id: string; sport: string }> = {
+    'Oklahoma Sooners': { id: '201', sport: 'ncaa' },
+    'Alabama Crimson Tide': { id: '333', sport: 'ncaa' },
+    'Georgia Bulldogs': { id: '61', sport: 'ncaa' },
+    'Ohio State Buckeyes': { id: '194', sport: 'ncaa' },
+    'Michigan Wolverines': { id: '130', sport: 'ncaa' },
+    'Texas Longhorns': { id: '251', sport: 'ncaa' },
+    'LSU Tigers': { id: '99', sport: 'ncaa' },
+    'Penn State Nittany Lions': { id: '213', sport: 'ncaa' },
+    'Notre Dame Fighting Irish': { id: '87', sport: 'ncaa' },
+    'Tennessee Volunteers': { id: '2633', sport: 'ncaa' },
+    'Oregon Ducks': { id: '2483', sport: 'ncaa' },
+    'Clemson Tigers': { id: '228', sport: 'ncaa' },
+    // NFL teams
+    'Dallas Cowboys': { id: 'dal', sport: 'nfl' },
+    'Kansas City Chiefs': { id: 'kc', sport: 'nfl' },
+    'Philadelphia Eagles': { id: 'phi', sport: 'nfl' },
+    'San Francisco 49ers': { id: 'sf', sport: 'nfl' },
+    'Buffalo Bills': { id: 'buf', sport: 'nfl' },
+    'Miami Dolphins': { id: 'mia', sport: 'nfl' },
+    // NBA teams
+    'Los Angeles Lakers': { id: 'lal', sport: 'nba' },
+    'Golden State Warriors': { id: 'gs', sport: 'nba' },
+    'Boston Celtics': { id: 'bos', sport: 'nba' },
+    'Milwaukee Bucks': { id: 'mil', sport: 'nba' },
+  };
+  
+  const team = teamIdMap[teamName];
+  if (!team) return null;
+  
+  if (team.sport === 'ncaa') {
+    return `https://a.espncdn.com/i/teamlogos/ncaa/500/${team.id}.png`;
+  } else if (team.sport === 'nfl') {
+    return `https://a.espncdn.com/i/teamlogos/nfl/500/${team.id}.png`;
+  } else if (team.sport === 'nba') {
+    return `https://a.espncdn.com/i/teamlogos/nba/500/${team.id}.png`;
+  }
+  return null;
+}
+
+function parseTeamsFromParticipants(participants: string): { home: string; away: string } | null {
+  if (!participants) return null;
+  
+  // Try "Team A at Team B" or "Team A vs Team B" patterns
+  const atMatch = participants.match(/^(.+?)\s+(?:at|@)\s+(.+)$/i);
+  if (atMatch) {
+    return { away: atMatch[1].trim(), home: atMatch[2].trim() };
+  }
+  
+  const vsMatch = participants.match(/^(.+?)\s+(?:vs\.?|versus)\s+(.+)$/i);
+  if (vsMatch) {
+    return { home: vsMatch[1].trim(), away: vsMatch[2].trim() };
+  }
+  
+  return null;
+}
+
 function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved: boolean; onToggleSave: () => void }) {
   const localTime = formatEventTimeLocal(event);
+  const teams = parseTeamsFromParticipants(event.participants || '');
+  const homeLogoUrl = teams ? getTeamLogoUrl(teams.home) : null;
+  const awayLogoUrl = teams ? getTeamLogoUrl(teams.away) : null;
+  const showTeamLogos = homeLogoUrl || awayLogoUrl;
   
   return (
     <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2">
+      <CardHeader className="pb-3">
+        {/* Team logos row */}
+        {showTeamLogos && teams && (
+          <div className="flex items-center justify-center gap-4 mb-3">
+            {awayLogoUrl ? (
+              <img src={awayLogoUrl} alt={teams.away} className="h-12 w-12 object-contain" />
+            ) : (
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+            <span className="text-sm font-medium text-muted-foreground">vs</span>
+            {homeLogoUrl ? (
+              <img src={homeLogoUrl} alt={teams.home} className="h-12 w-12 object-contain" />
+            ) : (
+              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+                <Users className="h-6 w-6 text-muted-foreground" />
+              </div>
+            )}
+          </div>
+        )}
+        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 text-center">
           {event.eventName}
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4 pt-0">
         <div className="flex items-start gap-2 text-sm">
           <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <span className="text-muted-foreground">{localTime}</span>
@@ -240,13 +301,10 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
         </div>
 
         {/* Streaming Platforms with Status */}
-        <div className="pt-1">
-          <p className="text-xs text-muted-foreground mb-2">Watch on:</p>
-          <StreamingPlatformBadges 
-            platforms={event.streamingPlatforms} 
-            platformDetails={event.platformDetails}
-          />
-        </div>
+        <StreamingPlatformBadges 
+          platforms={event.streamingPlatforms} 
+          platformDetails={event.platformDetails}
+        />
         
         <p className="text-sm text-muted-foreground line-clamp-2">
           {event.summary}
@@ -295,25 +353,31 @@ function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved
 function LoadingSkeleton() {
   return (
     <Card className="bg-card border-border">
-      <CardHeader className="pb-2">
-        <Skeleton className="h-6 w-3/4" />
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-center gap-4 mb-3">
+          <Skeleton className="h-12 w-12 rounded-full" />
+          <Skeleton className="h-4 w-6" />
+          <Skeleton className="h-12 w-12 rounded-full" />
+        </div>
+        <Skeleton className="h-6 w-3/4 mx-auto" />
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-4">
         <Skeleton className="h-4 w-1/2" />
         <Skeleton className="h-4 w-2/3" />
-        <Skeleton className="h-4 w-1/2" />
-        <div className="flex gap-3">
-          <div className="flex flex-col items-center gap-1">
-            <Skeleton className="h-8 w-12 rounded" />
-            <Skeleton className="h-4 w-16 rounded" />
+        <div className="flex gap-4 overflow-hidden">
+          <div className="flex flex-col items-center gap-2 w-24 shrink-0">
+            <Skeleton className="h-14 w-14 rounded" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-6 w-20 rounded-full" />
           </div>
-          <div className="flex flex-col items-center gap-1">
-            <Skeleton className="h-8 w-12 rounded" />
-            <Skeleton className="h-4 w-16 rounded" />
+          <div className="flex flex-col items-center gap-2 w-24 shrink-0">
+            <Skeleton className="h-14 w-14 rounded" />
+            <Skeleton className="h-4 w-16" />
+            <Skeleton className="h-6 w-20 rounded-full" />
           </div>
         </div>
         <Skeleton className="h-12 w-full" />
-        <Skeleton className="h-9 w-full" />
+        <Skeleton className="h-10 w-full" />
       </CardContent>
     </Card>
   );
