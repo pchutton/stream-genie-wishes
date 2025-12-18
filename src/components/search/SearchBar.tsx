@@ -70,8 +70,8 @@ export function SearchBar({
 
   const currentPlaceholder = placeholder || (
     mode === 'media' 
-      ? (isMobile ? 'Search movies & TV...' : 'Find Your Show. Compare Every Streaming Option.')
-      : (isMobile ? 'Search any game or sport...' : 'Search any game. Any team. Any sport.')
+      ? (isMobile ? 'Movies & TV shows' : 'Find Your Show. Compare Every Streaming Option.')
+      : (isMobile ? 'Games & sports' : 'Search any game. Any team. Any sport.')
   );
 
   const isLive = mode === 'live';
