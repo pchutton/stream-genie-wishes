@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { MediaCard, MediaItem } from './MediaCard';
 import { Loader2 } from 'lucide-react';
@@ -15,7 +15,7 @@ interface VirtualizedMediaGridProps {
   fetchNextPage?: () => void;
 }
 
-export const VirtualizedMediaGrid = React.memo(function VirtualizedMediaGrid({
+export function VirtualizedMediaGrid({
   items,
   isInWatchlist,
   isWatched,
@@ -29,18 +29,18 @@ export const VirtualizedMediaGrid = React.memo(function VirtualizedMediaGrid({
   const parentRef = useRef<HTMLDivElement>(null);
   
   // Calculate columns based on screen width (1 on mobile, 2 on lg+)
-  const getColumnCount = useCallback(() => {
+  const getColumnCount = () => {
     if (typeof window === 'undefined') return 1;
     return window.innerWidth >= 1024 ? 2 : 1;
-  }, []);
+  };
   
-  const [columnCount, setColumnCount] = React.useState(getColumnCount);
+  const [columnCount, setColumnCount] = useState(getColumnCount);
   
-  React.useEffect(() => {
+  useEffect(() => {
     const handleResize = () => setColumnCount(getColumnCount());
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [getColumnCount]);
+  }, []);
   
   // Calculate row count based on items and columns
   const rowCount = Math.ceil(items.length / columnCount) + (hasNextPage ? 1 : 0);
@@ -55,7 +55,7 @@ export const VirtualizedMediaGrid = React.memo(function VirtualizedMediaGrid({
   const virtualRows = virtualizer.getVirtualItems();
   
   // Trigger infinite scroll when reaching end
-  React.useEffect(() => {
+  useEffect(() => {
     const lastRow = virtualRows[virtualRows.length - 1];
     if (!lastRow) return;
     
@@ -134,4 +134,4 @@ export const VirtualizedMediaGrid = React.memo(function VirtualizedMediaGrid({
       )}
     </div>
   );
-});
+}
