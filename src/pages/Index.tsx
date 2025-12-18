@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Sparkles } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { SearchBar, SearchMode } from '@/components/search/SearchBar';
@@ -21,6 +21,9 @@ export default function Home() {
   const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [searchMode, setSearchMode] = useState<SearchMode>('media');
+  
+  // Track last search to prevent duplicate calls
+  const lastSearchRef = useRef<{ query: string; mode: SearchMode } | null>(null);
 
   const { results: searchResults, isLoading: isSearching, search, clearResults: clearMediaResults, fetchNextPage, hasNextPage, isFetchingNextPage } = useTMDBSearch();
   const { results: liveResults, isLoading: isSearchingLive, search: searchLive, clearResults: clearLiveResults } = useLiveEventsSearch();
@@ -59,7 +62,14 @@ export default function Home() {
     return watchlist?.find(item => item.tmdb_id === tmdbId && item.media_type === mediaType);
   };
 
-  const handleSearch = async (query: string, mode: SearchMode) => {
+  // Stabilize handleSearch to prevent re-renders from triggering searches
+  const handleSearch = useCallback(async (query: string, mode: SearchMode) => {
+    // Prevent duplicate searches for the same query/mode
+    if (lastSearchRef.current?.query === query && lastSearchRef.current?.mode === mode) {
+      return;
+    }
+    lastSearchRef.current = { query, mode };
+    
     setSearchMode(mode);
     if (mode === 'media') {
       clearLiveResults();
@@ -68,7 +78,7 @@ export default function Home() {
       clearMediaResults();
       await searchLive(query);
     }
-  };
+  }, [search, searchLive, clearLiveResults, clearMediaResults]);
 
   const isInWatchlist = (tmdbId: number, mediaType: 'movie' | 'tv') => {
     return watchlist?.some(item => item.tmdb_id === tmdbId && item.media_type === mediaType);

@@ -25,6 +25,10 @@ export function SearchBar({
   const { searchMode: mode, setSearchMode } = useSearchMode();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const isMobile = useIsMobile();
+  
+  // Use ref for onSearch to avoid triggering effect on every render
+  const onSearchRef = useRef(onSearch);
+  onSearchRef.current = onSearch;
 
   // Debounced search-as-you-type
   useEffect(() => {
@@ -34,7 +38,7 @@ export function SearchBar({
 
     if (query.trim()) {
       debounceTimerRef.current = setTimeout(() => {
-        onSearch(query.trim(), mode);
+        onSearchRef.current(query.trim(), mode);
       }, 500);
     }
 
@@ -43,7 +47,7 @@ export function SearchBar({
         clearTimeout(debounceTimerRef.current);
       }
     };
-  }, [query, mode, onSearch]);
+  }, [query, mode]); // Removed onSearch from deps - using ref instead
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
