@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Search, X, Loader2, Tv, Radio } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,9 +22,32 @@ export function SearchBar({
 }: SearchBarProps) {
   const [query, setQuery] = useState('');
   const { searchMode: mode, setSearchMode } = useSearchMode();
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Debounced search-as-you-type
+  useEffect(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+
+    if (query.trim()) {
+      debounceTimerRef.current = setTimeout(() => {
+        onSearch(query.trim(), mode);
+      }, 500);
+    }
+
+    return () => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [query, mode, onSearch]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
     if (query.trim()) {
       onSearch(query.trim(), mode);
     }
