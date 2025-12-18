@@ -10,6 +10,7 @@ interface VirtualizedMediaGridProps {
   onAddToWatchlist: (item: MediaItem) => void;
   onToggleWatched: (item: MediaItem) => void;
   onShowDetails: (item: MediaItem) => void;
+  onPrefetchDetails?: (item: MediaItem) => void;
   hasNextPage?: boolean;
   isFetchingNextPage?: boolean;
   fetchNextPage?: () => void;
@@ -22,6 +23,7 @@ export function VirtualizedMediaGrid({
   onAddToWatchlist,
   onToggleWatched,
   onShowDetails,
+  onPrefetchDetails,
   hasNextPage,
   isFetchingNextPage,
   fetchNextPage,
@@ -104,6 +106,7 @@ export function VirtualizedMediaGrid({
                 onAddToWatchlist={() => onAddToWatchlist(item)}
                 onToggleWatched={() => onToggleWatched(item)}
                 onShowDetails={() => onShowDetails(item)}
+                onPrefetchDetails={() => onPrefetchDetails?.(item)}
               />
             </div>
           );

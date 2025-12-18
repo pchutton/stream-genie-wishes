@@ -316,14 +316,139 @@ function formatRuntime(minutes: number | null): string | null {
   return `${mins}m`;
 }
 
+// Full details endpoint with extended append_to_response
+async function getFullDetails(mediaType: string, id: number, region: string = 'US') {
+  try {
+    console.log(`Fetching full details for ${mediaType}/${id}`);
+    
+    const response = await fetch(
+      `${TMDB_BASE_URL}/${mediaType}/${id}?api_key=${TMDB_API_KEY}&append_to_response=credits,watch/providers,videos,recommendations,external_ids`
+    );
+    
+    if (!response.ok) {
+      console.log(`Full details request failed for ${mediaType}/${id}: ${response.status}`);
+      return null;
+    }
+    
+    const data = await response.json();
+    
+    // Extract runtime
+    let runtime: number | null = null;
+    if (mediaType === 'movie' && data.runtime) {
+      runtime = data.runtime;
+    } else if (mediaType === 'tv' && data.episode_run_time?.length > 0) {
+      runtime = data.episode_run_time[0];
+    }
+
+    // Extract director/creator
+    let director: string | null = null;
+    if (mediaType === 'movie' && data.credits?.crew) {
+      const directorData = (data.credits.crew as CrewMember[]).find(c => c.job === 'Director');
+      director = directorData?.name || null;
+    } else if (mediaType === 'tv' && data.created_by?.length > 0) {
+      director = data.created_by[0]?.name || null;
+    }
+
+    // Extract cast (more for details)
+    const cast: string[] = data.credits?.cast
+      ? (data.credits.cast as CastMember[]).slice(0, 10).map(c => c.name)
+      : [];
+
+    // Extract origin country
+    const origin_country: string[] = data.origin_country || 
+      (data.production_countries?.map((c: { iso_3166_1: string }) => c.iso_3166_1) || []);
+
+    // Extract watch providers
+    const regionData = data['watch/providers']?.results?.[region] as TMDBWatchProviders | undefined;
+    const streaming = new Set<string>();
+    const rent = new Set<string>();
+    const buy = new Set<string>();
+    
+    if (regionData) {
+      regionData.flatrate?.forEach(p => streaming.add(p.provider_name));
+      regionData.free?.forEach(p => streaming.add(p.provider_name));
+      regionData.ads?.forEach(p => streaming.add(p.provider_name));
+      regionData.rent?.forEach(p => rent.add(p.provider_name));
+      regionData.buy?.forEach(p => buy.add(p.provider_name));
+    }
+
+    // Extract trailer
+    const trailer = data.videos?.results?.find(
+      (v: { type: string; site: string }) => v.type === 'Trailer' && v.site === 'YouTube'
+    );
+
+    // Extract recommendations (top 6)
+    const recommendations = (data.recommendations?.results || []).slice(0, 6).map((item: TMDBSearchResult) => ({
+      tmdb_id: item.id,
+      title: item.title || item.name || 'Unknown',
+      media_type: item.media_type || mediaType,
+      poster_path: item.poster_path,
+      release_year: (item.release_date || item.first_air_date) 
+        ? parseInt((item.release_date || item.first_air_date || '').split('-')[0]) 
+        : null,
+    }));
+
+    const releaseDate = data.release_date || data.first_air_date;
+
+    return {
+      tmdb_id: data.id,
+      title: data.title || data.name || 'Unknown',
+      media_type: mediaType,
+      poster_path: data.poster_path,
+      backdrop_path: data.backdrop_path,
+      release_year: releaseDate ? parseInt(releaseDate.split('-')[0]) : null,
+      genres: (data.genres || []).map((g: { name: string }) => g.name),
+      streaming_platforms: Array.from(streaming),
+      rent_platforms: Array.from(rent),
+      buy_platforms: Array.from(buy),
+      overview: data.overview,
+      runtime: formatRuntime(runtime),
+      director,
+      cast,
+      tmdb_rating: data.vote_average ? Math.round(data.vote_average * 10) / 10 : null,
+      origin_country: origin_country.slice(0, 2),
+      imdb_id: data.external_ids?.imdb_id || null,
+      trailer_key: trailer?.key || null,
+      recommendations,
+      tagline: data.tagline || null,
+      status: data.status || null,
+      number_of_seasons: data.number_of_seasons || null,
+      number_of_episodes: data.number_of_episodes || null,
+    };
+  } catch (error) {
+    console.error(`Error fetching full details for ${mediaType}/${id}:`, error);
+    return null;
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { query, region = 'US', page = 1 } = await req.json();
+    const body = await req.json();
+    const { query, region = 'US', page = 1, tmdb_id, media_type, includeDetails } = body;
     
+    // Details mode - return full item details
+    if (includeDetails && tmdb_id && media_type) {
+      console.log(`Details mode: ${media_type}/${tmdb_id}`);
+      const details = await getFullDetails(media_type, tmdb_id, region);
+      
+      if (!details) {
+        return new Response(
+          JSON.stringify({ error: 'Failed to fetch details' }),
+          { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      return new Response(
+        JSON.stringify(details),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Search mode
     if (!query || typeof query !== 'string') {
       return new Response(
         JSON.stringify({ error: 'Query parameter is required' }),

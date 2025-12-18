@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Search as SearchIcon } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { SearchBar, SearchMode } from '@/components/search/SearchBar';
 import { MediaItem } from '@/components/media/MediaCard';
@@ -10,6 +10,7 @@ import { LiveEventsSearch } from '@/components/search/LiveEventsSearch';
 import { useAuth } from '@/lib/auth';
 import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist, useMarkAsSeen } from '@/hooks/useWatchlist';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
+import { useTMDBDetails } from '@/hooks/useTMDBDetails';
 import { useLiveEventsSearch } from '@/hooks/useLiveEventsSearch';
 
 import { Link } from 'react-router-dom';
@@ -23,11 +24,17 @@ export default function Home() {
 
   const { results: searchResults, isLoading: isSearching, search, clearResults: clearMediaResults, fetchNextPage, hasNextPage, isFetchingNextPage } = useTMDBSearch();
   const { results: liveResults, isLoading: isSearchingLive, search: searchLive, clearResults: clearLiveResults } = useLiveEventsSearch();
+  const { prefetchDetails } = useTMDBDetails(null, null);
   const { data: watchlist } = useWatchlist();
   const addToWatchlist = useAddToWatchlist();
   const removeFromWatchlist = useRemoveFromWatchlist();
   const toggleWatched = useToggleWatched();
   const markAsSeen = useMarkAsSeen();
+  
+  // Prefetch details on hover for instant dialog open
+  const handlePrefetchDetails = (item: MediaItem) => {
+    prefetchDetails(item.tmdb_id, item.media_type);
+  };
   
   const handleAddToWatchlist = (item: MediaItem) => {
     addToWatchlist.mutate(item);
@@ -133,6 +140,7 @@ export default function Home() {
               onAddToWatchlist={handleAddToWatchlist}
               onToggleWatched={handleToggleWatched}
               onShowDetails={handleShowDetails}
+              onPrefetchDetails={handlePrefetchDetails}
               hasNextPage={hasNextPage}
               isFetchingNextPage={isFetchingNextPage}
               fetchNextPage={fetchNextPage}
