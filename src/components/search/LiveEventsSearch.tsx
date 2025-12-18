@@ -144,7 +144,8 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
       <p className="text-sm font-semibold text-foreground mb-3">Watch on:</p>
       <div className="flex overflow-x-auto gap-5 pb-3 -mx-4 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map((item, idx) => {
-          const platform = typeof item === 'string' ? { name: item, status: 'Check platform' } : item;
+          // Only use real status data from platformDetails, not placeholder text for string items
+          const platform = typeof item === 'string' ? { name: item, status: '' } : item;
           return (
             <div key={`${platform.name}-${idx}`} className="snap-start">
               <PlatformWithStatus platform={platform} />
