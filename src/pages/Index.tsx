@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Sparkles, Search as SearchIcon, Loader2 } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { Sparkles, Search as SearchIcon } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { SearchBar, SearchMode } from '@/components/search/SearchBar';
-import { MediaCard, MediaItem } from '@/components/media/MediaCard';
+import { MediaItem } from '@/components/media/MediaCard';
+import { VirtualizedMediaGrid } from '@/components/media/VirtualizedMediaGrid';
 import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
 import { LiveEventsSearch } from '@/components/search/LiveEventsSearch';
 import { useAuth } from '@/lib/auth';
 import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist, useMarkAsSeen } from '@/hooks/useWatchlist';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
 import { useLiveEventsSearch } from '@/hooks/useLiveEventsSearch';
-import { useInView } from 'react-intersection-observer';
 
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -28,14 +28,19 @@ export default function Home() {
   const toggleWatched = useToggleWatched();
   const markAsSeen = useMarkAsSeen();
   
-  // Infinite scroll trigger
-  const { ref: loadMoreRef, inView } = useInView();
-  
-  useEffect(() => {
-    if (inView && hasNextPage && !isFetchingNextPage) {
-      fetchNextPage();
+  // Memoized callbacks for virtualized grid
+  const handleAddToWatchlist = useCallback((item: MediaItem) => {
+    addToWatchlist.mutate(item);
+  }, [addToWatchlist]);
+
+  const handleToggleWatched = useCallback((item: MediaItem) => {
+    const wlItem = watchlist?.find(w => w.tmdb_id === item.tmdb_id && w.media_type === item.media_type);
+    if (wlItem) {
+      toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
+    } else {
+      markAsSeen.mutate(item);
     }
-  }, [inView, hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [watchlist, toggleWatched, markAsSeen]);
   
 
   const handleShowDetails = (item: MediaItem) => {
@@ -119,42 +124,17 @@ export default function Home() {
           {searchMode === 'live' ? (
             <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} />
           ) : searchResults.length > 0 ? (
-            <>
-              <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                {searchResults.map((item) => (
-                  <MediaCard
-                    key={`${item.media_type}-${item.tmdb_id}`}
-                    item={item}
-                    isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
-                    isWatched={isWatched(item.tmdb_id, item.media_type)}
-                    onAddToWatchlist={() => addToWatchlist.mutate(item)}
-                    onToggleWatched={() => {
-                      const wlItem = getWatchlistItem(item.tmdb_id, item.media_type);
-                      if (wlItem) {
-                        toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
-                      } else {
-                        markAsSeen.mutate(item);
-                      }
-                    }}
-                    onShowDetails={() => handleShowDetails(item)}
-                  />
-                ))}
-              </div>
-              
-              {/* Infinite scroll trigger */}
-              <div ref={loadMoreRef} className="flex justify-center py-6">
-                {isFetchingNextPage ? (
-                  <div className="flex items-center gap-2 text-muted-foreground">
-                    <Loader2 className="h-5 w-5 animate-spin" />
-                    <span>Loading more...</span>
-                  </div>
-                ) : hasNextPage ? (
-                  <span className="text-muted-foreground text-sm">Scroll for more</span>
-                ) : searchResults.length > 20 ? (
-                  <span className="text-muted-foreground text-sm">End of results</span>
-                ) : null}
-              </div>
-            </>
+            <VirtualizedMediaGrid
+              items={searchResults}
+              isInWatchlist={isInWatchlist}
+              isWatched={isWatched}
+              onAddToWatchlist={handleAddToWatchlist}
+              onToggleWatched={handleToggleWatched}
+              onShowDetails={handleShowDetails}
+              hasNextPage={hasNextPage}
+              isFetchingNextPage={isFetchingNextPage}
+              fetchNextPage={fetchNextPage}
+            />
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <SearchIcon className="mb-4 h-12 w-12 text-muted-foreground/50" />
