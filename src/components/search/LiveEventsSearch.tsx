@@ -129,7 +129,10 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
 }
 
 function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: string[]; platformDetails?: PlatformInfo[] }) {
-  const items = (platformDetails && platformDetails.length > 0 ? platformDetails : platforms || []) as (string | PlatformInfo)[];
+  // Use platformDetails if available, otherwise generate default statuses for platform strings
+  const items: PlatformInfo[] = (platformDetails && platformDetails.length > 0) 
+    ? platformDetails 
+    : (platforms || []).map(name => ({ name, status: getDefaultStatus(name) }));
 
   if (items.length === 0) {
     return (
@@ -143,15 +146,11 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
     <div className="relative">
       <p className="text-sm font-semibold text-foreground mb-3">Watch on:</p>
       <div className="flex overflow-x-auto gap-5 pb-3 -mx-4 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-        {items.map((item, idx) => {
-          // Only use real status data from platformDetails, not placeholder text for string items
-          const platform = typeof item === 'string' ? { name: item, status: '' } : item;
-          return (
-            <div key={`${platform.name}-${idx}`} className="snap-start">
-              <PlatformWithStatus platform={platform} />
-            </div>
-          );
-        })}
+        {items.map((platform, idx) => (
+          <div key={`${platform.name}-${idx}`} className="snap-start">
+            <PlatformWithStatus platform={platform} />
+          </div>
+        ))}
       </div>
       {/* Subtle fade edges for scroll hint - only show if many items */}
       {items.length > 3 && (
@@ -162,6 +161,35 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
       )}
     </div>
   );
+}
+
+// Default status based on platform type (matches backend logic)
+function getDefaultStatus(platform: string): string {
+  const name = platform.toLowerCase();
+  
+  // Live TV services
+  if (['youtube tv', 'hulu + live tv', 'fubo', 'fubotv', 'directv stream', 'sling', 'sling orange', 'sling blue'].some(s => name.includes(s))) {
+    return 'Included';
+  }
+  
+  // Broadcast networks
+  if (['espn', 'tnt', 'tbs', 'abc', 'cbs', 'nbc', 'fox', 'fs1', 'nfl network', 'nba tv', 'mlb network'].some(s => name === s || name.includes(s))) {
+    return 'Live broadcast';
+  }
+  
+  // Provider login apps
+  if (name.includes('app')) {
+    return 'Included with provider login';
+  }
+  
+  // Subscription services
+  if (name.includes('max')) return 'Included with Max subscription';
+  if (name.includes('peacock')) return 'Included with Peacock subscription';
+  if (name.includes('paramount')) return 'Included with Paramount+ subscription';
+  if (name.includes('prime')) return 'Included with Prime Video subscription';
+  if (name === 'espn+') return 'Included with ESPN+ subscription';
+  
+  return 'Included';
 }
 
 // Format event time in user's local timezone
