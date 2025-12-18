@@ -52,6 +52,14 @@ export const MediaCard = memo(function MediaCard({
     ? `${TMDB_IMAGE_BASE}${item.poster_path}`
     : null;
 
+  // Prefetch higher-res poster on hover for instant details dialog load
+  const handlePrefetch = useCallback(() => {
+    if (item.poster_path) {
+      const img = new Image();
+      img.src = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
+    }
+  }, [item.poster_path]);
+
   // Memoized handlers to prevent re-renders
   const handleDetailsClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
@@ -67,7 +75,10 @@ export const MediaCard = memo(function MediaCard({
   const handleImageError = useCallback(() => setImageError(true), []);
 
   return (
-    <div className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
+    <div 
+      className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1"
+      onMouseEnter={handlePrefetch}
+    >
       {/* Poster with group hover */}
       <div className="group relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-900 cursor-pointer">
         {/* Shimmer placeholder while loading */}
