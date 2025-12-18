@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useSearchMode, SearchMode } from '@/contexts/SearchModeContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export type { SearchMode };
 
@@ -23,6 +24,7 @@ export function SearchBar({
   const [query, setQuery] = useState('');
   const { searchMode: mode, setSearchMode } = useSearchMode();
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const isMobile = useIsMobile();
 
   // Debounced search-as-you-type
   useEffect(() => {
@@ -64,8 +66,8 @@ export function SearchBar({
 
   const currentPlaceholder = placeholder || (
     mode === 'media' 
-      ? 'Find Your Show. Compare Every Streaming Option.' 
-      : 'Search any game. Any team. Any sport.'
+      ? (isMobile ? 'Search movies & TV...' : 'Find Your Show. Compare Every Streaming Option.')
+      : (isMobile ? 'Search any game or sport...' : 'Search any game. Any team. Any sport.')
   );
 
   const isLive = mode === 'live';
