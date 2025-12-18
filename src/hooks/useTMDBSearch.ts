@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,22 +21,36 @@ export interface TMDBSearchResult {
   origin_country: string[];
 }
 
-async function searchTMDB(query: string): Promise<TMDBSearchResult[]> {
-  if (!query.trim()) return [];
+interface SearchResponse {
+  results: TMDBSearchResult[];
+  page: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
+async function searchTMDB(query: string, page: number): Promise<SearchResponse> {
+  if (!query.trim()) return { results: [], page: 1, totalPages: 1, hasMore: false };
 
   const { data, error } = await supabase.functions.invoke('search-tmdb', {
-    body: { query, region: 'US' },
+    body: { query, region: 'US', page },
   });
 
   if (error) throw error;
   if (data.error) throw new Error(data.error);
 
   // Sort by release year, newest first
-  return (data.results || []).sort((a: TMDBSearchResult, b: TMDBSearchResult) => {
+  const sortedResults = (data.results || []).sort((a: TMDBSearchResult, b: TMDBSearchResult) => {
     const yearA = a.release_year || 0;
     const yearB = b.release_year || 0;
     return yearB - yearA;
   });
+
+  return {
+    results: sortedResults,
+    page: data.page || 1,
+    totalPages: data.totalPages || 1,
+    hasMore: data.hasMore || false,
+  };
 }
 
 export function useTMDBSearch() {
@@ -44,14 +58,26 @@ export function useTMDBSearch() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: results = [], isLoading, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: ['tmdb-search', searchQuery],
-    queryFn: () => searchTMDB(searchQuery),
+    queryFn: ({ pageParam = 1 }) => searchTMDB(searchQuery, pageParam),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => lastPage.hasMore ? lastPage.page + 1 : undefined,
     enabled: searchQuery.trim().length > 0,
-    staleTime: 1000 * 60 * 10, // Cache for 10 minutes
-    gcTime: 1000 * 60 * 30, // Keep in cache for 30 minutes
+    staleTime: 1000 * 60 * 10,
+    gcTime: 1000 * 60 * 30,
     retry: 1,
   });
+
+  // Flatten all pages into single results array
+  const results = data?.pages.flatMap(page => page.results) ?? [];
 
   // Show error toast in effect, not during render
   useEffect(() => {
@@ -76,9 +102,10 @@ export function useTMDBSearch() {
   // Prefetch function for hover optimization
   const prefetchSearch = useCallback((query: string) => {
     if (query.trim()) {
-      queryClient.prefetchQuery({
+      queryClient.prefetchInfiniteQuery({
         queryKey: ['tmdb-search', query],
-        queryFn: () => searchTMDB(query),
+        queryFn: ({ pageParam = 1 }) => searchTMDB(query, pageParam),
+        initialPageParam: 1,
         staleTime: 1000 * 60 * 10,
       });
     }
@@ -91,5 +118,8 @@ export function useTMDBSearch() {
     search,
     clearResults,
     prefetchSearch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 }

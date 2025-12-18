@@ -322,7 +322,7 @@ serve(async (req) => {
   }
 
   try {
-    const { query, region = 'US' } = await req.json();
+    const { query, region = 'US', page = 1 } = await req.json();
     
     if (!query || typeof query !== 'string') {
       return new Response(
@@ -331,15 +331,19 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Original query: "${query}" in region: ${region}`);
+    console.log(`Original query: "${query}" in region: ${region}, page: ${page}`);
 
-    const { normalizedQuery, isFranchise, franchiseName } = await analyzeQuery(query);
+    // Only analyze query on first page
+    const { normalizedQuery, isFranchise, franchiseName } = page === 1 
+      ? await analyzeQuery(query)
+      : { normalizedQuery: query, isFranchise: false, franchiseName: null };
     
     console.log(`Query analysis - normalized: "${normalizedQuery}", isFranchise: ${isFranchise}, franchiseName: ${franchiseName}`);
 
     let mediaResults: TMDBSearchResult[] = [];
+    let totalPages = 1;
 
-    if (isFranchise && franchiseName) {
+    if (isFranchise && franchiseName && page === 1) {
       const collectionMovies = await searchCollection(franchiseName);
       
       if (collectionMovies.length > 0) {
@@ -354,39 +358,35 @@ serve(async (req) => {
           vote_average: movie.vote_average,
         }));
         console.log(`Using ${mediaResults.length} movies from collection`);
+        totalPages = 1; // Collections don't paginate
       }
     }
 
     if (mediaResults.length === 0) {
-      console.log(`Searching TMDB multi for: "${normalizedQuery}"`);
+      console.log(`Searching TMDB multi for: "${normalizedQuery}" page ${page}`);
       
-      const [page1Response, page2Response] = await Promise.all([
-        fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=1`),
-        fetch(`${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=2`)
-      ]);
+      const searchResponse = await fetch(
+        `${TMDB_BASE_URL}/search/multi?api_key=${TMDB_API_KEY}&query=${encodeURIComponent(normalizedQuery)}&language=en-US&include_adult=false&page=${page}`
+      );
 
-      if (!page1Response.ok) {
-        console.error('TMDB search failed:', page1Response.status, await page1Response.text());
+      if (!searchResponse.ok) {
+        console.error('TMDB search failed:', searchResponse.status, await searchResponse.text());
         throw new Error('Failed to search TMDB');
       }
 
-      const page1Data = await page1Response.json();
-      const page2Data = page2Response.ok ? await page2Response.json() : { results: [] };
+      const searchData = await searchResponse.json();
+      totalPages = Math.min(searchData.total_pages || 1, 10); // Cap at 10 pages
       
-      const allResults = [...(page1Data.results || []), ...(page2Data.results || [])];
-      
-      mediaResults = (allResults as TMDBSearchResult[])
-        .filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
-        .slice(0, 25);
+      mediaResults = ((searchData.results || []) as TMDBSearchResult[])
+        .filter((item) => item.media_type === 'movie' || item.media_type === 'tv');
         
-      console.log(`TMDB returned ${page1Data.results?.length || 0} + ${page2Data.results?.length || 0} results, filtered to ${mediaResults.length}`);
+      console.log(`TMDB returned ${searchData.results?.length || 0} results, filtered to ${mediaResults.length}`);
     }
 
-    console.log(`Found ${mediaResults.length} results`);
+    console.log(`Found ${mediaResults.length} results on page ${page}`);
 
     const resultsWithProviders = await Promise.all(
       mediaResults.map(async (item) => {
-        // Single optimized call per item (was 3 calls before)
         const details = await getMediaDetails(item.media_type, item.id, region);
         
         const releaseDate = item.release_date || item.first_air_date;
@@ -414,7 +414,12 @@ serve(async (req) => {
     console.log(`Returning ${resultsWithProviders.length} results with streaming info`);
 
     return new Response(
-      JSON.stringify({ results: resultsWithProviders }),
+      JSON.stringify({ 
+        results: resultsWithProviders,
+        page,
+        totalPages,
+        hasMore: page < totalPages
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
