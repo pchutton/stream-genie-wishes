@@ -14,7 +14,6 @@ import { useTMDBDetails } from '@/hooks/useTMDBDetails';
 import { useLiveEventsSearch } from '@/hooks/useLiveEventsSearch';
 
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
 
 export default function Home() {
   const { user } = useAuth();
@@ -90,36 +89,7 @@ export default function Home() {
 
   // No longer filtering out watched titles - users can see all results
 
-  // Landing page for non-authenticated users
-  if (!user) {
-    return (
-      <Layout>
-        <div className="flex min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 text-center">
-          <div className="mx-auto mb-6 flex h-20 w-20 animate-float items-center justify-center rounded-3xl bg-primary genie-glow">
-            <Sparkles className="h-10 w-10 text-primary-foreground" />
-          </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
-            Your Personal <span className="text-gradient-gold">Streaming Guide</span>
-          </h1>
-          <p className="mb-8 max-w-lg text-lg text-muted-foreground">
-            Find the perfect movie or show across all streaming platforms.
-          </p>
-          <div className="flex gap-4">
-            <Link to="/signup">
-              <Button size="lg" className="genie-glow">
-                Get Started Free
-              </Button>
-            </Link>
-            <Link to="/login">
-              <Button variant="outline" size="lg">
-                Sign In
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  // Anonymous users are automatically signed in, so we always show the main UI
 
   return (
     <Layout>

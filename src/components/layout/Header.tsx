@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, List, User, LogOut, Search, Heart, UserPlus } from 'lucide-react';
+import { Sparkles, List, User, Search, Heart, UserPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useSearchMode } from '@/contexts/SearchModeContext';
@@ -103,34 +103,16 @@ export function Header() {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48 bg-popover border-border">
-            {isAnonymous ? (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings" className="flex items-center gap-2">
-                    <UserPlus className="h-4 w-4" />
-                    Create Account
-                  </Link>
-                </DropdownMenuItem>
-                <p className="px-2 py-1.5 text-xs text-muted-foreground">
-                  Save your data across devices
-                </p>
-              </>
-            ) : (
-              <>
-                <DropdownMenuItem asChild>
-                  <Link to="/settings" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Settings
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <Link to="/login" className="flex items-center gap-2 text-destructive">
-                    <LogOut className="h-4 w-4" />
-                    Sign Out
-                  </Link>
-                </DropdownMenuItem>
-              </>
+            <DropdownMenuItem asChild>
+              <Link to="/settings" className="flex items-center gap-2">
+                {isAnonymous ? <UserPlus className="h-4 w-4" /> : <User className="h-4 w-4" />}
+                {isAnonymous ? 'Create Account' : 'Settings'}
+              </Link>
+            </DropdownMenuItem>
+            {isAnonymous && (
+              <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                Sync data across devices
+              </p>
             )}
           </DropdownMenuContent>
         </DropdownMenu>

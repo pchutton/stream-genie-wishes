@@ -13,24 +13,7 @@ export default function MyEvents() {
   const { user } = useAuth();
   const { savedEvents, isLoading: savedEventsLoading, unsaveEvent } = useSavedEvents();
 
-  if (!user) {
-    return (
-      <Layout>
-        <div className="container mx-auto px-4 py-12">
-          <div className="text-center max-w-md mx-auto">
-            <Heart className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
-            <h1 className="text-2xl font-bold mb-2">My Events</h1>
-            <p className="text-muted-foreground mb-6">
-              Sign in to save your favorite live events.
-            </p>
-            <Link to="/login">
-              <Button className="bg-primary hover:bg-primary/90">Sign In</Button>
-            </Link>
-          </div>
-        </div>
-      </Layout>
-    );
-  }
+  // Anonymous users are automatically signed in, so we always show the main UI
 
   return (
     <Layout>
