@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import { MediaCard, MediaItem } from './MediaCard';
 import { Loader2 } from 'lucide-react';
@@ -27,44 +27,27 @@ export function VirtualizedMediaGrid({
   fetchNextPage,
 }: VirtualizedMediaGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
-  
-  // Calculate columns based on screen width (1 on mobile, 2 on lg+)
-  const getColumnCount = () => {
-    if (typeof window === 'undefined') return 1;
-    return window.innerWidth >= 1024 ? 2 : 1;
-  };
-  
-  const [columnCount, setColumnCount] = useState(getColumnCount);
-  
-  useEffect(() => {
-    const handleResize = () => setColumnCount(getColumnCount());
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-  
-  // Calculate row count based on items and columns
-  const rowCount = Math.ceil(items.length / columnCount) + (hasNextPage ? 1 : 0);
-  
+
+  // Virtualize flat items - no row grouping, no resize issues
   const virtualizer = useVirtualizer({
-    count: rowCount,
+    count: items.length + (hasNextPage ? 1 : 0),
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 320, // Estimated row height
-    overscan: 3, // Render 3 extra rows for smoother scrolling
+    estimateSize: () => 260, // MediaCard estimated height
+    overscan: 5,
   });
-  
-  const virtualRows = virtualizer.getVirtualItems();
-  
-  // Trigger infinite scroll when reaching end
+
+  const virtualItems = virtualizer.getVirtualItems();
+
+  // Infinite scroll trigger
   useEffect(() => {
-    const lastRow = virtualRows[virtualRows.length - 1];
-    if (!lastRow) return;
+    const lastItem = virtualItems[virtualItems.length - 1];
+    if (!lastItem) return;
     
-    const isNearEnd = lastRow.index >= rowCount - 2;
-    if (isNearEnd && hasNextPage && !isFetchingNextPage && fetchNextPage) {
+    if (lastItem.index >= items.length - 1 && hasNextPage && !isFetchingNextPage && fetchNextPage) {
       fetchNextPage();
     }
-  }, [virtualRows, rowCount, hasNextPage, isFetchingNextPage, fetchNextPage]);
-  
+  }, [virtualItems, items.length, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   return (
     <div
       ref={parentRef}
@@ -72,60 +55,61 @@ export function VirtualizedMediaGrid({
       style={{ contain: 'strict' }}
     >
       <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: '100%',
-          position: 'relative',
-        }}
+        className="relative w-full"
+        style={{ height: `${virtualizer.getTotalSize()}px` }}
       >
-        {virtualRows.map((virtualRow) => {
-          const rowStartIndex = virtualRow.index * columnCount;
-          const rowItems = items.slice(rowStartIndex, rowStartIndex + columnCount);
-          const isLoaderRow = virtualRow.index === rowCount - 1 && hasNextPage;
-          
+        {virtualItems.map((virtualItem) => {
+          const isLoader = virtualItem.index === items.length;
+
+          if (isLoader) {
+            return (
+              <div
+                key="loader"
+                className="absolute left-0 w-full flex justify-center items-center py-6"
+                style={{
+                  top: 0,
+                  transform: `translateY(${virtualItem.start}px)`,
+                  height: `${virtualItem.size}px`,
+                }}
+              >
+                {isFetchingNextPage ? (
+                  <div className="flex items-center gap-2 text-muted-foreground">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                    <span>Loading more...</span>
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground text-sm">Scroll for more</span>
+                )}
+              </div>
+            );
+          }
+
+          const item = items[virtualItem.index];
+
           return (
             <div
-              key={virtualRow.key}
+              key={`${item.media_type}-${item.tmdb_id}`}
+              data-index={virtualItem.index}
+              ref={virtualizer.measureElement}
+              className="absolute left-0 w-full pb-4"
               style={{
-                position: 'absolute',
                 top: 0,
-                left: 0,
-                width: '100%',
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
+                transform: `translateY(${virtualItem.start}px)`,
               }}
             >
-              {isLoaderRow && rowItems.length === 0 ? (
-                <div className="flex justify-center items-center h-full py-6">
-                  {isFetchingNextPage ? (
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <Loader2 className="h-5 w-5 animate-spin" />
-                      <span>Loading more...</span>
-                    </div>
-                  ) : (
-                    <span className="text-muted-foreground text-sm">Scroll for more</span>
-                  )}
-                </div>
-              ) : (
-                <div className={`grid gap-4 ${columnCount === 2 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-                  {rowItems.map((item) => (
-                    <MediaCard
-                      key={`${item.media_type}-${item.tmdb_id}`}
-                      item={item}
-                      isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
-                      isWatched={isWatched(item.tmdb_id, item.media_type)}
-                      onAddToWatchlist={() => onAddToWatchlist(item)}
-                      onToggleWatched={() => onToggleWatched(item)}
-                      onShowDetails={() => onShowDetails(item)}
-                    />
-                  ))}
-                </div>
-              )}
+              <MediaCard
+                item={item}
+                isInWatchlist={isInWatchlist(item.tmdb_id, item.media_type)}
+                isWatched={isWatched(item.tmdb_id, item.media_type)}
+                onAddToWatchlist={() => onAddToWatchlist(item)}
+                onToggleWatched={() => onToggleWatched(item)}
+                onShowDetails={() => onShowDetails(item)}
+              />
             </div>
           );
         })}
       </div>
-      
+
       {/* End of results indicator */}
       {!hasNextPage && items.length > 20 && (
         <div className="flex justify-center py-6">
