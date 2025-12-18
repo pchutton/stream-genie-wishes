@@ -186,10 +186,14 @@ export function SearchBar({
             )} />
           </div>
           <Input
-            type="text"
+            type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder={currentPlaceholder}
+            aria-label={mode === 'media' ? 'Search movies and TV shows' : 'Search live events and sports'}
+            autoComplete="off"
+            autoCorrect="off"
+            spellCheck="false"
             className={cn(
               "h-14 rounded-2xl border-2 bg-card pl-12 pr-28 text-lg transition-all duration-300",
               isLive 

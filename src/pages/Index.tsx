@@ -124,7 +124,7 @@ export default function Home() {
           {searchMode === 'live' ? (
             <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} />
           ) : isSearching && searchResults.length === 0 ? (
-            <MediaGridSkeleton count={4} />
+            <MediaGridSkeleton count={12} />
           ) : searchResults.length > 0 ? (
             <VirtualizedMediaGrid
               items={searchResults}
@@ -138,14 +138,16 @@ export default function Home() {
               fetchNextPage={fetchNextPage}
             />
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <SearchIcon className="mb-4 h-12 w-12 text-muted-foreground/50" />
-              <p className="text-muted-foreground">
-                Try{' '}
+            <div className="flex flex-col items-center justify-center py-16 text-center">
+              <h2 className="text-2xl font-semibold mb-3">Welcome back!</h2>
+              <p className="text-muted-foreground mb-6 max-w-md">
+                Search for a movie, TV show, or switch to Live mode for sports and events
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Need something specific? Try{' '}
                 <Link to="/expanded-search" className="text-primary hover:underline font-medium">
                   Expanded Search
                 </Link>
-                {' '}for concerts, international leagues, or any live event.
               </p>
             </div>
           )}
