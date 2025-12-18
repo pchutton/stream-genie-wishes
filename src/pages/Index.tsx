@@ -4,6 +4,7 @@ import { Layout } from '@/components/layout/Layout';
 import { SearchBar, SearchMode } from '@/components/search/SearchBar';
 import { MediaItem } from '@/components/media/MediaCard';
 import { VirtualizedMediaGrid } from '@/components/media/VirtualizedMediaGrid';
+import { MediaGridSkeleton } from '@/components/media/MediaCardSkeleton';
 import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
 import { LiveEventsSearch } from '@/components/search/LiveEventsSearch';
 import { useAuth } from '@/lib/auth';
@@ -122,6 +123,8 @@ export default function Home() {
         <div className="space-y-4">
           {searchMode === 'live' ? (
             <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} />
+          ) : isSearching && searchResults.length === 0 ? (
+            <MediaGridSkeleton count={4} />
           ) : searchResults.length > 0 ? (
             <VirtualizedMediaGrid
               items={searchResults}
@@ -138,15 +141,11 @@ export default function Home() {
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <SearchIcon className="mb-4 h-12 w-12 text-muted-foreground/50" />
               <p className="text-muted-foreground">
-                {isSearching ? 'Searching...' : (
-                  <>
-                    Try{' '}
-                    <Link to="/expanded-search" className="text-primary hover:underline font-medium">
-                      Expanded Search
-                    </Link>
-                    {' '}for concerts, international leagues, or any live event.
-                  </>
-                )}
+                Try{' '}
+                <Link to="/expanded-search" className="text-primary hover:underline font-medium">
+                  Expanded Search
+                </Link>
+                {' '}for concerts, international leagues, or any live event.
               </p>
             </div>
           )}
