@@ -30,6 +30,7 @@ interface MediaCardProps {
   onRemoveFromWatchlist?: () => void;
   onToggleWatched?: () => void;
   onShowDetails?: () => void;
+  onPrefetchDetails?: () => void;
   showActions?: boolean;
 }
 
@@ -43,6 +44,7 @@ export function MediaCard({
   onRemoveFromWatchlist,
   onToggleWatched,
   onShowDetails,
+  onPrefetchDetails,
   showActions = true,
 }: MediaCardProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -52,12 +54,14 @@ export function MediaCard({
     ? `${TMDB_IMAGE_BASE}${item.poster_path}`
     : null;
 
-  // Prefetch higher-res poster on hover for instant details dialog load
+  // Prefetch higher-res poster + details data on hover
   const handlePrefetch = () => {
     if (item.poster_path) {
       const img = new Image();
       img.src = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
     }
+    // Prefetch full details via React Query
+    onPrefetchDetails?.();
   };
 
   const handleDetailsClick = (e: React.MouseEvent) => {
