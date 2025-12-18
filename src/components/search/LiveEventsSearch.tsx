@@ -107,9 +107,9 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
       <NetworkLogo platform={platform.name} className="h-16 w-16" />
       <span className="text-sm font-medium truncate w-full text-center text-foreground">{platform.name}</span>
       {platform.status && (
-        <span className={`text-xs px-3 py-1.5 rounded-full flex items-center gap-1.5 whitespace-nowrap ${style.bg} ${style.text}`}>
+        <span className={`text-xs px-2 py-1.5 rounded-lg flex items-center justify-center gap-1 text-center leading-tight max-w-full ${style.bg} ${style.text}`}>
           {style.icon}
-          <span>{platform.status}</span>
+          <span className="break-words">{platform.status}</span>
         </span>
       )}
     </div>
