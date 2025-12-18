@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import { Sparkles, Search as SearchIcon } from 'lucide-react';
 import { Layout } from '@/components/layout/Layout';
 import { SearchBar, SearchMode } from '@/components/search/SearchBar';
@@ -28,19 +28,18 @@ export default function Home() {
   const toggleWatched = useToggleWatched();
   const markAsSeen = useMarkAsSeen();
   
-  // Memoized callbacks for virtualized grid
-  const handleAddToWatchlist = useCallback((item: MediaItem) => {
+  const handleAddToWatchlist = (item: MediaItem) => {
     addToWatchlist.mutate(item);
-  }, [addToWatchlist]);
+  };
 
-  const handleToggleWatched = useCallback((item: MediaItem) => {
+  const handleToggleWatched = (item: MediaItem) => {
     const wlItem = watchlist?.find(w => w.tmdb_id === item.tmdb_id && w.media_type === item.media_type);
     if (wlItem) {
       toggleWatched.mutate({ id: wlItem.id, is_watched: !wlItem.is_watched });
     } else {
       markAsSeen.mutate(item);
     }
-  }, [watchlist, toggleWatched, markAsSeen]);
+  };
   
 
   const handleShowDetails = (item: MediaItem) => {

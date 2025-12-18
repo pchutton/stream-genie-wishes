@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -91,16 +91,16 @@ export function useTMDBSearch() {
     }
   }, [error, toast]);
 
-  const search = useCallback((query: string) => {
+  const search = (query: string) => {
     setSearchQuery(query);
-  }, []);
+  };
 
-  const clearResults = useCallback(() => {
+  const clearResults = () => {
     setSearchQuery('');
-  }, []);
+  };
 
   // Prefetch function for hover optimization
-  const prefetchSearch = useCallback((query: string) => {
+  const prefetchSearch = (query: string) => {
     if (query.trim()) {
       queryClient.prefetchInfiniteQuery({
         queryKey: ['tmdb-search', query],
@@ -109,7 +109,7 @@ export function useTMDBSearch() {
         staleTime: 1000 * 60 * 10,
       });
     }
-  }, [queryClient]);
+  };
 
   return {
     results,

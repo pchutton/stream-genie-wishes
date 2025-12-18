@@ -1,4 +1,4 @@
-import { useState, useCallback, memo } from 'react';
+import { useState } from 'react';
 import { Plus, Check, Eye, EyeOff, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -35,7 +35,7 @@ interface MediaCardProps {
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
 
-export const MediaCard = memo(function MediaCard({
+export function MediaCard({
   item,
   isInWatchlist = false,
   isWatched = false,
@@ -53,26 +53,22 @@ export const MediaCard = memo(function MediaCard({
     : null;
 
   // Prefetch higher-res poster on hover for instant details dialog load
-  const handlePrefetch = useCallback(() => {
+  const handlePrefetch = () => {
     if (item.poster_path) {
       const img = new Image();
       img.src = `https://image.tmdb.org/t/p/w500${item.poster_path}`;
     }
-  }, [item.poster_path]);
+  };
 
-  // Memoized handlers to prevent re-renders
-  const handleDetailsClick = useCallback((e: React.MouseEvent) => {
+  const handleDetailsClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onShowDetails?.();
-  }, [onShowDetails]);
+  };
 
-  const handleWatchedClick = useCallback((e: React.MouseEvent) => {
+  const handleWatchedClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     onToggleWatched?.();
-  }, [onToggleWatched]);
-
-  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
-  const handleImageError = useCallback(() => setImageError(true), []);
+  };
 
   return (
     <div 
@@ -96,8 +92,8 @@ export const MediaCard = memo(function MediaCard({
               'h-full w-full object-contain transition-all duration-300 pointer-events-none group-hover:scale-105',
               imageLoaded ? 'opacity-100' : 'opacity-0'
             )}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+            onLoad={() => setImageLoaded(true)}
+            onError={() => setImageError(true)}
           />
         ) : (
           <div className="flex h-full items-center justify-center">
@@ -206,4 +202,4 @@ export const MediaCard = memo(function MediaCard({
       </div>
     </div>
   );
-});
+}

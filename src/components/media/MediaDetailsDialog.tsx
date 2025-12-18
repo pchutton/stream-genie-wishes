@@ -1,4 +1,4 @@
-import { memo, useState, useCallback, useMemo } from 'react';
+import { useState } from 'react';
 import { Plus, Check, X, Calendar, Clock, Trophy } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -25,7 +25,7 @@ interface MediaDetailsDialogProps {
 
 const TMDB_IMAGE_BASE = 'https://image.tmdb.org/t/p/w342';
 
-export const MediaDetailsDialog = memo(function MediaDetailsDialog({
+export function MediaDetailsDialog({
   item,
   open,
   onOpenChange,
@@ -37,17 +37,8 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
 }: MediaDetailsDialogProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
 
-  const handleImageLoad = useCallback(() => setImageLoaded(true), []);
-
-  const posterUrl = useMemo(() => 
-    item?.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null,
-    [item?.poster_path]
-  );
-
-  const genresText = useMemo(() => 
-    item?.genres?.slice(0, 2).join(', ') || '',
-    [item?.genres]
-  );
+  const posterUrl = item?.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null;
+  const genresText = item?.genres?.slice(0, 2).join(', ') || '';
 
   if (!open || !item) return null;
 
@@ -75,7 +66,7 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
                     'h-full w-full object-cover transition-opacity duration-300',
                     imageLoaded ? 'opacity-100' : 'opacity-0'
                   )}
-                  onLoad={handleImageLoad}
+                  onLoad={() => setImageLoaded(true)}
                 />
               ) : (
                 <div className="flex h-full items-center justify-center bg-muted">
@@ -179,4 +170,4 @@ export const MediaDetailsDialog = memo(function MediaDetailsDialog({
       </DrawerContent>
     </Drawer>
   );
-});
+}
