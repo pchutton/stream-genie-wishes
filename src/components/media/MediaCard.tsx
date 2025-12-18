@@ -72,11 +72,21 @@ export function MediaCard({
 
   return (
     <div 
-      className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1 active:scale-[0.98] touch-manipulation"
+      className="group relative animate-fade-in flex gap-4 overflow-hidden rounded-xl bg-zinc-700 p-4 transition-all duration-300 hover:ring-2 hover:ring-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1 active:scale-[0.98] touch-manipulation cursor-pointer"
       onMouseEnter={handlePrefetch}
+      onClick={() => onShowDetails?.()}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onShowDetails?.();
+        }
+      }}
+      aria-label={`View details for ${item.title}`}
     >
       {/* Poster with group hover */}
-      <div className="group relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-900 cursor-pointer">
+      <div className="group relative aspect-[2/3] w-24 shrink-0 overflow-hidden rounded-lg bg-zinc-900">
         {/* Shimmer placeholder while loading */}
         {posterUrl && !imageLoaded && !imageError && (
           <div className="absolute inset-0 bg-zinc-800 animate-pulse" />
@@ -85,7 +95,7 @@ export function MediaCard({
         {posterUrl && !imageError ? (
           <img
             src={posterUrl}
-            alt={item.title}
+            alt={`${item.title} poster`}
             loading="lazy"
             decoding="async"
             className={cn(
@@ -101,8 +111,16 @@ export function MediaCard({
           </div>
         )}
 
-        {/* Hover Overlay - uses @media (hover: hover) automatically */}
-        <div className="absolute inset-0 z-10 flex flex-col items-center justify-end gap-2 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2">
+        {/* Hover Overlay with title and actions */}
+        <div className="absolute inset-0 z-10 flex flex-col items-center justify-end gap-1.5 bg-gradient-to-t from-black/95 via-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 p-2">
+          {/* Title in overlay for confirmation */}
+          <p className="text-xs font-medium text-white text-center line-clamp-2 mb-1">{item.title}</p>
+          
+          {/* Year & Rating */}
+          <p className="text-[10px] text-zinc-300 mb-1">
+            {item.release_year}{item.tmdb_rating ? ` • ${item.tmdb_rating.toFixed(1)} ⭐` : ''}
+          </p>
+          
           {/* Details Button */}
           <Button
             size="sm"
