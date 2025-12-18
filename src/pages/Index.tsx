@@ -7,6 +7,7 @@ import { VirtualizedMediaGrid } from '@/components/media/VirtualizedMediaGrid';
 import { MediaGridSkeleton } from '@/components/media/MediaCardSkeleton';
 import { MediaDetailsDialog } from '@/components/media/MediaDetailsDialog';
 import { LiveEventsSearch } from '@/components/search/LiveEventsSearch';
+import { WelcomeTooltip } from '@/components/onboarding/WelcomeTooltip';
 import { useAuth } from '@/lib/auth';
 import { useAddToWatchlist, useWatchlist, useToggleWatched, useRemoveFromWatchlist, useMarkAsSeen } from '@/hooks/useWatchlist';
 import { useTMDBSearch } from '@/hooks/useTMDBSearch';
@@ -163,6 +164,9 @@ export default function Home() {
             }
           }}
         />
+
+        {/* One-time welcome tooltip */}
+        <WelcomeTooltip />
       </div>
     </Layout>
   );
