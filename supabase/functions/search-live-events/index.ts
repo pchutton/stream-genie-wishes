@@ -158,6 +158,129 @@ function formatTimeInCentral(utcDate: Date, includeDateOnly: boolean = false): s
   return `${dayName}, ${monthName} ${dayNum}, ${hours}:${minuteStr} ${ampm} ${tzSuffix}`;
 }
 
+// Helper function to fetch multiple upcoming games from ESPN for a team
+// Returns up to `limit` upcoming games
+async function fetchMultipleESPNGames(teamName: string, limit: number = 5, sportHint?: string): Promise<ESPNGameInfo[]> {
+  const games: ESPNGameInfo[] = [];
+  
+  try {
+    // Map team names to ESPN team slugs and sport types
+    const espnTeamMap: Record<string, { slug: string; sport: string; league: string }> = {
+      // NBA Teams
+      'Los Angeles Lakers': { slug: 'lal', sport: 'nba', league: 'team' },
+      'Golden State Warriors': { slug: 'gs', sport: 'nba', league: 'team' },
+      'Boston Celtics': { slug: 'bos', sport: 'nba', league: 'team' },
+      'Milwaukee Bucks': { slug: 'mil', sport: 'nba', league: 'team' },
+      'Phoenix Suns': { slug: 'phx', sport: 'nba', league: 'team' },
+      'Dallas Mavericks': { slug: 'dal', sport: 'nba', league: 'team' },
+      'Miami Heat': { slug: 'mia', sport: 'nba', league: 'team' },
+      'Denver Nuggets': { slug: 'den', sport: 'nba', league: 'team' },
+      'Brooklyn Nets': { slug: 'bkn', sport: 'nba', league: 'team' },
+      'New York Knicks': { slug: 'ny', sport: 'nba', league: 'team' },
+      'Philadelphia 76ers': { slug: 'phi', sport: 'nba', league: 'team' },
+      'Toronto Raptors': { slug: 'tor', sport: 'nba', league: 'team' },
+      'Chicago Bulls': { slug: 'chi', sport: 'nba', league: 'team' },
+      'Cleveland Cavaliers': { slug: 'cle', sport: 'nba', league: 'team' },
+      'Detroit Pistons': { slug: 'det', sport: 'nba', league: 'team' },
+      'Indiana Pacers': { slug: 'ind', sport: 'nba', league: 'team' },
+      'Atlanta Hawks': { slug: 'atl', sport: 'nba', league: 'team' },
+      'Charlotte Hornets': { slug: 'cha', sport: 'nba', league: 'team' },
+      'Orlando Magic': { slug: 'orl', sport: 'nba', league: 'team' },
+      'Washington Wizards': { slug: 'wsh', sport: 'nba', league: 'team' },
+      'Houston Rockets': { slug: 'hou', sport: 'nba', league: 'team' },
+      'Memphis Grizzlies': { slug: 'mem', sport: 'nba', league: 'team' },
+      'New Orleans Pelicans': { slug: 'no', sport: 'nba', league: 'team' },
+      'San Antonio Spurs': { slug: 'sa', sport: 'nba', league: 'team' },
+      'Los Angeles Clippers': { slug: 'lac', sport: 'nba', league: 'team' },
+      'Sacramento Kings': { slug: 'sac', sport: 'nba', league: 'team' },
+      'Oklahoma City Thunder': { slug: 'okc', sport: 'nba', league: 'team' },
+      'Portland Trail Blazers': { slug: 'por', sport: 'nba', league: 'team' },
+      'Utah Jazz': { slug: 'uta', sport: 'nba', league: 'team' },
+      'Minnesota Timberwolves': { slug: 'min', sport: 'nba', league: 'team' },
+      // NFL Teams  
+      'Dallas Cowboys': { slug: 'dal', sport: 'nfl', league: 'team' },
+      'Kansas City Chiefs': { slug: 'kc', sport: 'nfl', league: 'team' },
+      'San Francisco 49ers': { slug: 'sf', sport: 'nfl', league: 'team' },
+      'Philadelphia Eagles': { slug: 'phi', sport: 'nfl', league: 'team' },
+      'Buffalo Bills': { slug: 'buf', sport: 'nfl', league: 'team' },
+      'Miami Dolphins': { slug: 'mia', sport: 'nfl', league: 'team' },
+      'New England Patriots': { slug: 'ne', sport: 'nfl', league: 'team' },
+      'Baltimore Ravens': { slug: 'bal', sport: 'nfl', league: 'team' },
+      'Pittsburgh Steelers': { slug: 'pit', sport: 'nfl', league: 'team' },
+      'Denver Broncos': { slug: 'den', sport: 'nfl', league: 'team' },
+      'Green Bay Packers': { slug: 'gb', sport: 'nfl', league: 'team' },
+      'Detroit Lions': { slug: 'det', sport: 'nfl', league: 'team' },
+      'Minnesota Vikings': { slug: 'min', sport: 'nfl', league: 'team' },
+      'Seattle Seahawks': { slug: 'sea', sport: 'nfl', league: 'team' },
+      'Los Angeles Rams': { slug: 'lar', sport: 'nfl', league: 'team' },
+      // NHL Teams
+      'Boston Bruins': { slug: 'bos', sport: 'nhl', league: 'team' },
+      'Toronto Maple Leafs': { slug: 'tor', sport: 'nhl', league: 'team' },
+      'Tampa Bay Lightning': { slug: 'tb', sport: 'nhl', league: 'team' },
+      'Colorado Avalanche': { slug: 'col', sport: 'nhl', league: 'team' },
+      'Vegas Golden Knights': { slug: 'vgk', sport: 'nhl', league: 'team' },
+      // MLB Teams
+      'New York Yankees': { slug: 'nyy', sport: 'mlb', league: 'team' },
+      'Los Angeles Dodgers': { slug: 'lad', sport: 'mlb', league: 'team' },
+      'Atlanta Braves': { slug: 'atl', sport: 'mlb', league: 'team' },
+    };
+    
+    const teamInfo = espnTeamMap[teamName];
+    if (!teamInfo) {
+      console.log(`Team "${teamName}" not found in espnTeamMap for multiple games lookup`);
+      return games;
+    }
+    
+    // If sport hint doesn't match, skip (e.g., searching for basketball but team is NFL)
+    if (sportHint) {
+      if (sportHint === 'basketball' && teamInfo.sport !== 'nba') return games;
+      if (sportHint === 'football' && teamInfo.sport !== 'nfl') return games;
+    }
+    
+    const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${
+      teamInfo.sport === 'nba' ? 'basketball' :
+      teamInfo.sport === 'nfl' ? 'football' :
+      teamInfo.sport === 'nhl' ? 'hockey' : 'baseball'
+    }/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+    
+    console.log(`Fetching multiple games from ESPN: ${scheduleUrl}`);
+    const data = await cachedFetch(scheduleUrl, CACHE_TTL.SCHEDULE);
+    
+    if (!data?.events) {
+      console.log('No events found in ESPN response for multiple games');
+      return games;
+    }
+    
+    const events = data.events;
+    const now = new Date();
+    console.log(`Found ${events.length} total ESPN events, filtering for upcoming games`);
+    
+    let upcomingCount = 0;
+    for (const event of events) {
+      if (upcomingCount >= limit) break;
+      
+      const eventDateTime = new Date(event.date);
+      const status = event.competitions?.[0]?.status?.type?.name || '';
+      
+      // Skip past or completed games
+      if (eventDateTime < now || status === 'STATUS_FINAL') continue;
+      
+      const gameInfo = extractGameInfo(event, eventDateTime);
+      if (gameInfo) {
+        games.push(gameInfo);
+        upcomingCount++;
+        console.log(`Added upcoming game #${upcomingCount}: ${gameInfo.eventName} at ${gameInfo.time}`);
+      }
+    }
+    
+    console.log(`Returning ${games.length} upcoming games for ${teamName}`);
+    return games;
+  } catch (error) {
+    console.error('Error fetching multiple ESPN games:', error);
+    return games;
+  }
+}
+
 // Helper function to fetch ESPN schedule page and extract game time
 // sportHint: 'basketball' | 'football' | null - helps disambiguate college teams
 async function fetchESPNGameInfo(teamName: string, eventDate?: string, eventLink?: string, sportHint?: string): Promise<ESPNGameInfo | null> {
@@ -1828,9 +1951,10 @@ If no upcoming events found, return an empty array [].`
       }));
     }
 
-    // Step 1.4: If AI returned 0 events but we have a recognized team, try ESPN API directly
-    if (events.length === 0) {
-      console.log('No events from AI, trying direct ESPN lookup for query:', query);
+    // Step 1.4: If AI returned few events (0-2) and we have a recognized team, try ESPN API for more games
+    // This ensures users searching for a team get multiple upcoming games, not just 1
+    if (events.length <= 2) {
+      console.log(`AI returned only ${events.length} events, trying ESPN multi-game lookup for query:`, query);
       const preProcessed = preProcessQuery(query);
       const lowerQuery = preProcessed.toLowerCase();
       
@@ -1911,22 +2035,43 @@ If no upcoming events found, return an empty array [].`
       }
       
       if (matchedTeam) {
-        console.log(`Attempting direct ESPN lookup for team: ${matchedTeam} (sport hint: ${sportHint || 'none'})`);
-        const espnInfo = await fetchESPNGameInfo(matchedTeam, undefined, undefined, sportHint);
+        console.log(`Attempting multi-game ESPN lookup for team: ${matchedTeam} (sport hint: ${sportHint || 'none'})`);
         
-        if (espnInfo) {
-          console.log(`Direct ESPN lookup found game: ${espnInfo.eventName} at ${espnInfo.time}`);
-          events = [{
-            eventName: espnInfo.eventName || `${matchedTeam} Game`,
-            time: espnInfo.time,
-            participants: espnInfo.opponent || matchedTeam,
+        // Try to get multiple upcoming games first
+        const multipleGames = await fetchMultipleESPNGames(matchedTeam, 5, sportHint);
+        
+        if (multipleGames.length > 0) {
+          console.log(`Multi-game ESPN lookup found ${multipleGames.length} games`);
+          events = multipleGames.map(game => ({
+            eventName: game.eventName || `${matchedTeam} Game`,
+            time: game.time,
+            participants: game.opponent || matchedTeam,
             whereToWatch: 'TBD',
             link: `https://www.espn.com/search/_/q/${encodeURIComponent(matchedTeam)}`,
             summary: `Upcoming game for ${matchedTeam}`,
-            eventDate: new Date().toISOString().split('T')[0]
-          }];
+            eventDate: game.eventDate || new Date().toISOString().split('T')[0],
+            eventDateTimeUTC: game.eventDateTimeUTC
+          }));
         } else {
-          console.log(`ESPN lookup returned no info for ${matchedTeam}`);
+          // Fallback to single game lookup
+          console.log(`Multi-game lookup returned 0, trying single game lookup`);
+          const espnInfo = await fetchESPNGameInfo(matchedTeam, undefined, undefined, sportHint);
+          
+          if (espnInfo) {
+            console.log(`Single ESPN lookup found game: ${espnInfo.eventName} at ${espnInfo.time}`);
+            events = [{
+              eventName: espnInfo.eventName || `${matchedTeam} Game`,
+              time: espnInfo.time,
+              participants: espnInfo.opponent || matchedTeam,
+              whereToWatch: 'TBD',
+              link: `https://www.espn.com/search/_/q/${encodeURIComponent(matchedTeam)}`,
+              summary: `Upcoming game for ${matchedTeam}`,
+              eventDate: espnInfo.eventDate || new Date().toISOString().split('T')[0],
+              eventDateTimeUTC: espnInfo.eventDateTimeUTC
+            }];
+          } else {
+            console.log(`ESPN lookup returned no info for ${matchedTeam}`);
+          }
         }
       } else {
         console.log('No team matched from query');
