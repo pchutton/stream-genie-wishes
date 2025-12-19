@@ -145,19 +145,16 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
   return (
     <div className="relative">
       <p className="text-sm font-semibold text-foreground mb-3">Watch on:</p>
-      <div className="flex overflow-x-auto gap-5 pb-3 -mx-4 px-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <div className="flex overflow-x-auto gap-5 pb-3 pr-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map((platform, idx) => (
-          <div key={`${platform.name}-${idx}`} className="snap-start">
+          <div key={`${platform.name}-${idx}`} className="snap-start flex-shrink-0">
             <PlatformWithStatus platform={platform} />
           </div>
         ))}
       </div>
-      {/* Subtle fade edges for scroll hint - only show if many items */}
+      {/* Subtle fade edge on right for scroll hint - only show if many items */}
       {items.length > 3 && (
-        <>
-          <div className="pointer-events-none absolute left-0 top-8 bottom-0 w-8 bg-gradient-to-r from-card to-transparent" />
-          <div className="pointer-events-none absolute right-0 top-8 bottom-0 w-8 bg-gradient-to-l from-card to-transparent" />
-        </>
+        <div className="pointer-events-none absolute right-0 top-8 bottom-0 w-8 bg-gradient-to-l from-card to-transparent" />
       )}
     </div>
   );
