@@ -36,12 +36,15 @@ function injectLogosIntoResults() {
     const platform = getLogoForUrl(url);
     
     if (platform) {
-      // Create logo badge
+      // Create logo badge using safe DOM methods (avoids innerHTML XSS risk)
       const badge = document.createElement('div');
       badge.className = 'streaming-logo-badge';
-      badge.innerHTML = `
-        <img src="${platform.logo}" alt="${platform.name}" title="${platform.name}" />
-      `;
+      
+      const img = document.createElement('img');
+      img.src = platform.logo;
+      img.alt = platform.name;
+      img.title = platform.name;
+      badge.appendChild(img);
       
       // Insert at the top of the result card
       result.insertBefore(badge, result.firstChild);
