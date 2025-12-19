@@ -261,12 +261,15 @@ async function fetchMultipleESPNGames(teamName: string, limit: number = 5, sport
       
       const eventDateTime = new Date(event.date);
       const status = event.competitions?.[0]?.status?.type?.name || '';
+      const statusState = event.competitions?.[0]?.status?.type?.state || '';
+      
+      console.log(`Event: ${event.shortName || event.name}, status: ${status}, state: ${statusState}, date: ${eventDateTime.toISOString()}`);
       
       // Include: upcoming games, games in progress (STATUS_IN_PROGRESS, STATUS_HALFTIME, etc.)
       // Skip only completed/final games
       const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED';
-      const isInProgress = status.includes('PROGRESS') || status === 'STATUS_HALFTIME' || status === 'STATUS_END_PERIOD';
-      const isUpcoming = eventDateTime > now || status === 'STATUS_SCHEDULED';
+      const isInProgress = status.includes('PROGRESS') || status === 'STATUS_HALFTIME' || status === 'STATUS_END_PERIOD' || statusState === 'in';
+      const isUpcoming = eventDateTime > now || status === 'STATUS_SCHEDULED' || statusState === 'pre';
       
       // Skip if completed and not in progress and not upcoming
       if (isCompleted) continue;
@@ -879,10 +882,11 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
   // Also check the status field for TBD indicators
   const competitions = event.competitions || [];
   const statusType = competitions[0]?.status?.type?.name || '';
+  const statusState = competitions[0]?.status?.type?.state || '';
   const hasBroadcast = competitions[0]?.broadcasts?.length > 0;
   
-  // Check if game is currently live/in progress
-  const isLive = statusType.includes('PROGRESS') || statusType === 'STATUS_HALFTIME' || statusType === 'STATUS_END_PERIOD';
+  // Check if game is currently live/in progress (check both name and state)
+  const isLive = statusType.includes('PROGRESS') || statusType === 'STATUS_HALFTIME' || statusType === 'STATUS_END_PERIOD' || statusState === 'in';
   
   let formattedTime: string;
   
