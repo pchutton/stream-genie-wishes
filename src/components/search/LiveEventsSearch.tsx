@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign, Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import type { LiveEvent, PlatformInfo } from '@/hooks/useLiveEventsSearch';
 import { NetworkLogo } from '@/components/media/NetworkLogos';
 import { useSavedEvents } from '@/hooks/useSavedEvents';
 import { cn } from '@/lib/utils';
+import { ReportIssueDialog, ReportIssueButton } from '@/components/media/ReportIssueDialog';
 
 interface LiveEventsSearchProps {
   results: LiveEvent[];
@@ -128,7 +130,15 @@ function PlatformWithStatus({ platform }: { platform: PlatformInfo }) {
   ) : content;
 }
 
-function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: string[]; platformDetails?: PlatformInfo[] }) {
+function StreamingPlatformBadges({ 
+  platforms, 
+  platformDetails,
+  onReportClick 
+}: { 
+  platforms?: string[]; 
+  platformDetails?: PlatformInfo[];
+  onReportClick?: () => void;
+}) {
   // Use platformDetails if available, otherwise generate default statuses for platform strings
   const items: PlatformInfo[] = (platformDetails && platformDetails.length > 0) 
     ? platformDetails 
@@ -144,7 +154,12 @@ function StreamingPlatformBadges({ platforms, platformDetails }: { platforms?: s
 
   return (
     <div className="relative">
-      <p className="text-sm font-semibold text-foreground mb-3">Watch on:</p>
+      <div className="flex items-center justify-between mb-3">
+        <p className="text-sm font-semibold text-foreground">Watch on:</p>
+        {onReportClick && (
+          <ReportIssueButton onClick={onReportClick} variant="text" />
+        )}
+      </div>
       <div className="flex overflow-x-auto gap-5 pb-3 pr-4 snap-x snap-mandatory [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
         {items.map((platform, idx) => (
           <div key={`${platform.name}-${idx}`} className="snap-start flex-shrink-0">
@@ -273,106 +288,123 @@ function parseTeamsFromParticipants(participants: string): { home: string; away:
 }
 
 function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved: boolean; onToggleSave: () => void }) {
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
   const localTime = formatEventTimeLocal(event);
   const teams = parseTeamsFromParticipants(event.participants || '');
   const homeLogoUrl = teams ? getTeamLogoUrl(teams.home) : null;
   const awayLogoUrl = teams ? getTeamLogoUrl(teams.away) : null;
   const showTeamLogos = homeLogoUrl || awayLogoUrl;
   
+  // Get platform names for the report dialog
+  const platformNames = event.platformDetails?.map(p => p.name) || event.streamingPlatforms || [];
+  
   return (
-    <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
-      <CardHeader className="pb-3">
-        {/* Team logos row */}
-        {showTeamLogos && teams && (
-          <div className="flex items-center justify-center gap-5 mb-3">
-            {awayLogoUrl ? (
-              <img src={awayLogoUrl} alt={teams.away} className="h-14 w-14 object-contain" />
-            ) : (
-              <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-                <Users className="h-7 w-7 text-muted-foreground" />
-              </div>
-            )}
-            <span className="text-base font-semibold text-muted-foreground">@</span>
-            {homeLogoUrl ? (
-              <img src={homeLogoUrl} alt={teams.home} className="h-14 w-14 object-contain" />
-            ) : (
-              <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
-                <Users className="h-7 w-7 text-muted-foreground" />
-              </div>
-            )}
-          </div>
-        )}
-        <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 text-center">
-          {event.eventName}
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4 px-5 py-4">
-        <div className="flex items-start gap-2 text-sm">
-          <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <span className="text-muted-foreground">{localTime}</span>
-        </div>
-        
-        {event.participants && (
-          <div className="flex items-start gap-2 text-sm">
-            <Users className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-            <span className="text-muted-foreground">{event.participants}</span>
-          </div>
-        )}
-        
-        <div className="flex items-start gap-2 text-sm">
-          <Tv className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <span className="text-foreground font-medium">
-            {event.whereToWatch?.toUpperCase().includes('TBD') ? 'TV / streaming details TBD' : event.whereToWatch}
-          </span>
-        </div>
-
-        {/* Streaming Platforms with Status */}
-        <StreamingPlatformBadges 
-          platforms={event.streamingPlatforms} 
-          platformDetails={event.platformDetails}
-        />
-        
-        <p className="text-sm text-muted-foreground line-clamp-2">
-          {event.summary}
-        </p>
-        
-        {event.link && (
-          <a
-            href={event.link}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center justify-center w-full mt-2 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
-          >
-            <ExternalLink className="h-4 w-4 mr-2" />
-            More Info
-          </a>
-        )}
-
-        {/* Add to My Events Button */}
-        <Button
-          variant={isSaved ? "secondary" : "outline"}
-          onClick={onToggleSave}
-          className={cn(
-            "w-full mt-2 h-10 gap-2 transition-all duration-300",
-            isSaved 
-              ? "" 
-              : "border-primary/50 hover:bg-primary/10 shadow-[0_0_15px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_25px_hsl(var(--primary)/0.5)]"
+    <>
+      <Card className="bg-card border-border transition-all duration-300 hover:border-primary/50 hover:shadow-[0_0_25px_hsl(var(--genie-gold)/0.3),0_0_50px_hsl(var(--genie-gold)/0.1)] hover:-translate-y-1">
+        <CardHeader className="pb-3">
+          {/* Team logos row */}
+          {showTeamLogos && teams && (
+            <div className="flex items-center justify-center gap-5 mb-3">
+              {awayLogoUrl ? (
+                <img src={awayLogoUrl} alt={teams.away} className="h-14 w-14 object-contain" />
+              ) : (
+                <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
+                  <Users className="h-7 w-7 text-muted-foreground" />
+                </div>
+              )}
+              <span className="text-base font-semibold text-muted-foreground">@</span>
+              {homeLogoUrl ? (
+                <img src={homeLogoUrl} alt={teams.home} className="h-14 w-14 object-contain" />
+              ) : (
+                <div className="h-14 w-14 rounded-full bg-muted flex items-center justify-center">
+                  <Users className="h-7 w-7 text-muted-foreground" />
+                </div>
+              )}
+            </div>
           )}
-        >
-          <Heart 
-            className={cn(
-              "h-5 w-5 transition-all",
-              isSaved 
-                ? "fill-primary text-primary" 
-                : "text-primary animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
-            )} 
+          <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 text-center">
+            {event.eventName}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4 px-5 py-4">
+          <div className="flex items-start gap-2 text-sm">
+            <Calendar className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <span className="text-muted-foreground">{localTime}</span>
+          </div>
+          
+          {event.participants && (
+            <div className="flex items-start gap-2 text-sm">
+              <Users className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+              <span className="text-muted-foreground">{event.participants}</span>
+            </div>
+          )}
+          
+          <div className="flex items-start gap-2 text-sm">
+            <Tv className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+            <span className="text-foreground font-medium">
+              {event.whereToWatch?.toUpperCase().includes('TBD') ? 'TV / streaming details TBD' : event.whereToWatch}
+            </span>
+          </div>
+
+          {/* Streaming Platforms with Status */}
+          <StreamingPlatformBadges 
+            platforms={event.streamingPlatforms} 
+            platformDetails={event.platformDetails}
+            onReportClick={() => setReportDialogOpen(true)}
           />
-          <span className={cn(isSaved ? "text-foreground" : "text-primary font-medium")}>
-            {isSaved ? 'Saved to My Events' : 'Add to My Events'}
-          </span>
-        </Button>
-      </CardContent>
-    </Card>
+          
+          <p className="text-sm text-muted-foreground line-clamp-2">
+            {event.summary}
+          </p>
+          
+          {event.link && (
+            <a
+              href={event.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center w-full mt-2 h-9 px-3 rounded-md border border-input bg-background text-sm font-medium hover:bg-accent hover:text-accent-foreground transition-colors"
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              More Info
+            </a>
+          )}
+
+          {/* Add to My Events Button */}
+          <Button
+            variant={isSaved ? "secondary" : "outline"}
+            onClick={onToggleSave}
+            className={cn(
+              "w-full mt-2 h-10 gap-2 transition-all duration-300",
+              isSaved 
+                ? "" 
+                : "border-primary/50 hover:bg-primary/10 shadow-[0_0_15px_hsl(var(--primary)/0.3)] hover:shadow-[0_0_25px_hsl(var(--primary)/0.5)]"
+            )}
+          >
+            <Heart 
+              className={cn(
+                "h-5 w-5 transition-all",
+                isSaved 
+                  ? "fill-primary text-primary" 
+                  : "text-primary animate-[pulse_2s_cubic-bezier(0.4,0,0.6,1)_infinite]"
+              )} 
+            />
+            <span className={cn(isSaved ? "text-foreground" : "text-primary font-medium")}>
+              {isSaved ? 'Saved to My Events' : 'Add to My Events'}
+            </span>
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Report Issue Dialog */}
+      <ReportIssueDialog
+        open={reportDialogOpen}
+        onOpenChange={setReportDialogOpen}
+        contentType="live_event"
+        contentId={event.eventName}
+        contentTitle={event.eventName}
+        providers={platformNames}
+      />
+    </>
   );
 }
 

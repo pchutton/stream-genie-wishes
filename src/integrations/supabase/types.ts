@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_reports: {
+        Row: {
+          additional_info: string | null
+          content_id: string
+          content_title: string
+          content_type: string
+          correct_provider: string | null
+          created_at: string
+          device_info: string | null
+          id: string
+          issue_type: string
+          region: string | null
+          reported_provider: string | null
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          additional_info?: string | null
+          content_id: string
+          content_title: string
+          content_type: string
+          correct_provider?: string | null
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          issue_type: string
+          region?: string | null
+          reported_provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          additional_info?: string | null
+          content_id?: string
+          content_title?: string
+          content_type?: string
+          correct_provider?: string | null
+          created_at?: string
+          device_info?: string | null
+          id?: string
+          issue_type?: string
+          region?: string | null
+          reported_provider?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           created_at: string
