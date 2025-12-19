@@ -23,6 +23,7 @@ export function useLiveEventsSearch() {
   const [results, setResults] = useState<LiveEvent[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [streamingDataLastUpdated, setStreamingDataLastUpdated] = useState<string | null>(null);
   const { toast } = useToast();
 
   const search = async (query: string) => {
@@ -45,7 +46,7 @@ export function useLiveEventsSearch() {
       }
  
       setResults(data.events || []);
- 
+      setStreamingDataLastUpdated(data.streamingDataLastUpdated || null);
       if (data.events?.length === 0) {
         if (data.quotaExceeded) {
           toast({
@@ -77,7 +78,8 @@ export function useLiveEventsSearch() {
   const clearResults = () => {
     setResults([]);
     setError(null);
+    setStreamingDataLastUpdated(null);
   };
 
-  return { results, isLoading, error, search, clearResults };
+  return { results, isLoading, error, search, clearResults, streamingDataLastUpdated };
 }
