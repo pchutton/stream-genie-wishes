@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign, Heart } from 'lucide-react';
+import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign, Heart, Clock, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -9,10 +9,12 @@ import { NetworkLogo } from '@/components/media/NetworkLogos';
 import { useSavedEvents } from '@/hooks/useSavedEvents';
 import { cn } from '@/lib/utils';
 import { ReportIssueDialog, ReportIssueButton } from '@/components/media/ReportIssueDialog';
+import { formatDistanceToNow } from 'date-fns';
 
 interface LiveEventsSearchProps {
   results: LiveEvent[];
   isLoading: boolean;
+  streamingDataLastUpdated?: string | null;
 }
 
 // Streaming platform URLs
@@ -441,8 +443,28 @@ function LoadingSkeleton() {
   );
 }
 
-export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) {
+export function LiveEventsSearch({ results, isLoading, streamingDataLastUpdated }: LiveEventsSearchProps) {
   const { isEventSaved, toggleSaveEvent } = useSavedEvents();
+
+  // Format the last updated timestamp
+  const getDataFreshnessInfo = () => {
+    if (!streamingDataLastUpdated) return null;
+    
+    try {
+      const date = new Date(streamingDataLastUpdated);
+      const hoursAgo = (Date.now() - date.getTime()) / (1000 * 60 * 60);
+      const isStale = hoursAgo > 24 * 7; // More than 7 days old
+      
+      return {
+        text: `Streaming data updated ${formatDistanceToNow(date, { addSuffix: true })}`,
+        isStale,
+      };
+    } catch {
+      return null;
+    }
+  };
+
+  const freshnessInfo = getDataFreshnessInfo();
 
   if (isLoading) {
     return (
@@ -476,15 +498,37 @@ export function LiveEventsSearch({ results, isLoading }: LiveEventsSearchProps) 
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {results.map((event, index) => (
-        <EventCard 
-          key={`${event.eventName}-${index}`} 
-          event={event} 
-          isSaved={isEventSaved(event.eventName)}
-          onToggleSave={() => toggleSaveEvent(event)}
-        />
-      ))}
+    <div className="space-y-4">
+      {/* Data freshness indicator */}
+      {freshnessInfo && (
+        <div className={cn(
+          "flex items-center gap-2 text-xs px-3 py-2 rounded-lg",
+          freshnessInfo.isStale 
+            ? "bg-orange-500/10 text-orange-400 border border-orange-500/20" 
+            : "bg-muted/50 text-muted-foreground"
+        )}>
+          {freshnessInfo.isStale ? (
+            <AlertTriangle className="h-3.5 w-3.5" />
+          ) : (
+            <Clock className="h-3.5 w-3.5" />
+          )}
+          <span>{freshnessInfo.text}</span>
+          {freshnessInfo.isStale && (
+            <span className="ml-1">— some info may be outdated. Report issues to help us update!</span>
+          )}
+        </div>
+      )}
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {results.map((event, index) => (
+          <EventCard 
+            key={`${event.eventName}-${index}`} 
+            event={event} 
+            isSaved={isEventSaved(event.eventName)}
+            onToggleSave={() => toggleSaveEvent(event)}
+          />
+        ))}
+      </div>
     </div>
   );
 }

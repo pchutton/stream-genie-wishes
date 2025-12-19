@@ -26,7 +26,7 @@ export default function Home() {
   const lastSearchRef = useRef<{ query: string; mode: SearchMode } | null>(null);
 
   const { results: searchResults, isLoading: isSearching, search, clearResults: clearMediaResults, fetchNextPage, hasNextPage, isFetchingNextPage } = useTMDBSearch();
-  const { results: liveResults, isLoading: isSearchingLive, search: searchLive, clearResults: clearLiveResults } = useLiveEventsSearch();
+  const { results: liveResults, isLoading: isSearchingLive, search: searchLive, clearResults: clearLiveResults, streamingDataLastUpdated } = useLiveEventsSearch();
   const { prefetchDetails } = useTMDBDetails(null, null);
   const { data: watchlist } = useWatchlist();
   const addToWatchlist = useAddToWatchlist();
@@ -110,7 +110,7 @@ export default function Home() {
         {/* Search Results */}
         <div className="space-y-4">
           {searchMode === 'live' ? (
-            <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} />
+            <LiveEventsSearch results={liveResults} isLoading={isSearchingLive} streamingDataLastUpdated={streamingDataLastUpdated} />
           ) : isSearching && searchResults.length === 0 ? (
             <MediaGridSkeleton count={12} />
           ) : searchResults.length > 0 ? (

@@ -1,10 +1,15 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Supabase client for fetching streaming mappings
+const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // ============ CACHING LAYER ============
 interface CacheEntry<T> {
@@ -21,7 +26,12 @@ const CACHE_TTL = {
   SCHEDULE: 10 * 60 * 1000,      // 10 minutes for schedule data
   SCOREBOARD: 2 * 60 * 1000,     // 2 minutes for live scoreboard
   TEAM_SEARCH: 30 * 60 * 1000,   // 30 minutes for team search results
+  STREAMING_MAPPINGS: 60 * 60 * 1000, // 1 hour for streaming mappings
 };
+
+// Cache for streaming mappings
+let streamingMappingsCache: { data: Record<string, string[]>; timestamp: number; verificationStatus: Record<string, boolean> } | null = null;
+let streamingMappingsLastUpdated: string | null = null;
 
 function getCached<T>(key: string): T | null {
   const entry = espnCache.get(key);
@@ -1062,67 +1072,83 @@ function parseJSONRobust(content: string): any {
   return null;
 }
 
-// Mapping of broadcast channels to streaming platforms
-const channelToStreamingMap: Record<string, string[]> = {
+// Fallback mapping if database query fails
+const FALLBACK_CHANNEL_MAP: Record<string, string[]> = {
   'ABC': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'DirecTV Stream'],
   'ESPN': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
   'ESPN2': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
-  'ESPNU': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
-  'ESPNEWS': ['Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream', 'ESPN App'],
-  'ESPN+': ['ESPN+'],
   'FOX': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'FS1': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
-  'FS2': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
-  'Fox Sports': ['YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Blue'],
   'CBS': ['Paramount+', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
-  'CBS Sports Network': ['Paramount+', 'YouTube TV', 'Fubo', 'DirecTV Stream'],
   'NBC': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
-  'Peacock': ['Peacock'],
+  'TNT': ['YouTube TV', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Orange'],
+  'TBS': ['YouTube TV', 'Hulu + Live TV', 'DirecTV Stream', 'Sling Orange'],
   'Prime Video': ['Prime Video'],
-  'Amazon Prime': ['Prime Video'],
-  'TNT': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
-  'TBS': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
-  'truTV': ['Max', 'YouTube TV', 'Hulu + Live TV', 'DirecTV Stream'],
-  'NFL Network': ['YouTube TV', 'Fubo', 'Sling Blue', 'DirecTV Stream'],
-  'NBA TV': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
-  'MLB Network': ['YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
-  'NHL Network': ['YouTube TV', 'Fubo', 'DirecTV Stream'],
-  'USA Network': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
-  // College sports networks
-  'SEC Network': ['ESPN+', 'Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
-  'SEC Network+': ['ESPN+', 'ESPN App'],
-  'Big Ten Network': ['Peacock', 'YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream'],
-  'BTN': ['Peacock', 'YouTube TV', 'Fubo', 'Hulu + Live TV', 'DirecTV Stream'],
-  'ACC Network': ['ESPN+', 'Hulu + Live TV', 'YouTube TV', 'Fubo', 'Sling Orange', 'DirecTV Stream'],
-  'ACC Network Extra': ['ESPN+', 'ESPN App'],
-  'Longhorn Network': ['ESPN+', 'Sling Orange'],
-  'Big 12 Now': ['ESPN+'],
-  'PAC-12 Network': ['Fubo', 'Sling Orange'],
-  // Soccer channels
-  'NBCSN': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
-  'USA': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo', 'DirecTV Stream'],
-  'Telemundo': ['Peacock', 'YouTube TV', 'Hulu + Live TV', 'Fubo'],
-  'Universo': ['YouTube TV', 'Fubo'],
-  'beIN Sports': ['Fubo', 'Sling Orange'],
-  'Apple TV': ['Apple TV+'],
-  'Apple TV+': ['Apple TV+'],
-  'MLS Season Pass': ['Apple TV+'],
-  // UFC/Boxing channels
-  'PPV': ['ESPN+ PPV', 'DAZN'],
-  'ESPN PPV': ['ESPN+ PPV'],
-  'DAZN': ['DAZN'],
-  'Showtime': ['Paramount+', 'YouTube TV', 'Fubo'],
-  // Tennis channels
-  'Tennis Channel': ['YouTube TV', 'Fubo', 'Sling Orange'],
-  // Golf channels
-  'Golf Channel': ['Peacock', 'YouTube TV', 'Fubo', 'Sling Blue'],
+  'Peacock': ['Peacock'],
+  'ESPN+': ['ESPN+'],
 };
+
+// Fetch streaming mappings from database with caching
+async function getChannelToStreamingMap(): Promise<{ 
+  map: Record<string, string[]>; 
+  verificationStatus: Record<string, boolean>;
+  lastUpdated: string | null;
+}> {
+  const now = Date.now();
+  
+  // Check cache
+  if (streamingMappingsCache && (now - streamingMappingsCache.timestamp) < CACHE_TTL.STREAMING_MAPPINGS) {
+    console.log('Using cached streaming mappings');
+    return { 
+      map: streamingMappingsCache.data, 
+      verificationStatus: streamingMappingsCache.verificationStatus,
+      lastUpdated: streamingMappingsLastUpdated 
+    };
+  }
+  
+  try {
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    
+    const { data, error } = await supabase
+      .from('streaming_mappings')
+      .select('channel, platforms, is_verified, last_updated')
+      .order('last_updated', { ascending: false });
+    
+    if (error || !data || data.length === 0) {
+      console.warn('Failed to fetch streaming mappings from database, using fallback:', error?.message);
+      return { map: FALLBACK_CHANNEL_MAP, verificationStatus: {}, lastUpdated: null };
+    }
+    
+    // Build the map and track verification status
+    const map: Record<string, string[]> = {};
+    const verificationStatus: Record<string, boolean> = {};
+    let mostRecentUpdate = data[0]?.last_updated || null;
+    
+    for (const row of data) {
+      map[row.channel] = row.platforms;
+      verificationStatus[row.channel] = row.is_verified;
+    }
+    
+    // Update cache
+    streamingMappingsCache = { data: map, timestamp: now, verificationStatus };
+    streamingMappingsLastUpdated = mostRecentUpdate;
+    
+    console.log(`Loaded ${data.length} streaming mappings from database (last updated: ${mostRecentUpdate})`);
+    return { map, verificationStatus, lastUpdated: mostRecentUpdate };
+  } catch (err) {
+    console.error('Error fetching streaming mappings:', err);
+    return { map: FALLBACK_CHANNEL_MAP, verificationStatus: {}, lastUpdated: null };
+  }
+}
 
 async function enrichWithStreamingPlatforms(
   events: LiveEvent[],
   apiKey: string
-): Promise<LiveEvent[]> {
+): Promise<{ events: LiveEvent[]; mappingsLastUpdated: string | null }> {
   console.log('Enriching events with streaming platforms');
+  
+  // Fetch streaming mappings from database
+  const { map: channelToStreamingMap, verificationStatus, lastUpdated: mappingsLastUpdated } = await getChannelToStreamingMap();
   
   const enrichedEvents = await Promise.all(
     events.map(async (event) => {
@@ -1283,7 +1309,7 @@ Return JSON like:
     })
   );
 
-  return enrichedEvents;
+  return { events: enrichedEvents, mappingsLastUpdated };
 }
 
 // Default status fallback based on platform type
@@ -2133,12 +2159,16 @@ If no upcoming events found, return an empty array [].`
 
     // Step 2: Enrich events with streaming platform information
     console.log('Step 2: Enriching with streaming platforms');
-    const enrichedEvents = await enrichWithStreamingPlatforms(eventsWithTimes, LOVABLE_API_KEY!);
+    const { events: enrichedEvents, mappingsLastUpdated } = await enrichWithStreamingPlatforms(eventsWithTimes, LOVABLE_API_KEY!);
 
     console.log(`Returning ${enrichedEvents.length} enriched events`);
 
     return new Response(
-      JSON.stringify({ events: enrichedEvents, aiProcessed: true }),
+      JSON.stringify({ 
+        events: enrichedEvents, 
+        aiProcessed: true,
+        streamingDataLastUpdated: mappingsLastUpdated 
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 

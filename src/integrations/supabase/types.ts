@@ -203,6 +203,39 @@ export type Database = {
         }
         Relationships: []
       }
+      streaming_mappings: {
+        Row: {
+          category: string | null
+          channel: string
+          id: string
+          is_verified: boolean | null
+          last_updated: string | null
+          notes: string | null
+          platforms: string[]
+          report_count: number | null
+        }
+        Insert: {
+          category?: string | null
+          channel: string
+          id?: string
+          is_verified?: boolean | null
+          last_updated?: string | null
+          notes?: string | null
+          platforms: string[]
+          report_count?: number | null
+        }
+        Update: {
+          category?: string | null
+          channel?: string
+          id?: string
+          is_verified?: boolean | null
+          last_updated?: string | null
+          notes?: string | null
+          platforms?: string[]
+          report_count?: number | null
+        }
+        Relationships: []
+      }
       watchlist: {
         Row: {
           added_at: string
