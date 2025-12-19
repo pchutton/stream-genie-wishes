@@ -1,7 +1,8 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, List, User, Search, Heart, UserPlus } from 'lucide-react';
+import { Sparkles, List, User, Search, Heart, UserPlus, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { useSearchMode } from '@/contexts/SearchModeContext';
 import { cn } from '@/lib/utils';
 import {
@@ -14,6 +15,7 @@ import {
 
 export function Header() {
   const { user, isAnonymous } = useAuth();
+  const { isAdmin } = useUserRole();
   const location = useLocation();
   const { searchMode } = useSearchMode();
   
@@ -113,6 +115,17 @@ export function Header() {
               <p className="px-2 py-1.5 text-xs text-muted-foreground">
                 Sync data across devices
               </p>
+            )}
+            {isAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link to="/admin/mappings" className="flex items-center gap-2 text-primary">
+                    <Shield className="h-4 w-4" />
+                    Admin: Mappings
+                  </Link>
+                </DropdownMenuItem>
+              </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
