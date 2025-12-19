@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import Pro from "./pages/Pro";
 import ExpandedSearch from "./pages/ExpandedSearch";
 import MyEvents from "./pages/MyEvents";
+import StreamingMappings from "./pages/admin/StreamingMappings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/pro" element={<Pro />} />
                 <Route path="/expanded-search" element={<ExpandedSearch />} />
                 <Route path="/my-events" element={<ProtectedRoute><MyEvents /></ProtectedRoute>} />
+                <Route path="/admin/mappings" element={<ProtectedRoute><StreamingMappings /></ProtectedRoute>} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
