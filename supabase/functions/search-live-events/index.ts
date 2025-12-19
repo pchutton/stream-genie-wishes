@@ -262,8 +262,15 @@ async function fetchMultipleESPNGames(teamName: string, limit: number = 5, sport
       const eventDateTime = new Date(event.date);
       const status = event.competitions?.[0]?.status?.type?.name || '';
       
-      // Skip past or completed games
-      if (eventDateTime < now || status === 'STATUS_FINAL') continue;
+      // Include: upcoming games, games in progress (STATUS_IN_PROGRESS, STATUS_HALFTIME, etc.)
+      // Skip only completed/final games
+      const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED';
+      const isInProgress = status.includes('PROGRESS') || status === 'STATUS_HALFTIME' || status === 'STATUS_END_PERIOD';
+      const isUpcoming = eventDateTime > now || status === 'STATUS_SCHEDULED';
+      
+      // Skip if completed and not in progress and not upcoming
+      if (isCompleted) continue;
+      if (!isInProgress && !isUpcoming && eventDateTime < now) continue;
       
       const gameInfo = extractGameInfo(event, eventDateTime);
       if (gameInfo) {
@@ -874,9 +881,15 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
   const statusType = competitions[0]?.status?.type?.name || '';
   const hasBroadcast = competitions[0]?.broadcasts?.length > 0;
   
+  // Check if game is currently live/in progress
+  const isLive = statusType.includes('PROGRESS') || statusType === 'STATUS_HALFTIME' || statusType === 'STATUS_END_PERIOD';
+  
   let formattedTime: string;
   
-  if (isTimeTBD && !hasBroadcast) {
+  if (isLive) {
+    // Game is currently in progress - show "LIVE NOW" indicator
+    formattedTime = '🔴 LIVE NOW';
+  } else if (isTimeTBD && !hasBroadcast) {
     // Time is truly TBD - use manual Central Time formatter for date only
     formattedTime = formatTimeInCentral(eventDateTime, true) + ' - Time TBD';
   } else {
