@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Check, X, Edit2, Save, AlertTriangle, RefreshCw, Flag } from 'lucide-react';
+import { ArrowLeft, Check, X, Edit2, Save, AlertTriangle, RefreshCw, Flag, ShieldAlert } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,6 +28,7 @@ interface StreamingMapping {
 export default function StreamingMappings() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { isAdmin, isLoading: isLoadingRole } = useUserRole();
   const { toast } = useToast();
   
   const [mappings, setMappings] = useState<StreamingMapping[]>([]);
@@ -174,6 +176,19 @@ export default function StreamingMappings() {
     flagged: mappings.filter(m => m.report_count > 0).length,
   };
 
+  // Show loading while checking role
+  if (isLoadingRole) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+          <p className="text-muted-foreground">Checking permissions...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not logged in
   if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
@@ -183,6 +198,26 @@ export default function StreamingMappings() {
             <h2 className="text-xl font-semibold mb-2">Access Denied</h2>
             <p className="text-muted-foreground mb-4">You must be logged in to access this page.</p>
             <Button onClick={() => navigate('/login')}>Go to Login</Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Logged in but not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <Card className="max-w-md w-full">
+          <CardContent className="pt-6 text-center">
+            <ShieldAlert className="h-12 w-12 text-destructive mx-auto mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Admin Access Required</h2>
+            <p className="text-muted-foreground mb-4">
+              This page is only accessible to administrators.
+            </p>
+            <Button variant="outline" onClick={() => navigate('/')}>
+              Go Home
+            </Button>
           </CardContent>
         </Card>
       </div>
