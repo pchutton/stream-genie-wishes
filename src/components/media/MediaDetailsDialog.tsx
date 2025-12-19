@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { StreamingCarousel } from './StreamingCarousel';
 import { MediaItem } from './MediaCard';
 import { Badge } from '@/components/ui/badge';
-
+import { ReportIssueDialog, ReportIssueButton } from './ReportIssueDialog';
 interface MediaDetailsDialogProps {
   item: MediaItem | null;
   open: boolean;
@@ -36,6 +36,7 @@ export function MediaDetailsDialog({
   onToggleWatched,
 }: MediaDetailsDialogProps) {
   const [imageLoaded, setImageLoaded] = useState(false);
+  const [reportDialogOpen, setReportDialogOpen] = useState(false);
 
   const posterUrl = item?.poster_path ? `${TMDB_IMAGE_BASE}${item.poster_path}` : null;
   const genresText = item?.genres?.slice(0, 2).join(', ') || '';
@@ -126,13 +127,29 @@ export function MediaDetailsDialog({
 
           {/* Where to Watch */}
           <div className="mt-4">
-            <h4 className="text-xs font-medium text-muted-foreground mb-2">Where to Watch</h4>
+            <div className="flex items-center justify-between mb-2">
+              <h4 className="text-xs font-medium text-muted-foreground">Where to Watch</h4>
+              <ReportIssueButton 
+                onClick={() => setReportDialogOpen(true)} 
+                variant="text"
+              />
+            </div>
             <StreamingCarousel
               streaming={item.streaming_platforms}
               rent={item.rent_platforms}
               buy={item.buy_platforms}
             />
           </div>
+
+          {/* Report Issue Dialog */}
+          <ReportIssueDialog
+            open={reportDialogOpen}
+            onOpenChange={setReportDialogOpen}
+            contentType={item.media_type === 'movie' ? 'movie' : 'tv'}
+            contentId={String(item.tmdb_id)}
+            contentTitle={item.title}
+            providers={item.streaming_platforms}
+          />
 
           {/* Action buttons - sticky at bottom feel */}
           <div className="flex gap-2 mt-6">
