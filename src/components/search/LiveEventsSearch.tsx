@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign, Heart, Clock, AlertTriangle } from 'lucide-react';
+import { useState, Component, ReactNode } from 'react';
+import { ExternalLink, Calendar, Users, Tv, Radio, Check, LogIn, DollarSign, Heart, Clock, AlertTriangle, AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,6 +10,38 @@ import { useSavedEvents } from '@/hooks/useSavedEvents';
 import { cn } from '@/lib/utils';
 import { ReportIssueDialog, ReportIssueButton } from '@/components/media/ReportIssueDialog';
 import { formatDistanceToNow } from 'date-fns';
+
+// Error boundary to catch rendering errors and prevent black screen
+class EventCardErrorBoundary extends Component<{ children: ReactNode; eventName: string }, { hasError: boolean }> {
+  constructor(props: { children: ReactNode; eventName: string }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('EventCard render error:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <Card className="bg-card border-border">
+          <CardContent className="flex flex-col items-center justify-center py-8 text-center">
+            <AlertCircle className="h-8 w-8 text-destructive mb-2" />
+            <p className="text-sm text-muted-foreground">
+              Failed to display: {this.props.eventName}
+            </p>
+          </CardContent>
+        </Card>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 interface LiveEventsSearchProps {
   results: LiveEvent[];
@@ -208,6 +240,8 @@ function getDefaultStatus(platform: string): string {
 
 // Format event time in user's local timezone
 function formatEventTimeLocal(event: LiveEvent): string {
+  if (!event) return 'Time TBD';
+  
   if (event.eventDateTimeUTC) {
     try {
       const date = new Date(event.eventDateTimeUTC);
@@ -226,7 +260,7 @@ function formatEventTimeLocal(event: LiveEvent): string {
     }
   }
   // Fallback to backend-provided time
-  return event.time;
+  return event.time || 'Time TBD';
 }
 
 // Parse team IDs from participants for ESPN logos
@@ -291,14 +325,20 @@ function parseTeamsFromParticipants(participants: string): { home: string; away:
 
 function EventCard({ event, isSaved, onToggleSave }: { event: LiveEvent; isSaved: boolean; onToggleSave: () => void }) {
   const [reportDialogOpen, setReportDialogOpen] = useState(false);
+  
+  // Guard against null/undefined event
+  if (!event || !event.eventName) {
+    return null;
+  }
+  
   const localTime = formatEventTimeLocal(event);
   const teams = parseTeamsFromParticipants(event.participants || '');
   const homeLogoUrl = teams ? getTeamLogoUrl(teams.home) : null;
   const awayLogoUrl = teams ? getTeamLogoUrl(teams.away) : null;
   const showTeamLogos = homeLogoUrl || awayLogoUrl;
   
-  // Get platform names for the report dialog
-  const platformNames = event.platformDetails?.map(p => p.name) || event.streamingPlatforms || [];
+  // Get platform names for the report dialog - with null safety
+  const platformNames = event.platformDetails?.map(p => p?.name).filter(Boolean) || event.streamingPlatforms || [];
   
   return (
     <>
@@ -521,12 +561,13 @@ export function LiveEventsSearch({ results, isLoading, streamingDataLastUpdated 
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {results.map((event, index) => (
-          <EventCard 
-            key={`${event.eventName}-${index}`} 
-            event={event} 
-            isSaved={isEventSaved(event.eventName)}
-            onToggleSave={() => toggleSaveEvent(event)}
-          />
+          <EventCardErrorBoundary key={`${event?.eventName || 'event'}-${index}`} eventName={event?.eventName || 'Unknown Event'}>
+            <EventCard 
+              event={event} 
+              isSaved={isEventSaved(event?.eventName || '')}
+              onToggleSave={() => toggleSaveEvent(event)}
+            />
+          </EventCardErrorBoundary>
         ))}
       </div>
     </div>
