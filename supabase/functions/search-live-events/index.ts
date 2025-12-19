@@ -263,17 +263,22 @@ async function fetchMultipleESPNGames(teamName: string, limit: number = 5, sport
       const status = event.competitions?.[0]?.status?.type?.name || '';
       const statusState = event.competitions?.[0]?.status?.type?.state || '';
       
-      console.log(`Event: ${event.shortName || event.name}, status: ${status}, state: ${statusState}, date: ${eventDateTime.toISOString()}`);
+      // Calculate how long ago the game started (in hours)
+      const hoursAgo = (now.getTime() - eventDateTime.getTime()) / (1000 * 60 * 60);
       
-      // Include: upcoming games, games in progress (STATUS_IN_PROGRESS, STATUS_HALFTIME, etc.)
-      // Skip only completed/final games
+      console.log(`Event: ${event.shortName || event.name}, status: ${status}, state: ${statusState}, date: ${eventDateTime.toISOString()}, hoursAgo: ${hoursAgo.toFixed(2)}`);
+      
+      // Include: upcoming games, games in progress, or games that started recently (within 4 hours - could still be live)
       const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED';
       const isInProgress = status.includes('PROGRESS') || status === 'STATUS_HALFTIME' || status === 'STATUS_END_PERIOD' || statusState === 'in';
       const isUpcoming = eventDateTime > now || status === 'STATUS_SCHEDULED' || statusState === 'pre';
+      const isRecentlyStarted = hoursAgo >= 0 && hoursAgo <= 4; // Games within last 4 hours might still be live
       
-      // Skip if completed and not in progress and not upcoming
+      // Skip only if completed 
       if (isCompleted) continue;
-      if (!isInProgress && !isUpcoming && eventDateTime < now) continue;
+      
+      // Include if upcoming, in progress, or recently started (not yet marked complete)
+      if (!isUpcoming && !isInProgress && !isRecentlyStarted) continue;
       
       const gameInfo = extractGameInfo(event, eventDateTime);
       if (gameInfo) {
@@ -888,9 +893,14 @@ function extractGameInfo(event: any, eventDateTime: Date): ESPNGameInfo {
   // Check if game is currently live/in progress (check both name and state)
   const isLive = statusType.includes('PROGRESS') || statusType === 'STATUS_HALFTIME' || statusType === 'STATUS_END_PERIOD' || statusState === 'in';
   
+  // Also check if game started recently (within last 3 hours) and not marked final - likely still live
+  const now = new Date();
+  const hoursAgo = (now.getTime() - eventDateTime.getTime()) / (1000 * 60 * 60);
+  const recentlyStartedAndNotFinal = hoursAgo >= 0 && hoursAgo <= 3 && statusType !== 'STATUS_FINAL';
+  
   let formattedTime: string;
   
-  if (isLive) {
+  if (isLive || recentlyStartedAndNotFinal) {
     // Game is currently in progress - show "LIVE NOW" indicator
     formattedTime = '🔴 LIVE NOW';
   } else if (isTimeTBD && !hasBroadcast) {
