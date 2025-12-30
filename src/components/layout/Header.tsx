@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Sparkles, List, User, Search, Heart, UserPlus, Shield } from 'lucide-react';
+import { Sparkles, List, User, Search, Heart, UserPlus, Shield, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -112,9 +112,17 @@ export function Header() {
               </Link>
             </DropdownMenuItem>
             {isAnonymous && (
-              <p className="px-2 py-1.5 text-xs text-muted-foreground">
-                Sync data across devices
-              </p>
+              <>
+                <p className="px-2 py-1.5 text-xs text-muted-foreground">
+                  Sync data across devices
+                </p>
+                <DropdownMenuItem asChild>
+                  <Link to="/login" className="flex items-center gap-2">
+                    <LogIn className="h-4 w-4" />
+                    Log In
+                  </Link>
+                </DropdownMenuItem>
+              </>
             )}
             {isAdmin && (
               <>
