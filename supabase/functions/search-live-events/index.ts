@@ -1920,9 +1920,10 @@ serve(async (req) => {
           {
             role: 'system',
             content: `You are an assistant that extracts live event information from search results.
-Today's date is ${new Date().toISOString().split('T')[0]}.
+Today's date is ${new Date().toISOString().split('T')[0]}. Current year is ${new Date().getFullYear()}.
+
 Extract event details and return a JSON array of events with these fields:
-- eventName: Name of the event
+- eventName: Name of the event (include the current or next year for annual tournaments)
 - time: MUST include the full date AND specific time of day (e.g., "Saturday, Dec 21 at 8:00 PM ET" or "Sun, 12/22 - 4:25 PM EST"). If no specific time is mentioned, use "TBD" for the time portion but still include the date.
 - eventDate: The event date in ISO format (YYYY-MM-DD) for filtering - IMPORTANT for determining if event is past
 - participants: Who's playing/performing (teams, fighters, artists)
@@ -1930,14 +1931,25 @@ Extract event details and return a JSON array of events with these fields:
 - link: URL for more info
 - summary: Brief 1-2 sentence description
 
+CRITICAL DATE HANDLING FOR ANNUAL TOURNAMENTS:
+For recurring annual events (Grand Slams, golf majors, etc.), if search results show LAST YEAR's dates, update to the UPCOMING edition:
+- Australian Open: Held mid-January each year. If today is before mid-January, use current year. If past mid-January, use next year.
+- French Open: Held late May/early June each year.
+- Wimbledon: Held late June/early July each year.
+- US Open Tennis: Held late August/early September each year.
+- Masters Golf: Held early April each year.
+- US Open Golf: Held mid-June each year.
+- British Open Golf: Held mid-July each year.
+- PGA Championship: Held mid-May each year.
+
 CRITICAL: The "time" field MUST be as specific as possible. Include:
 1. Day of week (if available)
 2. Date (month/day)
 3. Time of day with timezone (e.g., "8:00 PM ET", "3:30 PM CST")
 If the exact kickoff/start time isn't in the search results, indicate "Time TBD" but still provide the date.
 
-IMPORTANT: Only include UPCOMING events that have NOT yet occurred. Today is ${new Date().toISOString().split('T')[0]}.
-Exclude any events that have already happened.
+IMPORTANT: Only include UPCOMING events. If search results show last year's tournament, project to the upcoming year's dates.
+Today is ${new Date().toISOString().split('T')[0]}.
 
 Return ONLY a valid JSON array, no markdown or explanation.
 If no upcoming events found, return an empty array [].`
