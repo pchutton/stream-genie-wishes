@@ -1597,7 +1597,10 @@ function preProcessQuery(query: string): string {
     'super bowl', 'world series', 'stanley cup', 'nba finals', 'march madness',
     'masters golf', 'pga championship', 'british open', 'ryder cup',
     'daytona 500', 'indy 500', 'monaco grand prix', 'kentucky derby',
-    'ufc', 'fight night', 'ppv'
+    'ufc', 'fight night', 'ppv',
+    // Cricket tournaments
+    't20 world cup', 'icc t20', 'icc world cup', 'cricket world cup', 
+    'ipl', 'indian premier league', 'the ashes', 'ashes series'
   ];
   
   for (const term of protectedTerms) {
@@ -1900,7 +1903,40 @@ serve(async (req) => {
       console.log('Direct ESPN lookup failed, falling back to Google PSE');
     }
     
-    // Step 0.6: Check for international soccer tournaments with direct ESPN lookup
+    // Step 0.6a: Check for cricket tournaments FIRST (before soccer to avoid "world cup" collision)
+    const cricketTournamentMap: Record<string, { name: string, espnSlug: string }> = {
+      't20 world cup': { name: 'ICC T20 World Cup', espnSlug: 'icct20wc' },
+      'icc t20 world cup': { name: 'ICC T20 World Cup', espnSlug: 'icct20wc' },
+      'cricket world cup': { name: 'ICC Cricket World Cup', espnSlug: 'iccwc' },
+      'icc world cup': { name: 'ICC Cricket World Cup', espnSlug: 'iccwc' },
+      'ipl': { name: 'Indian Premier League', espnSlug: 'ipl' },
+      'indian premier league': { name: 'Indian Premier League', espnSlug: 'ipl' },
+      'ashes': { name: 'The Ashes', espnSlug: 'ashes' },
+      'the ashes': { name: 'The Ashes', espnSlug: 'ashes' },
+    };
+    
+    let cricketTournamentMatch: { name: string, espnSlug: string } | null = null;
+    for (const [key, value] of Object.entries(cricketTournamentMap)) {
+      if (lowerQuery.includes(key)) {
+        cricketTournamentMatch = value;
+        console.log(`Cricket tournament match found: ${value.name} (ESPN slug: ${value.espnSlug})`);
+        break;
+      }
+    }
+    
+    // For cricket tournaments, we don't have direct ESPN API - fall through to Google PSE
+    // but we skip soccer tournament matching to avoid "world cup" collision
+    const isCricketQuery = cricketTournamentMatch !== null || 
+      lowerQuery.includes('cricket') || 
+      lowerQuery.includes('t20') ||
+      lowerQuery.includes('ipl');
+    
+    if (cricketTournamentMatch) {
+      console.log(`Cricket query detected: ${cricketTournamentMatch.name} - will use Google PSE for cricket coverage`);
+    }
+    
+    // Step 0.6b: Check for international soccer tournaments with direct ESPN lookup
+    // SKIP if this is a cricket query (to avoid "world cup" collision)
     const soccerTournamentMap: Record<string, { name: string, espnSlug: string, league: string }> = {
       'african cup of nations': { name: 'African Cup of Nations', espnSlug: 'afcon', league: 'soccer' },
       'afcon': { name: 'African Cup of Nations', espnSlug: 'afcon', league: 'soccer' },
@@ -2022,12 +2058,18 @@ serve(async (req) => {
     }
     
     let soccerTournamentMatch: { name: string, espnSlug: string } | null = null;
-    for (const [key, value] of Object.entries(soccerTournamentMap)) {
-      if (lowerQuery.includes(key)) {
-        soccerTournamentMatch = value;
-        console.log(`Soccer tournament match found: ${value.name} (ESPN slug: ${value.espnSlug})`);
-        break;
+    
+    // SKIP soccer tournament matching if this is a cricket query (avoid "world cup" collision)
+    if (!isCricketQuery) {
+      for (const [key, value] of Object.entries(soccerTournamentMap)) {
+        if (lowerQuery.includes(key)) {
+          soccerTournamentMatch = value;
+          console.log(`Soccer tournament match found: ${value.name} (ESPN slug: ${value.espnSlug})`);
+          break;
+        }
       }
+    } else {
+      console.log('Skipping soccer tournament matching - cricket query detected');
     }
     
     // If we have a soccer tournament match, do direct ESPN API lookup
