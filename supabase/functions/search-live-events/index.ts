@@ -1587,6 +1587,26 @@ function getDictionaryString(): string {
 function preProcessQuery(query: string): string {
   const lowerQuery = query.toLowerCase().trim();
   
+  // IMPORTANT: Skip preprocessing for known tournament names to avoid collisions
+  // e.g., "United Cup" should NOT become "Manchester United Cup"
+  const protectedTerms = [
+    'united cup', 'australian open', 'french open', 'wimbledon', 'us open',
+    'atp finals', 'indian wells', 'miami open', 'roland garros',
+    'african cup of nations', 'afcon', 'copa america', 'euro 2024', 'euro 2028',
+    'champions league', 'europa league', 'world cup', 'nations league',
+    'super bowl', 'world series', 'stanley cup', 'nba finals', 'march madness',
+    'masters golf', 'pga championship', 'british open', 'ryder cup',
+    'daytona 500', 'indy 500', 'monaco grand prix', 'kentucky derby',
+    'ufc', 'fight night', 'ppv'
+  ];
+  
+  for (const term of protectedTerms) {
+    if (lowerQuery.includes(term)) {
+      console.log(`Protected term detected: "${term}" - skipping dictionary preprocessing`);
+      return query; // Return original query unchanged
+    }
+  }
+  
   // Check for exact matches first
   if (teamNicknames[lowerQuery]) {
     return teamNicknames[lowerQuery];
@@ -1904,6 +1924,102 @@ serve(async (req) => {
       'serie a': { name: 'Italian Serie A', espnSlug: 'ita.1', league: 'soccer' },
       'ligue 1': { name: 'French Ligue 1', espnSlug: 'fra.1', league: 'soccer' },
     };
+    
+    // Tennis tournament detection with direct ESPN lookup
+    const tennisTournamentMap: Record<string, { name: string, espnSlug: string }> = {
+      'australian open': { name: 'Australian Open', espnSlug: 'australian-open' },
+      'french open': { name: 'French Open', espnSlug: 'french-open' },
+      'roland garros': { name: 'French Open', espnSlug: 'french-open' },
+      'wimbledon': { name: 'Wimbledon', espnSlug: 'wimbledon' },
+      'us open tennis': { name: 'US Open', espnSlug: 'us-open' },
+      'united cup': { name: 'United Cup', espnSlug: 'united-cup' },
+      'atp finals': { name: 'ATP Finals', espnSlug: 'atp-finals' },
+      'indian wells': { name: 'Indian Wells Masters', espnSlug: 'indian-wells' },
+      'miami open': { name: 'Miami Open', espnSlug: 'miami' },
+    };
+    
+    let tennisTournamentMatch: { name: string, espnSlug: string } | null = null;
+    for (const [key, value] of Object.entries(tennisTournamentMap)) {
+      if (lowerQuery.includes(key)) {
+        tennisTournamentMatch = value;
+        console.log(`Tennis tournament match found: ${value.name} (ESPN slug: ${value.espnSlug})`);
+        break;
+      }
+    }
+    
+    // If we have a tennis tournament match, do direct ESPN API lookup
+    if (tennisTournamentMatch) {
+      console.log(`Bypassing Google PSE for tennis tournament: ${tennisTournamentMatch.name}`);
+      
+      const espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/tennis/${tennisTournamentMatch.espnSlug}/scoreboard`;
+      
+      console.log(`Direct ESPN tennis lookup URL: ${espnScoreboardUrl}`);
+      const espnData = await cachedFetch(espnScoreboardUrl, CACHE_TTL.SCOREBOARD);
+      
+      if (espnData?.events && espnData.events.length > 0) {
+        const now = new Date();
+        const events: LiveEvent[] = [];
+        
+        // Get upcoming or live matches (up to 5)
+        const relevantEvents = espnData.events
+          .filter((event: any) => {
+            const gameDate = new Date(event.date);
+            const status = event.status?.type?.name || '';
+            const statusState = event.status?.type?.state || '';
+            const hoursAgo = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
+            
+            const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED';
+            const isUpcoming = gameDate > now || statusState === 'pre';
+            const isLive = statusState === 'in';
+            const isRecentlyStarted = hoursAgo >= 0 && hoursAgo <= 3;
+            
+            return !isCompleted && (isUpcoming || isLive || isRecentlyStarted);
+          })
+          .slice(0, 5);
+        
+        for (const event of relevantEvents) {
+          const gameDate = new Date(event.date);
+          const timeStr = formatTimeInCentral(gameDate);
+          const statusState = event.status?.type?.state || '';
+          const isLive = statusState === 'in';
+          
+          const competitors = event.competitions?.[0]?.competitors || [];
+          const player1 = competitors[0]?.athlete?.displayName || competitors[0]?.team?.displayName || '';
+          const player2 = competitors[1]?.athlete?.displayName || competitors[1]?.team?.displayName || '';
+          const participants = `${player1} vs ${player2}`;
+          
+          // Get broadcast info
+          const broadcasts = event.competitions?.[0]?.broadcasts || [];
+          const broadcastNames = broadcasts.flatMap((b: any) => b.names || []);
+          
+          events.push({
+            eventName: isLive ? `🔴 LIVE NOW: ${event.name || participants}` : (event.name || `${tennisTournamentMatch.name}: ${participants}`),
+            time: isLive ? '🔴 LIVE NOW' : timeStr,
+            participants: participants,
+            whereToWatch: broadcastNames.length > 0 ? broadcastNames.join(', ') : 'Tennis Channel, ESPN',
+            link: event.links?.[0]?.href || `https://www.espn.com/tennis/scoreboard`,
+            summary: `${tennisTournamentMatch.name} tennis match`,
+            eventDate: gameDate.toISOString().split('T')[0],
+            eventDateTimeUTC: gameDate.toISOString(),
+            streamingPlatforms: broadcastNames.length > 0 ? broadcastNames : ['Tennis Channel', 'ESPN+'],
+          });
+        }
+        
+        if (events.length > 0) {
+          console.log(`Direct ESPN found ${events.length} tennis matches for ${tennisTournamentMatch.name}`);
+          
+          // Enrich with streaming platforms
+          const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+          
+          return new Response(
+            JSON.stringify({ events: enrichedEvents, aiProcessed: true, directESPNLookup: true, tennisTournament: tennisTournamentMatch.name }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      console.log(`No upcoming matches found for ${tennisTournamentMatch.name}, falling back to Google PSE`);
+    }
     
     let soccerTournamentMatch: { name: string, espnSlug: string } | null = null;
     for (const [key, value] of Object.entries(soccerTournamentMap)) {
