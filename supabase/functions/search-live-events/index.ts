@@ -1502,7 +1502,7 @@ const teamNicknames: Record<string, string> = {
   "capitols": "Washington Capitals", "captials": "Washington Capitals",
   "maple leafs": "Toronto Maple Leafs", "leafes": "Toronto Maple Leafs",
   
-  // College misspellings
+// College misspellings
   "alabma": "Alabama Crimson Tide", "bamma": "Alabama Crimson Tide",
   "ohoi state": "Ohio State Buckeyes", "ohio st": "Ohio State Buckeyes",
   "michgan": "Michigan Wolverines", "michagan": "Michigan Wolverines",
@@ -1518,6 +1518,31 @@ const teamNicknames: Record<string, string> = {
   "arseanl": "Arsenal", "aresenal": "Arsenal",
   "barcleona": "Barcelona", "bareclona": "Barcelona",
   "real madird": "Real Madrid", "realmadrid": "Real Madrid",
+  
+  // European football/soccer terminology aliases
+  "manchester football": "Manchester United soccer",
+  "liverpool football": "Liverpool soccer",
+  "arsenal football": "Arsenal soccer",
+  "chelsea football": "Chelsea soccer",
+  "tottenham football": "Tottenham soccer",
+  "man city football": "Manchester City soccer",
+  "barcelona football": "Barcelona soccer",
+  "real madrid football": "Real Madrid soccer",
+  "bayern football": "Bayern Munich soccer",
+  "psg football": "Paris Saint-Germain soccer",
+  "juventus football": "Juventus soccer",
+  
+  // International soccer tournaments
+  "afcon": "African Cup of Nations",
+  "africa cup": "African Cup of Nations",
+  "african cup": "African Cup of Nations",
+  "africa cup of nations": "African Cup of Nations",
+  "copa america": "Copa America",
+  "euros": "UEFA European Championship",
+  "euro cup": "UEFA European Championship",
+  "european championship": "UEFA European Championship",
+  "world cup": "FIFA World Cup",
+  "nations league": "UEFA Nations League",
 };
 
 // Convert dictionary to string for AI prompt
@@ -1643,7 +1668,14 @@ SPORTS DETECTION:
 - Boxing: Look for boxing-related terms → add "boxing fight schedule broadcast"
 - Tennis: Look for "US Open", "Wimbledon", "Australian Open", "French Open", "ATP", "WTA" → add "tennis schedule broadcast"
 - Golf: Look for "PGA", "Masters", "US Open golf", "British Open", "Ryder Cup" → add "golf tournament schedule broadcast"
-- Soccer: Look for "Premier League", "La Liga", "MLS", "Champions League", "World Cup" → add "soccer match schedule broadcast"
+- Soccer/Football (International): Look for "African Cup of Nations", "AFCON", "Euro", "Copa America", "Premier League", "La Liga", "MLS", "Champions League", "World Cup", "Nations League", "Bundesliga", "Serie A", "Ligue 1" → add "soccer match schedule broadcast"
+
+REGIONAL TERMINOLOGY - FOOTBALL VS SOCCER:
+- "Football" in European/international context means SOCCER, not American football
+- If query includes European team names (Manchester, Arsenal, Liverpool, Barcelona, Real Madrid, Bayern, PSG, Juventus, Chelsea, Tottenham) + "football" → treat as SOCCER
+- If query includes "Premier League football", "La Liga football", "Bundesliga football", "Serie A football", "Champions League football" → treat as SOCCER
+- American football keywords: NFL, college football, Super Bowl, touchdown, quarterback, Cowboys, Chiefs, Packers, Bears, 49ers → American football
+- When "football" appears with no clear context, consider if it could be soccer based on team names or league mentions
 
 RULES:
 1. ALWAYS fix typos and misspellings first - use context clues to determine the intended team
@@ -1659,6 +1691,11 @@ EXAMPLES:
 "manchster united" → "Manchester United Premier League match schedule"
 "bama football" → "Alabama Crimson Tide football schedule"
 "UFC this weekend" → "UFC next event schedule broadcast"
+"AFCON" → "African Cup of Nations soccer tournament schedule broadcast"
+"African Cup of Nations" → "African Cup of Nations soccer tournament schedule broadcast"
+"liverpool football" → "Liverpool Premier League soccer match schedule"
+"arsenal football" → "Arsenal Premier League soccer match schedule"
+"Euro 2028" → "UEFA European Championship 2028 soccer schedule broadcast"
 
 Return ONLY the rewritten query text. Do NOT explain.`
           },
@@ -1718,8 +1755,20 @@ serve(async (req) => {
     
     // Step 0.5: For college team queries with sport hints, try direct ESPN lookup first
     // This bypasses Google PSE which often returns wrong results for similar team names
-    const sportHint = lowerQuery.includes('basketball') ? 'basketball' : 
-                      lowerQuery.includes('football') ? 'football' : null;
+    
+    // European soccer keywords to prevent "football" being interpreted as American football
+    const europeanSoccerKeywords = ['manchester', 'arsenal', 'liverpool', 'chelsea', 'tottenham', 'barcelona', 'real madrid', 'bayern', 'psg', 'juventus', 'premier league', 'la liga', 'bundesliga', 'serie a', 'ligue 1', 'champions league', 'afcon', 'african cup', 'euro 2024', 'euro 2028', 'copa america', 'world cup', 'nations league'];
+    const isEuropeanSoccerContext = europeanSoccerKeywords.some(keyword => lowerQuery.includes(keyword));
+    
+    // Determine sport hint - avoid setting "football" hint if European soccer context detected
+    let sportHint: string | null = null;
+    if (lowerQuery.includes('basketball')) {
+      sportHint = 'basketball';
+    } else if (lowerQuery.includes('football') && !isEuropeanSoccerContext) {
+      sportHint = 'football'; // American football
+    } else if (lowerQuery.includes('soccer') || isEuropeanSoccerContext) {
+      sportHint = 'soccer';
+    }
     
     // College teams that need disambiguation (similar names exist across schools)
     const collegeTeamMatches: Record<string, { name: string, espnId: string }> = {
@@ -1829,6 +1878,115 @@ serve(async (req) => {
       }
       
       console.log('Direct ESPN lookup failed, falling back to Google PSE');
+    }
+    
+    // Step 0.6: Check for international soccer tournaments with direct ESPN lookup
+    const soccerTournamentMap: Record<string, { name: string, espnSlug: string, league: string }> = {
+      'african cup of nations': { name: 'African Cup of Nations', espnSlug: 'afcon', league: 'soccer' },
+      'afcon': { name: 'African Cup of Nations', espnSlug: 'afcon', league: 'soccer' },
+      'africa cup': { name: 'African Cup of Nations', espnSlug: 'afcon', league: 'soccer' },
+      'copa america': { name: 'Copa America', espnSlug: 'conmebol.america', league: 'soccer' },
+      'european championship': { name: 'UEFA European Championship', espnSlug: 'uefa.euro', league: 'soccer' },
+      'euro 2024': { name: 'UEFA Euro 2024', espnSlug: 'uefa.euro', league: 'soccer' },
+      'euro 2028': { name: 'UEFA Euro 2028', espnSlug: 'uefa.euro', league: 'soccer' },
+      'euros': { name: 'UEFA European Championship', espnSlug: 'uefa.euro', league: 'soccer' },
+      'champions league': { name: 'UEFA Champions League', espnSlug: 'uefa.champions', league: 'soccer' },
+      'ucl': { name: 'UEFA Champions League', espnSlug: 'uefa.champions', league: 'soccer' },
+      'europa league': { name: 'UEFA Europa League', espnSlug: 'uefa.europa', league: 'soccer' },
+      'world cup': { name: 'FIFA World Cup', espnSlug: 'fifa.world', league: 'soccer' },
+      'fifa world cup': { name: 'FIFA World Cup', espnSlug: 'fifa.world', league: 'soccer' },
+      'club world cup': { name: 'FIFA Club World Cup', espnSlug: 'fifa.cwc', league: 'soccer' },
+      'nations league': { name: 'UEFA Nations League', espnSlug: 'uefa.nations', league: 'soccer' },
+      'gold cup': { name: 'CONCACAF Gold Cup', espnSlug: 'concacaf.gold', league: 'soccer' },
+      'premier league': { name: 'English Premier League', espnSlug: 'eng.1', league: 'soccer' },
+      'la liga': { name: 'Spanish La Liga', espnSlug: 'esp.1', league: 'soccer' },
+      'bundesliga': { name: 'German Bundesliga', espnSlug: 'ger.1', league: 'soccer' },
+      'serie a': { name: 'Italian Serie A', espnSlug: 'ita.1', league: 'soccer' },
+      'ligue 1': { name: 'French Ligue 1', espnSlug: 'fra.1', league: 'soccer' },
+    };
+    
+    let soccerTournamentMatch: { name: string, espnSlug: string } | null = null;
+    for (const [key, value] of Object.entries(soccerTournamentMap)) {
+      if (lowerQuery.includes(key)) {
+        soccerTournamentMatch = value;
+        console.log(`Soccer tournament match found: ${value.name} (ESPN slug: ${value.espnSlug})`);
+        break;
+      }
+    }
+    
+    // If we have a soccer tournament match, do direct ESPN API lookup
+    if (soccerTournamentMatch) {
+      console.log(`Bypassing Google PSE for soccer tournament: ${soccerTournamentMatch.name}`);
+      
+      const espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${soccerTournamentMatch.espnSlug}/scoreboard`;
+      
+      console.log(`Direct ESPN soccer lookup URL: ${espnScoreboardUrl}`);
+      const espnData = await cachedFetch(espnScoreboardUrl, CACHE_TTL.SCOREBOARD);
+      
+      if (espnData?.events && espnData.events.length > 0) {
+        const now = new Date();
+        const events: LiveEvent[] = [];
+        
+        // Get upcoming or live matches (up to 5)
+        const relevantEvents = espnData.events
+          .filter((event: any) => {
+            const gameDate = new Date(event.date);
+            const status = event.status?.type?.name || '';
+            const statusState = event.status?.type?.state || '';
+            const hoursAgo = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
+            
+            // Include upcoming, live, or recently started (within 3 hours)
+            const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED';
+            const isUpcoming = gameDate > now || statusState === 'pre';
+            const isLive = statusState === 'in';
+            const isRecentlyStarted = hoursAgo >= 0 && hoursAgo <= 3;
+            
+            return !isCompleted && (isUpcoming || isLive || isRecentlyStarted);
+          })
+          .slice(0, 5);
+        
+        for (const event of relevantEvents) {
+          const gameDate = new Date(event.date);
+          const timeStr = formatTimeInCentral(gameDate);
+          const statusState = event.status?.type?.state || '';
+          const isLive = statusState === 'in';
+          
+          const competitors = event.competitions?.[0]?.competitors || [];
+          const homeTeam = competitors.find((c: any) => c.homeAway === 'home')?.team?.displayName || '';
+          const awayTeam = competitors.find((c: any) => c.homeAway === 'away')?.team?.displayName || '';
+          const participants = `${awayTeam} vs ${homeTeam}`;
+          
+          // Get broadcast info
+          const broadcasts = event.competitions?.[0]?.broadcasts || [];
+          const broadcastNames = broadcasts.flatMap((b: any) => b.names || []);
+          
+          events.push({
+            eventName: isLive ? `🔴 LIVE NOW: ${event.name || participants}` : (event.name || participants),
+            time: isLive ? '🔴 LIVE NOW' : timeStr,
+            participants: participants,
+            whereToWatch: broadcastNames.length > 0 ? broadcastNames.join(', ') : 'TBD',
+            link: event.links?.[0]?.href || `https://www.espn.com/soccer/scoreboard/_/league/${soccerTournamentMatch.espnSlug}`,
+            summary: `${soccerTournamentMatch.name} match`,
+            eventDate: gameDate.toISOString().split('T')[0],
+            eventDateTimeUTC: gameDate.toISOString(),
+            streamingPlatforms: broadcastNames,
+          });
+        }
+        
+        if (events.length > 0) {
+          console.log(`Direct ESPN found ${events.length} soccer matches for ${soccerTournamentMatch.name}`);
+          
+          // Enrich with streaming platforms
+          const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+          
+          return new Response(
+            JSON.stringify({ events: enrichedEvents, aiProcessed: true, directESPNLookup: true, soccerTournament: soccerTournamentMatch.name }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      console.log(`No upcoming matches found for ${soccerTournamentMatch.name}, falling back to Google PSE`);
     }
     
     // Search with Google PSE using normalized query
