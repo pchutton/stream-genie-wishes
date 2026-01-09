@@ -485,6 +485,9 @@ function LoadingSkeleton() {
 
 export function LiveEventsSearch({ results, isLoading, streamingDataLastUpdated }: LiveEventsSearchProps) {
   const { isEventSaved, toggleSaveEvent } = useSavedEvents();
+  
+  // Ensure results is always an array to prevent .map() errors
+  const safeResults = Array.isArray(results) ? results : [];
 
   // Format the last updated timestamp
   const getDataFreshnessInfo = () => {
@@ -516,7 +519,7 @@ export function LiveEventsSearch({ results, isLoading, streamingDataLastUpdated 
     );
   }
 
-  if (results.length === 0) {
+  if (safeResults.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-12 text-center">
         <Radio className="mb-4 h-12 w-12 text-muted-foreground/50" />
@@ -560,7 +563,7 @@ export function LiveEventsSearch({ results, isLoading, streamingDataLastUpdated 
       )}
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {results.map((event, index) => (
+        {safeResults.map((event, index) => (
           <EventCardErrorBoundary key={`${event?.eventName || 'event'}-${index}`} eventName={event?.eventName || 'Unknown Event'}>
             <EventCard 
               event={event} 
