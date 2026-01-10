@@ -1525,9 +1525,88 @@ const teamNicknames: Record<string, string> = {
   "fau basketball": "FAU Owls basketball", "florida atlantic basketball": "FAU Owls basketball",
   "smu basketball": "SMU Mustangs basketball", "mustangs basketball": "SMU Mustangs basketball",
   
-  // Bryan and other specific teams
-  "bryan bulldogs": "Bryan College Lions basketball", "bryan college": "Bryan College Lions basketball",
+  // ============ MID-MAJOR / LOW-MAJOR CONFERENCES ============
   
+  // MAAC (Metro Atlantic Athletic Conference)
+  "iona basketball": "Iona Gaels basketball", "iona gaels": "Iona Gaels basketball",
+  "siena basketball": "Siena Saints basketball", "siena saints": "Siena Saints basketball",
+  "manhattan basketball": "Manhattan Jaspers basketball", "manhattan jaspers": "Manhattan Jaspers basketball",
+  "canisius basketball": "Canisius Golden Griffins basketball", "canisius golden griffins": "Canisius Golden Griffins basketball",
+  "fairfield basketball": "Fairfield Stags basketball", "fairfield stags": "Fairfield Stags basketball",
+  "rider basketball": "Rider Broncs basketball", "rider broncs": "Rider Broncs basketball",
+  "marist basketball": "Marist Red Foxes basketball", "marist red foxes": "Marist Red Foxes basketball",
+  "saint peters basketball": "Saint Peter's Peacocks basketball", "st peters basketball": "Saint Peter's Peacocks basketball",
+  "niagara basketball": "Niagara Purple Eagles basketball", "niagara purple eagles": "Niagara Purple Eagles basketball",
+  "sacred heart basketball": "Sacred Heart Pioneers basketball", "sacred heart pioneers": "Sacred Heart Pioneers basketball",
+  "merrimack basketball": "Merrimack Warriors basketball", "merrimack warriors": "Merrimack Warriors basketball",
+  "mount st marys basketball": "Mount St. Mary's Mountaineers basketball", "mount st. marys": "Mount St. Mary's Mountaineers basketball",
+  "quinnipiac basketball": "Quinnipiac Bobcats basketball", "quinnipiac bobcats": "Quinnipiac Bobcats basketball",
+  
+  // Horizon League
+  "cleveland state basketball": "Cleveland State Vikings basketball", "cleveland state vikings": "Cleveland State Vikings basketball",
+  "oakland basketball": "Oakland Golden Grizzlies basketball", "oakland golden grizzlies": "Oakland Golden Grizzlies basketball",
+  "green bay basketball": "Green Bay Phoenix basketball", "green bay phoenix": "Green Bay Phoenix basketball",
+  "iu indianapolis basketball": "IU Indianapolis Jaguars basketball", "iupui basketball": "IU Indianapolis Jaguars basketball",
+  "detroit mercy basketball": "Detroit Mercy Titans basketball", "detroit titans": "Detroit Mercy Titans basketball",
+  "milwaukee basketball": "Milwaukee Panthers basketball", "milwaukee panthers": "Milwaukee Panthers basketball",
+  "wright state basketball": "Wright State Raiders basketball", "wright state raiders": "Wright State Raiders basketball",
+  "robert morris basketball": "Robert Morris Colonials basketball", "robert morris colonials": "Robert Morris Colonials basketball",
+  "purdue fort wayne basketball": "Purdue Fort Wayne Mastodons basketball", "pfw basketball": "Purdue Fort Wayne Mastodons basketball",
+  "northern kentucky basketball": "Northern Kentucky Norse basketball", "nku basketball": "Northern Kentucky Norse basketball",
+  "youngstown state basketball": "Youngstown State Penguins basketball", "youngstown penguins": "Youngstown State Penguins basketball",
+  
+  // MAC (Mid-American Conference)
+  "miami ohio basketball": "Miami RedHawks basketball", "miami redhawks": "Miami RedHawks basketball", "miami-oh basketball": "Miami RedHawks basketball",
+  "toledo basketball": "Toledo Rockets basketball", "toledo rockets": "Toledo Rockets basketball",
+  "ohio basketball": "Ohio Bobcats basketball", "ohio bobcats": "Ohio Bobcats basketball",
+  "kent state basketball": "Kent State Golden Flashes basketball", "kent state golden flashes": "Kent State Golden Flashes basketball",
+  "akron basketball": "Akron Zips basketball", "akron zips": "Akron Zips basketball",
+  "buffalo basketball": "Buffalo Bulls basketball", "buffalo bulls": "Buffalo Bulls basketball",
+  "ball state basketball": "Ball State Cardinals basketball", "ball state cardinals": "Ball State Cardinals basketball",
+  "bowling green basketball": "Bowling Green Falcons basketball", "bgsu basketball": "Bowling Green Falcons basketball",
+  "central michigan basketball": "Central Michigan Chippewas basketball", "cmu basketball": "Central Michigan Chippewas basketball",
+  "eastern michigan basketball": "Eastern Michigan Eagles basketball", "emu basketball": "Eastern Michigan Eagles basketball",
+  "western michigan basketball": "Western Michigan Broncos basketball", "wmu basketball": "Western Michigan Broncos basketball",
+  "northern illinois basketball": "Northern Illinois Huskies basketball", "niu basketball": "Northern Illinois Huskies basketball",
+  
+  // NEC (Northeast Conference)
+  "bryant basketball": "Bryant Bulldogs basketball", "bryant bulldogs": "Bryant Bulldogs basketball",
+  "wagner basketball": "Wagner Seahawks basketball", "wagner seahawks": "Wagner Seahawks basketball",
+  "fairleigh dickinson basketball": "Fairleigh Dickinson Knights basketball", "fdu basketball": "Fairleigh Dickinson Knights basketball",
+  "liu basketball": "LIU Sharks basketball", "long island basketball": "LIU Sharks basketball",
+  "central connecticut basketball": "Central Connecticut Blue Devils basketball", "ccsu basketball": "Central Connecticut Blue Devils basketball",
+  "stonehill basketball": "Stonehill Skyhawks basketball", "stonehill skyhawks": "Stonehill Skyhawks basketball",
+  
+  // America East
+  "vermont basketball": "Vermont Catamounts basketball", "vermont catamounts": "Vermont Catamounts basketball",
+  "umass lowell basketball": "UMass Lowell River Hawks basketball", "lowell basketball": "UMass Lowell River Hawks basketball",
+  "umbc basketball": "UMBC Retrievers basketball", "umbc retrievers": "UMBC Retrievers basketball",
+  "binghamton basketball": "Binghamton Bearcats basketball", "binghamton bearcats": "Binghamton Bearcats basketball",
+  "albany basketball": "Albany Great Danes basketball", "albany great danes": "Albany Great Danes basketball",
+  "stony brook basketball": "Stony Brook Seawolves basketball", "stony brook seawolves": "Stony Brook Seawolves basketball",
+  
+  // Patriot League
+  "colgate basketball": "Colgate Raiders basketball", "colgate raiders": "Colgate Raiders basketball",
+  "navy basketball": "Navy Midshipmen basketball", "navy midshipmen": "Navy Midshipmen basketball",
+  "army basketball": "Army Black Knights basketball", "army black knights": "Army Black Knights basketball",
+  "lehigh basketball": "Lehigh Mountain Hawks basketball", "lehigh mountain hawks": "Lehigh Mountain Hawks basketball",
+  "bucknell basketball": "Bucknell Bison basketball", "bucknell bison": "Bucknell Bison basketball",
+  "american basketball": "American Eagles basketball", "american eagles": "American Eagles basketball",
+  "holy cross basketball": "Holy Cross Crusaders basketball", "holy cross crusaders": "Holy Cross Crusaders basketball",
+  "boston university basketball": "Boston University Terriers basketball", "bu basketball": "Boston University Terriers basketball",
+  "lafayette basketball": "Lafayette Leopards basketball", "lafayette leopards": "Lafayette Leopards basketball",
+  "loyola maryland basketball": "Loyola Maryland Greyhounds basketball", "loyola md basketball": "Loyola Maryland Greyhounds basketball",
+  
+  // Ivy League
+  "princeton basketball": "Princeton Tigers basketball", "princeton tigers": "Princeton Tigers basketball",
+  "yale basketball": "Yale Bulldogs basketball", "yale bulldogs": "Yale Bulldogs basketball",
+  "harvard basketball": "Harvard Crimson basketball", "harvard crimson": "Harvard Crimson basketball",
+  "penn basketball": "Penn Quakers basketball", "penn quakers": "Penn Quakers basketball",
+  "brown basketball": "Brown Bears basketball", "brown bears": "Brown Bears basketball",
+  "columbia basketball": "Columbia Lions basketball", "columbia lions": "Columbia Lions basketball",
+  "dartmouth basketball": "Dartmouth Big Green basketball", "dartmouth big green": "Dartmouth Big Green basketball",
+  "cornell basketball": "Cornell Big Red basketball", "cornell big red": "Cornell Big Red basketball",
+
   // Soccer - MLS
   "galaxy": "LA Galaxy", "la galaxy": "LA Galaxy",
   "lafc": "Los Angeles FC", "inter miami": "Inter Miami CF",
