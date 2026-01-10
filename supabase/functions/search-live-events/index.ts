@@ -2218,6 +2218,190 @@ serve(async (req) => {
       console.log('Direct ESPN lookup failed, falling back to Google PSE');
     }
     
+    // Step 0.6: League-wide game lookup (e.g., "all NFL games this week", "NBA games tonight")
+    const leagueWidePatterns: Record<string, { sport: string, league: string, leagueName: string }> = {
+      'nfl games': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
+      'all nfl': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
+      'nfl schedule': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
+      'nfl this week': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
+      'nfl playoffs': { sport: 'football', league: 'nfl', leagueName: 'NFL Playoffs' },
+      'nfl wild card': { sport: 'football', league: 'nfl', leagueName: 'NFL Wild Card' },
+      'nfl divisional': { sport: 'football', league: 'nfl', leagueName: 'NFL Divisional' },
+      'nfl conference': { sport: 'football', league: 'nfl', leagueName: 'NFL Conference' },
+      'nba games': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
+      'all nba': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
+      'nba schedule': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
+      'nba this week': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
+      'nba tonight': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
+      'nba today': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
+      'nhl games': { sport: 'hockey', league: 'nhl', leagueName: 'NHL' },
+      'all nhl': { sport: 'hockey', league: 'nhl', leagueName: 'NHL' },
+      'nhl schedule': { sport: 'hockey', league: 'nhl', leagueName: 'NHL' },
+      'nhl this week': { sport: 'hockey', league: 'nhl', leagueName: 'NHL' },
+      'nhl tonight': { sport: 'hockey', league: 'nhl', leagueName: 'NHL' },
+      'nhl today': { sport: 'hockey', league: 'nhl', leagueName: 'NHL' },
+      'mlb games': { sport: 'baseball', league: 'mlb', leagueName: 'MLB' },
+      'all mlb': { sport: 'baseball', league: 'mlb', leagueName: 'MLB' },
+      'mlb schedule': { sport: 'baseball', league: 'mlb', leagueName: 'MLB' },
+      'mlb this week': { sport: 'baseball', league: 'mlb', leagueName: 'MLB' },
+      'mlb tonight': { sport: 'baseball', league: 'mlb', leagueName: 'MLB' },
+      'mlb today': { sport: 'baseball', league: 'mlb', leagueName: 'MLB' },
+      'mls games': { sport: 'soccer', league: 'usa.1', leagueName: 'MLS' },
+      'all mls': { sport: 'soccer', league: 'usa.1', leagueName: 'MLS' },
+      'mls schedule': { sport: 'soccer', league: 'usa.1', leagueName: 'MLS' },
+      'mls this week': { sport: 'soccer', league: 'usa.1', leagueName: 'MLS' },
+      'college football games': { sport: 'football', league: 'college-football', leagueName: 'College Football' },
+      'college football schedule': { sport: 'football', league: 'college-football', leagueName: 'College Football' },
+      'ncaa football': { sport: 'football', league: 'college-football', leagueName: 'NCAA Football' },
+      'college basketball games': { sport: 'basketball', league: 'mens-college-basketball', leagueName: 'College Basketball' },
+      'college basketball schedule': { sport: 'basketball', league: 'mens-college-basketball', leagueName: 'College Basketball' },
+      'ncaa basketball': { sport: 'basketball', league: 'mens-college-basketball', leagueName: 'NCAA Basketball' },
+      'march madness': { sport: 'basketball', league: 'mens-college-basketball', leagueName: 'March Madness' },
+    };
+    
+    let leagueWideMatch: { sport: string, league: string, leagueName: string } | null = null;
+    for (const [pattern, leagueInfo] of Object.entries(leagueWidePatterns)) {
+      if (lowerQuery.includes(pattern)) {
+        leagueWideMatch = leagueInfo;
+        console.log(`League-wide match found: ${leagueInfo.leagueName} (${leagueInfo.sport}/${leagueInfo.league})`);
+        break;
+      }
+    }
+    
+    // If we have a league-wide match, fetch all games from ESPN scoreboard
+    if (leagueWideMatch) {
+      console.log(`Fetching all games for ${leagueWideMatch.leagueName} using ESPN scoreboard API`);
+      
+      let espnScoreboardUrl: string;
+      if (leagueWideMatch.league === 'usa.1') {
+        // MLS uses soccer endpoint
+        espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${leagueWideMatch.league}/scoreboard`;
+      } else if (leagueWideMatch.league === 'college-football') {
+        espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/football/${leagueWideMatch.league}/scoreboard`;
+      } else if (leagueWideMatch.league === 'mens-college-basketball') {
+        espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/basketball/${leagueWideMatch.league}/scoreboard`;
+      } else {
+        espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/${leagueWideMatch.sport}/${leagueWideMatch.league}/scoreboard`;
+      }
+      
+      console.log(`ESPN scoreboard URL: ${espnScoreboardUrl}`);
+      const espnData = await cachedFetch(espnScoreboardUrl, CACHE_TTL.SCOREBOARD);
+      
+      if (espnData?.events && espnData.events.length > 0) {
+        const now = new Date();
+        const events: LiveEvent[] = [];
+        
+        // Determine time filter based on query
+        const isToday = lowerQuery.includes('today') || lowerQuery.includes('tonight');
+        const isThisWeek = lowerQuery.includes('this week') || lowerQuery.includes('week');
+        
+        // Get games (filter based on query context)
+        const relevantEvents = espnData.events
+          .filter((event: any) => {
+            const gameDate = new Date(event.date);
+            const status = event.status?.type?.name || '';
+            const statusState = event.status?.type?.state || '';
+            const hoursAgo = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
+            
+            const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED';
+            const isInProgress = statusState === 'in' || status.includes('PROGRESS') || status === 'STATUS_HALFTIME';
+            const isUpcoming = gameDate > now || statusState === 'pre';
+            const isRecentlyStarted = hoursAgo >= 0 && hoursAgo <= 4;
+            
+            // Apply time filters
+            if (isToday) {
+              const todayStart = new Date(now);
+              todayStart.setHours(0, 0, 0, 0);
+              const todayEnd = new Date(now);
+              todayEnd.setHours(23, 59, 59, 999);
+              return !isCompleted && gameDate >= todayStart && gameDate <= todayEnd;
+            }
+            
+            if (isThisWeek) {
+              const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+              return !isCompleted && (isUpcoming || isInProgress || isRecentlyStarted) && gameDate <= weekEnd;
+            }
+            
+            // Default: upcoming games, live games, or recently started
+            return !isCompleted && (isUpcoming || isInProgress || isRecentlyStarted);
+          })
+          .slice(0, 20); // Limit to 20 games for league-wide
+        
+        console.log(`Found ${relevantEvents.length} relevant games for ${leagueWideMatch.leagueName}`);
+        
+        for (const event of relevantEvents) {
+          const gameDate = new Date(event.date);
+          const statusState = event.status?.type?.state || '';
+          const isLive = statusState === 'in';
+          const timeStr = isLive ? '🔴 LIVE NOW' : formatTimeInCentral(gameDate);
+          
+          const competitors = event.competitions?.[0]?.competitors || [];
+          const homeTeam = competitors.find((c: any) => c.homeAway === 'home')?.team?.displayName || competitors[1]?.team?.displayName || '';
+          const awayTeam = competitors.find((c: any) => c.homeAway === 'away')?.team?.displayName || competitors[0]?.team?.displayName || '';
+          const participants = homeTeam && awayTeam ? `${awayTeam} at ${homeTeam}` : event.shortName || event.name;
+          
+          // Get broadcast info
+          const broadcasts = event.competitions?.[0]?.broadcasts || [];
+          const broadcastNames = broadcasts.flatMap((b: any) => b.names || []);
+          
+          // Get score if live
+          let scoreInfo = '';
+          if (isLive && competitors.length >= 2) {
+            const homeScore = competitors.find((c: any) => c.homeAway === 'home')?.score || competitors[1]?.score;
+            const awayScore = competitors.find((c: any) => c.homeAway === 'away')?.score || competitors[0]?.score;
+            if (homeScore !== undefined && awayScore !== undefined) {
+              scoreInfo = ` (${awayScore}-${homeScore})`;
+            }
+          }
+          
+          events.push({
+            eventName: isLive ? `🔴 LIVE: ${event.shortName || event.name}${scoreInfo}` : (event.shortName || event.name),
+            time: timeStr,
+            participants: participants,
+            whereToWatch: broadcastNames.length > 0 ? broadcastNames.join(', ') : 'TBD',
+            link: event.links?.[0]?.href || `https://www.espn.com/${leagueWideMatch.sport}/scoreboard`,
+            summary: `${leagueWideMatch.leagueName} game`,
+            eventDate: gameDate.toISOString().split('T')[0],
+            eventDateTimeUTC: gameDate.toISOString(),
+            streamingPlatforms: broadcastNames,
+          });
+        }
+        
+        if (events.length > 0) {
+          console.log(`Returning ${events.length} ${leagueWideMatch.leagueName} games`);
+          
+          // Enrich with streaming platforms
+          const enrichedResult = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+          
+          return new Response(
+            JSON.stringify({ 
+              events: enrichedResult.events, 
+              aiProcessed: true, 
+              directESPNLookup: true, 
+              leagueWide: true,
+              leagueName: leagueWideMatch.leagueName,
+              streamingDataLastUpdated: enrichedResult.mappingsLastUpdated 
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        } else {
+          console.log(`No upcoming games found for ${leagueWideMatch.leagueName}`);
+          return new Response(
+            JSON.stringify({ 
+              events: [], 
+              aiProcessed: true, 
+              directESPNLookup: true,
+              leagueWide: true,
+              message: `No upcoming ${leagueWideMatch.leagueName} games found. The season may be over or there are no games scheduled for today.`
+            }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      console.log(`ESPN scoreboard returned no events for ${leagueWideMatch.leagueName}, falling back to Google PSE`);
+    }
+    
     // Step 0.6a: Check for cricket tournaments FIRST (before soccer to avoid "world cup" collision)
     const cricketTournamentMap: Record<string, { name: string, espnSlug: string }> = {
       't20 world cup': { name: 'ICC T20 World Cup', espnSlug: 'icct20wc' },
