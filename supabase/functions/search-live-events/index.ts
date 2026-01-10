@@ -2019,28 +2019,46 @@ serve(async (req) => {
       
       if (espnData?.events) {
         const now = new Date();
-        // Find next upcoming game
-        const upcomingGame = espnData.events.find((event: any) => {
-          const gameDate = new Date(event.date);
-          return gameDate > now;
-        });
+        const events: LiveEvent[] = [];
         
-        if (upcomingGame) {
-          const gameDate = new Date(upcomingGame.date);
-          // Use manual timezone formatter (Deno doesn't support toLocaleString timeZone properly)
-          const timeStr = formatTimeInCentral(gameDate);
+        // Find multiple upcoming games (up to 5)
+        const upcomingGames = espnData.events
+          .filter((event: any) => {
+            const gameDate = new Date(event.date);
+            const status = event.competitions?.[0]?.status?.type?.name || '';
+            const statusState = event.competitions?.[0]?.status?.type?.state || '';
+            const hoursAgo = (now.getTime() - gameDate.getTime()) / (1000 * 60 * 60);
+            
+            const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED' || status === 'STATUS_CANCELED';
+            const isInProgress = status.includes('PROGRESS') || status === 'STATUS_HALFTIME' || status === 'STATUS_END_PERIOD' || statusState === 'in';
+            const isUpcoming = gameDate > now || status === 'STATUS_SCHEDULED' || statusState === 'pre';
+            const isRecentlyStarted = hoursAgo >= 0 && hoursAgo <= 4;
+            
+            return !isCompleted && (isUpcoming || isInProgress || isRecentlyStarted);
+          })
+          .slice(0, 5);
+        
+        console.log(`Found ${upcomingGames.length} upcoming games for ${directCollegeMatch.name}`);
+        
+        for (const game of upcomingGames) {
+          const gameDate = new Date(game.date);
+          const statusState = game.competitions?.[0]?.status?.type?.state || '';
+          const isLive = statusState === 'in';
           
-          const competitors = upcomingGame.competitions?.[0]?.competitors || [];
+          // Use manual timezone formatter (Deno doesn't support toLocaleString timeZone properly)
+          const timeStr = isLive ? '🔴 LIVE NOW' : formatTimeInCentral(gameDate);
+          
+          const competitors = game.competitions?.[0]?.competitors || [];
           const homeTeam = competitors.find((c: any) => c.homeAway === 'home')?.team?.displayName || '';
           const awayTeam = competitors.find((c: any) => c.homeAway === 'away')?.team?.displayName || '';
           const opponent = `${awayTeam} at ${homeTeam}`;
           
           // Get broadcast info
-          const broadcasts = upcomingGame.competitions?.[0]?.broadcasts || [];
+          const broadcasts = game.competitions?.[0]?.broadcasts || [];
           const broadcastNames = broadcasts.flatMap((b: any) => b.names || []);
           
-          const directEvent: LiveEvent = {
-            eventName: upcomingGame.name || `${directCollegeMatch.name} ${sportHint === 'basketball' ? 'Basketball' : 'Football'}`,
+          events.push({
+            eventName: isLive ? `🔴 LIVE NOW: ${game.name || opponent}` : (game.name || `${directCollegeMatch.name} ${sportHint === 'basketball' ? 'Basketball' : 'Football'}`),
             time: timeStr,
             participants: opponent,
             whereToWatch: broadcastNames.length > 0 ? broadcastNames.join(', ') : 'TBD',
@@ -2049,12 +2067,14 @@ serve(async (req) => {
             eventDate: gameDate.toISOString().split('T')[0],
             eventDateTimeUTC: gameDate.toISOString(),
             streamingPlatforms: broadcastNames,
-          };
+          });
           
-          console.log(`Direct ESPN found game: ${directEvent.eventName} at ${directEvent.time}`);
-          
+          console.log(`Added game: ${events[events.length - 1].eventName} at ${timeStr}`);
+        }
+        
+        if (events.length > 0) {
           // Enrich with streaming platforms
-          const enrichedResult = await enrichWithStreamingPlatforms([directEvent], LOVABLE_API_KEY!);
+          const enrichedResult = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
           
           return new Response(
             JSON.stringify({ events: enrichedResult.events, aiProcessed: true, directESPNLookup: true, streamingDataLastUpdated: enrichedResult.mappingsLastUpdated }),
