@@ -401,128 +401,79 @@ export function StreamingCarousel({ streaming, rent, buy }: StreamingCarouselPro
   }
 
   return (
-    <div className="relative isolate">
-      {/* Scrollable container - GPU-accelerated iOS optimized */}
-      <div 
-        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide overscroll-x-contain"
-        style={{ 
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none',
-          transform: 'translateZ(0)',
-          willChange: 'scroll-position',
-          backfaceVisibility: 'hidden',
-          perspective: 1000,
-          WebkitTransform: 'translateZ(0)',
-          WebkitBackfaceVisibility: 'hidden',
-        }}
-      >
-        {/* Spacer for left padding */}
-        <div className="shrink-0 w-1" aria-hidden="true" />
-        
-        {offers.map((offer, index) => (
-          <StreamingCard key={`${offer.type}-${offer.name}-${index}`} offer={offer} />
-        ))}
-        
-        {/* Spacer for right padding */}
-        <div className="shrink-0 w-1" aria-hidden="true" />
-      </div>
-
-      {/* Gradient fades for scroll indication */}
-      {offers.length > 3 && (
-        <>
-          <div className="pointer-events-none absolute left-0 top-0 bottom-2 w-6 bg-gradient-to-r from-zinc-800 to-transparent z-10" />
-          <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-6 bg-gradient-to-l from-zinc-800 to-transparent z-10" />
-        </>
-      )}
+    <div 
+      className="flex gap-2.5 overflow-x-auto px-1 pb-2 -mx-1"
+      style={{ 
+        WebkitOverflowScrolling: 'touch',
+        scrollbarWidth: 'none',
+      }}
+    >
+      {offers.map((offer, index) => (
+        <StreamingCard key={`${offer.type}-${index}`} offer={offer} />
+      ))}
     </div>
   );
 }
 
+const BADGE_STYLES = {
+  subscription: 'bg-purple-500/20 text-purple-400',
+  rent: 'bg-orange-500/20 text-orange-400',
+  buy: 'bg-blue-500/20 text-blue-400',
+} as const;
+
+const BADGE_LABELS = {
+  subscription: 'Stream',
+  rent: 'Rent',
+  buy: 'Buy',
+} as const;
+
 function StreamingCard({ offer }: { offer: StreamingOffer }) {
-  const getBadgeStyles = () => {
-    switch (offer.type) {
-      case 'subscription':
-        return { bg: 'bg-purple-500/20', text: 'text-purple-400', label: 'Subscription' };
-      case 'rent':
-        return { bg: 'bg-orange-500/20', text: 'text-orange-400', label: 'Rent' };
-      case 'buy':
-        return { bg: 'bg-blue-500/20', text: 'text-blue-400', label: 'Buy' };
-      default:
-        return { bg: 'bg-green-500/20', text: 'text-green-400', label: 'Stream' };
-    }
-  };
+  const badgeStyle = BADGE_STYLES[offer.type] || 'bg-green-500/20 text-green-400';
+  const badgeLabel = BADGE_LABELS[offer.type] || 'Stream';
 
-  const { bg, text, label } = getBadgeStyles();
-
-  const handleClick = () => {
-    hapticLight();
-  };
-
-  const content = (
-    <div 
-      className="flex flex-col items-center gap-2 rounded-xl bg-zinc-700/50 p-4 min-w-[110px] active:scale-[0.97] select-none"
-      onClick={handleClick}
-      style={{
-        transform: 'translateZ(0)',
-        backfaceVisibility: 'hidden',
-        WebkitTransform: 'translateZ(0)',
-        WebkitBackfaceVisibility: 'hidden',
-        WebkitTapHighlightColor: 'transparent',
-        touchAction: 'manipulation',
-      }}
-    >
-      {/* Large logo - 80px for instant recognition */}
-      <div className="h-20 w-20 flex items-center justify-center rounded-xl bg-white p-3">
+  const CardContent = (
+    <>
+      <div className="w-16 h-16 bg-white rounded-lg p-2 flex items-center justify-center">
         {offer.logo ? (
           <img 
             src={offer.logo} 
-            alt={offer.shortName} 
-            className="h-full w-full object-contain"
-            loading="lazy"
-            decoding="async"
-            onError={(e) => {
-              // Hide broken image, show fallback
-              (e.target as HTMLImageElement).style.display = 'none';
-              const parent = (e.target as HTMLImageElement).parentElement;
-              if (parent) {
-                parent.innerHTML = `<span class="text-3xl font-bold text-zinc-400">${offer.shortName.charAt(0)}</span>`;
-              }
-            }}
+            alt="" 
+            className="w-full h-full object-contain"
+            draggable={false}
           />
         ) : (
-          <span className="text-3xl font-bold text-zinc-400">
-            {offer.shortName.charAt(0)}
-          </span>
+          <span className="text-2xl font-bold text-zinc-400">{offer.shortName[0]}</span>
         )}
       </div>
-      
-      {/* Platform name */}
-      <span className="text-xs font-medium text-white text-center leading-tight line-clamp-1">
+      <span className="text-[11px] text-white font-medium truncate max-w-[70px]">
         {offer.shortName}
       </span>
-      
-      {/* Type badge */}
-      <span className={cn(
-        'rounded-full px-2 py-0.5 text-[10px] font-semibold',
-        bg, text
-      )}>
-        {label}
+      <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded-full', badgeStyle)}>
+        {badgeLabel}
       </span>
-    </div>
+    </>
   );
 
-  return offer.url !== '#' ? (
-    <a
-      href={offer.url}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="shrink-0"
-      onClick={handleClick}
-    >
-      {content}
-    </a>
-  ) : (
-    <div className="shrink-0">{content}</div>
+  const baseClasses = "shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl bg-zinc-700/60 w-[90px] active:opacity-70";
+
+  if (offer.url !== '#') {
+    return (
+      <a
+        href={offer.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={baseClasses}
+        onClick={hapticLight}
+        draggable={false}
+      >
+        {CardContent}
+      </a>
+    );
+  }
+
+  return (
+    <div className={baseClasses} onClick={hapticLight}>
+      {CardContent}
+    </div>
   );
 }
