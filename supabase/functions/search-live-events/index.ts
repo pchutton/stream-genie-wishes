@@ -2219,15 +2219,45 @@ serve(async (req) => {
     }
     
     // Step 0.6: League-wide game lookup (e.g., "all NFL games this week", "NBA games tonight")
-    const leagueWidePatterns: Record<string, { sport: string, league: string, leagueName: string }> = {
+    // NFL Playoff round filters - detect specific playoff round keywords
+    const nflPlayoffRoundFilters: Record<string, string[]> = {
+      'wild card': ['Wild Card'],
+      'wildcard': ['Wild Card'],
+      'divisional': ['Divisional'],
+      'divisional round': ['Divisional'],
+      'conference championship': ['Conference Championship', 'AFC Championship', 'NFC Championship'],
+      'championship game': ['Conference Championship', 'AFC Championship', 'NFC Championship'],
+      'afc championship': ['AFC Championship'],
+      'nfc championship': ['NFC Championship'],
+      'super bowl': ['Super Bowl'],
+      'superbowl': ['Super Bowl'],
+    };
+    
+    // Detect playoff round filter from query
+    let playoffRoundFilter: string[] | null = null;
+    for (const [pattern, roundNames] of Object.entries(nflPlayoffRoundFilters)) {
+      if (lowerQuery.includes(pattern)) {
+        playoffRoundFilter = roundNames;
+        console.log(`NFL playoff round filter detected: ${pattern} -> ${roundNames.join(', ')}`);
+        break;
+      }
+    }
+    
+    const leagueWidePatterns: Record<string, { sport: string, league: string, leagueName: string, playoffFilter?: string[] }> = {
       'nfl games': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
       'all nfl': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
       'nfl schedule': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
       'nfl this week': { sport: 'football', league: 'nfl', leagueName: 'NFL' },
       'nfl playoffs': { sport: 'football', league: 'nfl', leagueName: 'NFL Playoffs' },
-      'nfl wild card': { sport: 'football', league: 'nfl', leagueName: 'NFL Wild Card' },
-      'nfl divisional': { sport: 'football', league: 'nfl', leagueName: 'NFL Divisional' },
-      'nfl conference': { sport: 'football', league: 'nfl', leagueName: 'NFL Conference' },
+      'nfl wild card': { sport: 'football', league: 'nfl', leagueName: 'NFL Wild Card', playoffFilter: ['Wild Card'] },
+      'nfl divisional': { sport: 'football', league: 'nfl', leagueName: 'NFL Divisional', playoffFilter: ['Divisional'] },
+      'nfl conference': { sport: 'football', league: 'nfl', leagueName: 'NFL Conference Championship', playoffFilter: ['Conference Championship', 'AFC Championship', 'NFC Championship'] },
+      'conference championship': { sport: 'football', league: 'nfl', leagueName: 'NFL Conference Championship', playoffFilter: ['Conference Championship', 'AFC Championship', 'NFC Championship'] },
+      'championship game': { sport: 'football', league: 'nfl', leagueName: 'NFL Conference Championship', playoffFilter: ['Conference Championship', 'AFC Championship', 'NFC Championship'] },
+      'afc championship': { sport: 'football', league: 'nfl', leagueName: 'AFC Championship', playoffFilter: ['AFC Championship'] },
+      'nfc championship': { sport: 'football', league: 'nfl', leagueName: 'NFC Championship', playoffFilter: ['NFC Championship'] },
+      'super bowl': { sport: 'football', league: 'nfl', leagueName: 'Super Bowl', playoffFilter: ['Super Bowl'] },
+      'superbowl': { sport: 'football', league: 'nfl', leagueName: 'Super Bowl', playoffFilter: ['Super Bowl'] },
       'nba games': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
       'all nba': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
       'nba schedule': { sport: 'basketball', league: 'nba', leagueName: 'NBA' },
@@ -2259,13 +2289,19 @@ serve(async (req) => {
       'march madness': { sport: 'basketball', league: 'mens-college-basketball', leagueName: 'March Madness' },
     };
     
-    let leagueWideMatch: { sport: string, league: string, leagueName: string } | null = null;
+    let leagueWideMatch: { sport: string, league: string, leagueName: string, playoffFilter?: string[] } | null = null;
     for (const [pattern, leagueInfo] of Object.entries(leagueWidePatterns)) {
       if (lowerQuery.includes(pattern)) {
         leagueWideMatch = leagueInfo;
-        console.log(`League-wide match found: ${leagueInfo.leagueName} (${leagueInfo.sport}/${leagueInfo.league})`);
+        console.log(`League-wide match found: ${leagueInfo.leagueName} (${leagueInfo.sport}/${leagueInfo.league})${leagueInfo.playoffFilter ? ` with playoff filter: ${leagueInfo.playoffFilter.join(', ')}` : ''}`);
         break;
       }
+    }
+    
+    // If we detected a playoff round filter but no league match, assume NFL
+    if (playoffRoundFilter && !leagueWideMatch) {
+      leagueWideMatch = { sport: 'football', league: 'nfl', leagueName: 'NFL Playoffs', playoffFilter: playoffRoundFilter };
+      console.log(`Implicit NFL playoff match with filter: ${playoffRoundFilter.join(', ')}`);
     }
     
     // If we have a league-wide match, fetch all games from ESPN scoreboard
@@ -2295,6 +2331,8 @@ serve(async (req) => {
         const isToday = lowerQuery.includes('today') || lowerQuery.includes('tonight');
         const isThisWeek = lowerQuery.includes('this week') || lowerQuery.includes('week');
         
+        // Get effective playoff filter (from leagueWideMatch or detected from query)
+        const effectivePlayoffFilter = leagueWideMatch.playoffFilter || playoffRoundFilter;
         // Get games (filter based on query context)
         const relevantEvents = espnData.events
           .filter((event: any) => {
@@ -2307,6 +2345,29 @@ serve(async (req) => {
             const isInProgress = statusState === 'in' || status.includes('PROGRESS') || status === 'STATUS_HALFTIME';
             const isUpcoming = gameDate > now || statusState === 'pre';
             const isRecentlyStarted = hoursAgo >= 0 && hoursAgo <= 4;
+            
+            // Apply playoff round filter if specified
+            if (effectivePlayoffFilter && effectivePlayoffFilter.length > 0) {
+              const eventName = (event.name || event.shortName || '').toLowerCase();
+              const seasonType = event.season?.type?.name || '';
+              const seasonSlug = event.season?.slug || '';
+              const notes = event.competitions?.[0]?.notes?.[0]?.headline || '';
+              
+              // Check if any playoff round filter matches
+              const matchesPlayoffRound = effectivePlayoffFilter.some(roundName => {
+                const roundLower = roundName.toLowerCase();
+                return eventName.includes(roundLower) || 
+                       seasonType.toLowerCase().includes(roundLower) ||
+                       seasonSlug.toLowerCase().includes(roundLower.replace(' ', '-')) ||
+                       notes.toLowerCase().includes(roundLower);
+              });
+              
+              if (!matchesPlayoffRound) {
+                console.log(`Filtering out event "${event.name}" - does not match playoff round: ${effectivePlayoffFilter.join(', ')}`);
+                return false;
+              }
+              console.log(`Event "${event.name}" matches playoff round filter: ${effectivePlayoffFilter.join(', ')}`);
+            }
             
             // Apply time filters
             if (isToday) {
@@ -2327,7 +2388,7 @@ serve(async (req) => {
           })
           .slice(0, 20); // Limit to 20 games for league-wide
         
-        console.log(`Found ${relevantEvents.length} relevant games for ${leagueWideMatch.leagueName}`);
+        console.log(`Found ${relevantEvents.length} relevant games for ${leagueWideMatch.leagueName}${effectivePlayoffFilter ? ` (filtered by: ${effectivePlayoffFilter.join(', ')})` : ''}`);
         
         for (const event of relevantEvents) {
           const gameDate = new Date(event.date);
