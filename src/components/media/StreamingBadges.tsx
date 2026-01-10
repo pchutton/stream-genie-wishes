@@ -1,7 +1,14 @@
 import { cn } from '@/lib/utils';
+import { hapticLight } from '@/hooks/useDespia';
 import fubotvLogo from '@/assets/logos/fubotv.png';
 import youtubeTvLogo from '@/assets/logos/youtube-tv.png';
 import fxLogo from '@/assets/logos/fx.png';
+import primeVideoLogo from '@/assets/logos/prime-video.png';
+import peacockLogo from '@/assets/logos/peacock.png';
+import paramountPlusLogo from '@/assets/logos/paramount-plus.png';
+import maxLogo from '@/assets/logos/max.png';
+import huluLogo from '@/assets/logos/hulu.png';
+import slingLogo from '@/assets/logos/sling.png';
 
 interface StreamingBadgesProps {
   platforms: string[] | null;
@@ -11,85 +18,115 @@ interface StreamingBadgesProps {
 
 const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; shortName: string }> = {
   'netflix': {
-    logo: 'https://images.justwatch.com/icon/207360008/s100/netflix.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/netflix.svg',
     color: '#E50914',
     url: 'https://www.netflix.com',
     shortName: 'Netflix'
   },
   'disney plus': {
-    logo: 'https://images.justwatch.com/icon/147638351/s100/disney-plus.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/disneyplus.svg',
+    color: '#113CCF',
+    url: 'https://www.disneyplus.com',
+    shortName: 'Disney+'
+  },
+  'disney+': {
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/disneyplus.svg',
     color: '#113CCF',
     url: 'https://www.disneyplus.com',
     shortName: 'Disney+'
   },
   'hulu': {
-    logo: 'https://images.justwatch.com/icon/116305230/s100/hulu.webp',
+    logo: huluLogo,
     color: '#1CE783',
     url: 'https://www.hulu.com',
     shortName: 'Hulu'
   },
   'amazon prime video': {
-    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    logo: primeVideoLogo,
+    color: '#00A8E1',
+    url: 'https://www.amazon.com/Prime-Video',
+    shortName: 'Prime'
+  },
+  'prime video': {
+    logo: primeVideoLogo,
     color: '#00A8E1',
     url: 'https://www.amazon.com/Prime-Video',
     shortName: 'Prime'
   },
   'amazon video': {
-    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    logo: primeVideoLogo,
     color: '#00A8E1',
     url: 'https://www.amazon.com/Prime-Video',
     shortName: 'Amazon'
   },
   'apple tv plus': {
-    logo: 'https://images.justwatch.com/icon/190848813/s100/apple-tv-plus.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/appletv.svg',
     color: '#000000',
     url: 'https://tv.apple.com',
     shortName: 'Apple TV+'
   },
   'apple tv': {
-    logo: 'https://images.justwatch.com/icon/190848813/s100/apple-tv-plus.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/appletv.svg',
     color: '#000000',
     url: 'https://tv.apple.com',
     shortName: 'Apple TV'
   },
+  'apple tv+': {
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/appletv.svg',
+    color: '#000000',
+    url: 'https://tv.apple.com',
+    shortName: 'Apple TV+'
+  },
   'max': {
-    logo: 'https://images.justwatch.com/icon/305458112/s100/max.webp',
+    logo: maxLogo,
     color: '#002BE7',
     url: 'https://www.max.com',
     shortName: 'Max'
   },
   'hbo max': {
-    logo: 'https://images.justwatch.com/icon/305458112/s100/max.webp',
+    logo: maxLogo,
     color: '#002BE7',
     url: 'https://www.max.com',
     shortName: 'Max'
   },
   'paramount plus': {
-    logo: 'https://images.justwatch.com/icon/232599720/s100/paramount-plus.webp',
+    logo: paramountPlusLogo,
+    color: '#0064FF',
+    url: 'https://www.paramountplus.com',
+    shortName: 'Paramount+'
+  },
+  'paramount+': {
+    logo: paramountPlusLogo,
     color: '#0064FF',
     url: 'https://www.paramountplus.com',
     shortName: 'Paramount+'
   },
   'peacock': {
-    logo: 'https://images.justwatch.com/icon/207360008/s100/peacock.webp',
+    logo: peacockLogo,
+    color: '#000000',
+    url: 'https://www.peacocktv.com',
+    shortName: 'Peacock'
+  },
+  'peacock premium': {
+    logo: peacockLogo,
     color: '#000000',
     url: 'https://www.peacocktv.com',
     shortName: 'Peacock'
   },
   'youtube': {
-    logo: 'https://images.justwatch.com/icon/59562423/s100/youtube.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/youtube.svg',
     color: '#FF0000',
     url: 'https://www.youtube.com',
     shortName: 'YouTube'
   },
   'google play movies': {
-    logo: 'https://images.justwatch.com/icon/169478387/s100/google-play-movies.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/googleplay.svg',
     color: '#4285F4',
     url: 'https://play.google.com/store/movies',
     shortName: 'Google Play'
   },
   'vudu': {
-    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/6/64/Vudu_2014_logo.svg',
     color: '#3399FF',
     url: 'https://www.vudu.com',
     shortName: 'Vudu'
@@ -131,64 +168,94 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'FX'
   },
   'tubi': {
-    logo: 'https://images.justwatch.com/icon/267599474/s100/tubi.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/tubi.svg',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi'
   },
   'amazon prime video with ads': {
-    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    logo: primeVideoLogo,
     color: '#00A8E1',
     url: 'https://www.amazon.com/Prime-Video',
     shortName: 'Prime (Ads)'
   },
   'prime video with ads': {
-    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    logo: primeVideoLogo,
     color: '#00A8E1',
     url: 'https://www.amazon.com/Prime-Video',
     shortName: 'Prime (Ads)'
   },
   'kanopy': {
-    logo: 'https://images.justwatch.com/icon/59562423/s100/kanopy.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/6/6c/Kanopy_logo.svg',
     color: '#8B5CF6',
     url: 'https://www.kanopy.com',
     shortName: 'Kanopy'
   },
   'hoopla': {
-    logo: 'https://images.justwatch.com/icon/116305103/s100/hoopla.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/9/99/Hoopla_logo.svg',
     color: '#E31837',
     url: 'https://www.hoopladigital.com',
     shortName: 'Hoopla'
   },
   'plex': {
-    logo: 'https://images.justwatch.com/icon/284099936/s100/plex.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/plex.svg',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex'
   },
   'fawesome': {
-    logo: 'https://images.justwatch.com/icon/305458112/s100/fawesome.webp',
+    logo: 'https://fawesome.tv/favicon.ico',
     color: '#FF6B00',
     url: 'https://fawesome.tv',
     shortName: 'Fawesome'
   },
   'fandango at home': {
-    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Fandango_at_Home_logo.svg',
     color: '#FF6600',
     url: 'https://www.fandangoathome.com',
     shortName: 'Fandango'
   },
   'fandango at home free': {
-    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    logo: 'https://upload.wikimedia.org/wikipedia/commons/a/a0/Fandango_at_Home_logo.svg',
     color: '#FF6600',
     url: 'https://www.fandangoathome.com',
     shortName: 'Fandango Free'
   },
   'pluto tv': {
-    logo: 'https://images.justwatch.com/icon/284099936/s100/plutotv.webp',
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/plutotv.svg',
     color: '#000000',
     url: 'https://pluto.tv',
     shortName: 'Pluto TV'
+  },
+  'sling tv': {
+    logo: slingLogo,
+    color: '#0074E4',
+    url: 'https://www.sling.com',
+    shortName: 'Sling'
+  },
+  'sling': {
+    logo: slingLogo,
+    color: '#0074E4',
+    url: 'https://www.sling.com',
+    shortName: 'Sling'
+  },
+  'crunchyroll': {
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/crunchyroll.svg',
+    color: '#F47521',
+    url: 'https://www.crunchyroll.com',
+    shortName: 'Crunchyroll'
+  },
+  'the roku channel': {
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/roku.svg',
+    color: '#662D91',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku'
+  },
+  'roku channel': {
+    logo: 'https://cdn.jsdelivr.net/npm/simple-icons@v9/icons/roku.svg',
+    color: '#662D91',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku'
   },
 };
 
@@ -220,6 +287,10 @@ export function StreamingBadges({ platforms, rentPlatforms, buyPlatforms }: Stre
     );
   }
 
+  const handleClick = () => {
+    hapticLight();
+  };
+
   return (
     <div className="flex flex-wrap gap-2">
       {uniquePlatforms.map(({ name, type }) => {
@@ -232,8 +303,9 @@ export function StreamingBadges({ platforms, rentPlatforms, buyPlatforms }: Stre
             href={data?.url || '#'}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={handleClick}
             className={cn(
-              'flex items-center gap-2 rounded-md border border-zinc-400 bg-zinc-500 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-400',
+              'flex items-center gap-2 rounded-md border border-zinc-400 bg-zinc-500 px-2.5 py-1.5 text-xs font-medium text-white transition-colors hover:bg-zinc-400 active:scale-[0.97] touch-manipulation',
               type === 'rent' && 'border-yellow-500/50',
               type === 'buy' && 'border-green-500/50'
             )}
@@ -242,7 +314,11 @@ export function StreamingBadges({ platforms, rentPlatforms, buyPlatforms }: Stre
               <img 
                 src={data.logo} 
                 alt={data.shortName} 
-                className="h-7 w-7 rounded-sm object-contain"
+                className="h-7 w-7 rounded-sm object-contain bg-white p-0.5"
+                loading="lazy"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
               />
             ) : null}
             <span>{data?.shortName || name}</span>
