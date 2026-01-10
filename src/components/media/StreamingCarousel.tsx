@@ -401,32 +401,38 @@ export function StreamingCarousel({ streaming, rent, buy }: StreamingCarouselPro
   }
 
   return (
-    <div className="relative">
-      {/* Scrollable container - iOS optimized */}
+    <div className="relative isolate">
+      {/* Scrollable container - GPU-accelerated iOS optimized */}
       <div 
-        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide scroll-smooth snap-x snap-mandatory touch-pan-x"
+        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide overscroll-x-contain"
         style={{ 
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
+          msOverflowStyle: 'none',
+          transform: 'translateZ(0)',
+          willChange: 'scroll-position',
+          backfaceVisibility: 'hidden',
+          perspective: 1000,
+          WebkitTransform: 'translateZ(0)',
+          WebkitBackfaceVisibility: 'hidden',
         }}
       >
         {/* Spacer for left padding */}
-        <div className="shrink-0 w-1" />
+        <div className="shrink-0 w-1" aria-hidden="true" />
         
         {offers.map((offer, index) => (
           <StreamingCard key={`${offer.type}-${offer.name}-${index}`} offer={offer} />
         ))}
         
         {/* Spacer for right padding */}
-        <div className="shrink-0 w-1" />
+        <div className="shrink-0 w-1" aria-hidden="true" />
       </div>
 
       {/* Gradient fades for scroll indication */}
       {offers.length > 3 && (
         <>
-          <div className="pointer-events-none absolute left-0 top-0 bottom-2 w-6 bg-gradient-to-r from-zinc-800 to-transparent" />
-          <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-6 bg-gradient-to-l from-zinc-800 to-transparent" />
+          <div className="pointer-events-none absolute left-0 top-0 bottom-2 w-6 bg-gradient-to-r from-zinc-800 to-transparent z-10" />
+          <div className="pointer-events-none absolute right-0 top-0 bottom-2 w-6 bg-gradient-to-l from-zinc-800 to-transparent z-10" />
         </>
       )}
     </div>
@@ -455,8 +461,16 @@ function StreamingCard({ offer }: { offer: StreamingOffer }) {
 
   const content = (
     <div 
-      className="flex flex-col items-center gap-2 rounded-xl bg-zinc-700/50 p-4 min-w-[110px] snap-start transition-all duration-200 hover:bg-zinc-600/50 active:scale-[0.97] touch-manipulation"
+      className="flex flex-col items-center gap-2 rounded-xl bg-zinc-700/50 p-4 min-w-[110px] active:scale-[0.97] select-none"
       onClick={handleClick}
+      style={{
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden',
+        WebkitTransform: 'translateZ(0)',
+        WebkitBackfaceVisibility: 'hidden',
+        WebkitTapHighlightColor: 'transparent',
+        touchAction: 'manipulation',
+      }}
     >
       {/* Large logo - 80px for instant recognition */}
       <div className="h-20 w-20 flex items-center justify-center rounded-xl bg-white p-3">
@@ -466,6 +480,7 @@ function StreamingCard({ offer }: { offer: StreamingOffer }) {
             alt={offer.shortName} 
             className="h-full w-full object-contain"
             loading="lazy"
+            decoding="async"
             onError={(e) => {
               // Hide broken image, show fallback
               (e.target as HTMLImageElement).style.display = 'none';
