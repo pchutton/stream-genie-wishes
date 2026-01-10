@@ -307,6 +307,36 @@ async function fetchMultipleESPNGames(teamName: string, limit: number = 5, sport
       'Pittsburgh Pirates': { slug: 'pit', sport: 'mlb', league: 'team' },
       'Cincinnati Reds': { slug: 'cin', sport: 'mlb', league: 'team' },
       'Washington Nationals': { slug: 'wsh', sport: 'mlb', league: 'team' },
+      
+      // MLS Teams (all 29)
+      'LA Galaxy': { slug: 'la-galaxy', sport: 'mls', league: 'usa.1' },
+      'Los Angeles FC': { slug: 'los-angeles-fc', sport: 'mls', league: 'usa.1' },
+      'Inter Miami CF': { slug: 'inter-miami-cf', sport: 'mls', league: 'usa.1' },
+      'Seattle Sounders': { slug: 'seattle-sounders-fc', sport: 'mls', league: 'usa.1' },
+      'Portland Timbers': { slug: 'portland-timbers', sport: 'mls', league: 'usa.1' },
+      'Atlanta United': { slug: 'atlanta-united-fc', sport: 'mls', league: 'usa.1' },
+      'New York Red Bulls': { slug: 'new-york-red-bulls', sport: 'mls', league: 'usa.1' },
+      'New York City FC': { slug: 'new-york-city-fc', sport: 'mls', league: 'usa.1' },
+      'Columbus Crew': { slug: 'columbus-crew', sport: 'mls', league: 'usa.1' },
+      'Philadelphia Union': { slug: 'philadelphia-union', sport: 'mls', league: 'usa.1' },
+      'Austin FC': { slug: 'austin-fc', sport: 'mls', league: 'usa.1' },
+      'Houston Dynamo': { slug: 'houston-dynamo-fc', sport: 'mls', league: 'usa.1' },
+      'FC Dallas': { slug: 'fc-dallas', sport: 'mls', league: 'usa.1' },
+      'Sporting Kansas City': { slug: 'sporting-kansas-city', sport: 'mls', league: 'usa.1' },
+      'Minnesota United': { slug: 'minnesota-united-fc', sport: 'mls', league: 'usa.1' },
+      'Nashville SC': { slug: 'nashville-sc', sport: 'mls', league: 'usa.1' },
+      'Charlotte FC': { slug: 'charlotte-fc', sport: 'mls', league: 'usa.1' },
+      'Chicago Fire': { slug: 'chicago-fire-fc', sport: 'mls', league: 'usa.1' },
+      'CF Montreal': { slug: 'cf-montreal', sport: 'mls', league: 'usa.1' },
+      'Toronto FC': { slug: 'toronto-fc', sport: 'mls', league: 'usa.1' },
+      'Vancouver Whitecaps': { slug: 'vancouver-whitecaps-fc', sport: 'mls', league: 'usa.1' },
+      'D.C. United': { slug: 'dc-united', sport: 'mls', league: 'usa.1' },
+      'New England Revolution': { slug: 'new-england-revolution', sport: 'mls', league: 'usa.1' },
+      'Orlando City': { slug: 'orlando-city-sc', sport: 'mls', league: 'usa.1' },
+      'Real Salt Lake': { slug: 'real-salt-lake', sport: 'mls', league: 'usa.1' },
+      'Colorado Rapids': { slug: 'colorado-rapids', sport: 'mls', league: 'usa.1' },
+      'San Jose Earthquakes': { slug: 'san-jose-earthquakes', sport: 'mls', league: 'usa.1' },
+      'St. Louis City SC': { slug: 'st-louis-city-sc', sport: 'mls', league: 'usa.1' },
     };
     
     const teamInfo = espnTeamMap[teamName];
@@ -319,13 +349,21 @@ async function fetchMultipleESPNGames(teamName: string, limit: number = 5, sport
     if (sportHint) {
       if (sportHint === 'basketball' && teamInfo.sport !== 'nba') return games;
       if (sportHint === 'football' && teamInfo.sport !== 'nfl') return games;
+      if (sportHint === 'soccer' && teamInfo.sport !== 'mls') return games;
     }
     
-    const scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${
-      teamInfo.sport === 'nba' ? 'basketball' :
-      teamInfo.sport === 'nfl' ? 'football' :
-      teamInfo.sport === 'nhl' ? 'hockey' : 'baseball'
-    }/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+    // Build the schedule URL based on sport type
+    let scheduleUrl: string;
+    if (teamInfo.sport === 'mls') {
+      // MLS uses a different URL structure
+      scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/soccer/${teamInfo.league}/teams/${teamInfo.slug}/schedule`;
+    } else {
+      scheduleUrl = `https://site.api.espn.com/apis/site/v2/sports/${
+        teamInfo.sport === 'nba' ? 'basketball' :
+        teamInfo.sport === 'nfl' ? 'football' :
+        teamInfo.sport === 'nhl' ? 'hockey' : 'baseball'
+      }/${teamInfo.sport}/teams/${teamInfo.slug}/schedule`;
+    }
     
     console.log(`Fetching multiple games from ESPN: ${scheduleUrl}`);
     const data = await cachedFetch(scheduleUrl, CACHE_TTL.SCHEDULE);
