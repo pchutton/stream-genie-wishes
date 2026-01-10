@@ -286,6 +286,42 @@ const PLATFORM_DATA: Record<string, {
     url: 'https://shudder.com',
     shortName: 'Shudder',
   },
+  'amazon prime video with ads': {
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazonprimevideo.webp',
+    color: 'bg-[#00A8E1]',
+    url: 'https://primevideo.com',
+    shortName: 'Prime (Ads)',
+  },
+  'prime video with ads': {
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazonprimevideo.webp',
+    color: 'bg-[#00A8E1]',
+    url: 'https://primevideo.com',
+    shortName: 'Prime (Ads)',
+  },
+  'hoopla': {
+    logo: 'https://images.justwatch.com/icon/116305103/s100/hoopla.webp',
+    color: 'bg-[#E31837]',
+    url: 'https://hoopladigital.com',
+    shortName: 'Hoopla',
+  },
+  'plex': {
+    logo: 'https://images.justwatch.com/icon/284099936/s100/plex.webp',
+    color: 'bg-[#E5A00D]',
+    url: 'https://plex.tv',
+    shortName: 'Plex',
+  },
+  'fawesome': {
+    logo: 'https://images.justwatch.com/icon/305458112/s100/fawesome.webp',
+    color: 'bg-[#FF6B00]',
+    url: 'https://fawesome.tv',
+    shortName: 'Fawesome',
+  },
+  'fandango at home free': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: 'bg-[#FF6600]',
+    url: 'https://fandangoathome.com',
+    shortName: 'Fandango Free',
+  },
 };
 
 const SIZE_CLASSES = {
