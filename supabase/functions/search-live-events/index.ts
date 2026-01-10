@@ -2054,10 +2054,10 @@ serve(async (req) => {
           console.log(`Direct ESPN found game: ${directEvent.eventName} at ${directEvent.time}`);
           
           // Enrich with streaming platforms
-          const enrichedEvents = await enrichWithStreamingPlatforms([directEvent], LOVABLE_API_KEY!);
+          const enrichedResult = await enrichWithStreamingPlatforms([directEvent], LOVABLE_API_KEY!);
           
           return new Response(
-            JSON.stringify({ events: enrichedEvents, aiProcessed: true, directESPNLookup: true }),
+            JSON.stringify({ events: enrichedResult.events, aiProcessed: true, directESPNLookup: true, streamingDataLastUpdated: enrichedResult.mappingsLastUpdated }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         } else {
@@ -2311,10 +2311,10 @@ serve(async (req) => {
           console.log(`Direct ESPN found ${events.length} tennis matches for ${tennisTournamentMatch.name}`);
           
           // Enrich with streaming platforms
-          const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+          const enrichedResult = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
           
           return new Response(
-            JSON.stringify({ events: enrichedEvents, aiProcessed: true, directESPNLookup: true, tennisTournament: tennisTournamentMatch.name }),
+            JSON.stringify({ events: enrichedResult.events, aiProcessed: true, directESPNLookup: true, tennisTournament: tennisTournamentMatch.name, streamingDataLastUpdated: enrichedResult.mappingsLastUpdated }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -2401,10 +2401,10 @@ serve(async (req) => {
           console.log(`Direct ESPN found ${events.length} soccer matches for ${soccerTournamentMatch.name}`);
           
           // Enrich with streaming platforms
-          const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+          const enrichedResult = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
           
           return new Response(
-            JSON.stringify({ events: enrichedEvents, aiProcessed: true, directESPNLookup: true, soccerTournament: soccerTournamentMatch.name }),
+            JSON.stringify({ events: enrichedResult.events, aiProcessed: true, directESPNLookup: true, soccerTournament: soccerTournamentMatch.name, streamingDataLastUpdated: enrichedResult.mappingsLastUpdated }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
