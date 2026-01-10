@@ -198,6 +198,72 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     url: 'https://www.mgmplus.com',
     shortName: 'MGM+'
   },
+  'amazon prime video with ads': {
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    color: '#00A8E1',
+    url: 'https://www.amazon.com/Prime-Video',
+    shortName: 'Prime (Ads)'
+  },
+  'prime video with ads': {
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    color: '#00A8E1',
+    url: 'https://www.amazon.com/Prime-Video',
+    shortName: 'Prime (Ads)'
+  },
+  'kanopy': {
+    logo: 'https://images.justwatch.com/icon/59562423/s100/kanopy.webp',
+    color: '#8B5CF6',
+    url: 'https://www.kanopy.com',
+    shortName: 'Kanopy'
+  },
+  'hoopla': {
+    logo: 'https://images.justwatch.com/icon/116305103/s100/hoopla.webp',
+    color: '#E31837',
+    url: 'https://www.hoopladigital.com',
+    shortName: 'Hoopla'
+  },
+  'plex': {
+    logo: 'https://images.justwatch.com/icon/284099936/s100/plex.webp',
+    color: '#E5A00D',
+    url: 'https://www.plex.tv',
+    shortName: 'Plex'
+  },
+  'fawesome': {
+    logo: 'https://images.justwatch.com/icon/305458112/s100/fawesome.webp',
+    color: '#FF6B00',
+    url: 'https://fawesome.tv',
+    shortName: 'Fawesome'
+  },
+  'fandango at home': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: '#FF6600',
+    url: 'https://www.fandangoathome.com',
+    shortName: 'Fandango'
+  },
+  'fandango at home free': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: '#FF6600',
+    url: 'https://www.fandangoathome.com',
+    shortName: 'Fandango Free'
+  },
+  'pluto tv': {
+    logo: 'https://images.justwatch.com/icon/284099936/s100/plutotv.webp',
+    color: '#000000',
+    url: 'https://pluto.tv',
+    shortName: 'Pluto TV'
+  },
+  'the roku channel': {
+    logo: 'https://images.justwatch.com/icon/197109268/s100/therokuchannel.webp',
+    color: '#662D91',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku'
+  },
+  'roku channel': {
+    logo: 'https://images.justwatch.com/icon/197109268/s100/therokuchannel.webp',
+    color: '#662D91',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku'
+  },
 };
 
 function normalizePlatformName(name: string): string {
