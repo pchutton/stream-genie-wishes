@@ -2130,6 +2130,103 @@ serve(async (req) => {
       'ligue 1': { name: 'French Ligue 1', espnSlug: 'fra.1', league: 'soccer' },
     };
     
+    // Golf tournament detection with direct ESPN lookup
+    const golfTournamentMap: Record<string, { name: string, espnSlug: string }> = {
+      'pga': { name: 'PGA Tour', espnSlug: 'pga' },
+      'pga tour': { name: 'PGA Tour', espnSlug: 'pga' },
+      'pga championship': { name: 'PGA Championship', espnSlug: 'pga' },
+      'masters': { name: 'The Masters', espnSlug: 'pga' },
+      'masters golf': { name: 'The Masters', espnSlug: 'pga' },
+      'us open golf': { name: 'U.S. Open', espnSlug: 'pga' },
+      'british open': { name: 'The Open Championship', espnSlug: 'pga' },
+      'the open': { name: 'The Open Championship', espnSlug: 'pga' },
+      'ryder cup': { name: 'Ryder Cup', espnSlug: 'pga' },
+      'players championship': { name: 'The Players Championship', espnSlug: 'pga' },
+      'lpga': { name: 'LPGA Tour', espnSlug: 'lpga' },
+      'lpga tour': { name: 'LPGA Tour', espnSlug: 'lpga' },
+    };
+    
+    let golfTournamentMatch: { name: string, espnSlug: string } | null = null;
+    for (const [key, value] of Object.entries(golfTournamentMap)) {
+      if (lowerQuery.includes(key)) {
+        golfTournamentMatch = value;
+        console.log(`Golf tournament match found: ${value.name} (ESPN slug: ${value.espnSlug})`);
+        break;
+      }
+    }
+    
+    // If we have a golf tournament match, do direct ESPN API lookup
+    if (golfTournamentMatch) {
+      console.log(`Bypassing Google PSE for golf tournament: ${golfTournamentMatch.name}`);
+      
+      const espnScoreboardUrl = `https://site.api.espn.com/apis/site/v2/sports/golf/${golfTournamentMatch.espnSlug}/scoreboard`;
+      
+      console.log(`Direct ESPN golf lookup URL: ${espnScoreboardUrl}`);
+      const espnData = await cachedFetch(espnScoreboardUrl, CACHE_TTL.SCOREBOARD);
+      
+      if (espnData?.events && espnData.events.length > 0) {
+        const now = new Date();
+        const events: LiveEvent[] = [];
+        
+        // Get upcoming or live tournaments (up to 5)
+        const relevantEvents = espnData.events
+          .filter((event: any) => {
+            const startDate = new Date(event.date);
+            const endDate = event.endDate ? new Date(event.endDate) : new Date(startDate.getTime() + 4 * 24 * 60 * 60 * 1000); // Default 4 days for golf
+            const status = event.status?.type?.name || '';
+            const statusState = event.status?.type?.state || '';
+            
+            const isCompleted = status === 'STATUS_FINAL' || status === 'STATUS_POSTPONED';
+            const isUpcoming = startDate > now || statusState === 'pre';
+            const isInProgress = statusState === 'in' || now <= endDate;
+            
+            return !isCompleted && (isUpcoming || isInProgress);
+          })
+          .slice(0, 5);
+        
+        for (const event of relevantEvents) {
+          const startDate = new Date(event.date);
+          const timeStr = formatTimeInCentral(startDate, true); // Just show date for golf
+          const statusState = event.status?.type?.state || '';
+          const isLive = statusState === 'in';
+          
+          // Get broadcast info
+          const broadcasts = event.competitions?.[0]?.broadcasts || [];
+          const broadcastNames = broadcasts.flatMap((b: any) => b.names || []);
+          
+          // Get tournament venue/location
+          const venue = event.competitions?.[0]?.venue?.fullName || '';
+          const location = event.competitions?.[0]?.venue?.address?.city || '';
+          
+          events.push({
+            eventName: isLive ? `🔴 LIVE NOW: ${event.name || event.shortName}` : (event.name || event.shortName || golfTournamentMatch.name),
+            time: isLive ? '🔴 LIVE NOW' : timeStr,
+            participants: venue ? `${venue}${location ? ` - ${location}` : ''}` : 'PGA Tour Event',
+            whereToWatch: broadcastNames.length > 0 ? broadcastNames.join(', ') : 'CBS, ESPN, Golf Channel',
+            link: event.links?.[0]?.href || `https://www.espn.com/golf/leaderboard`,
+            summary: `${event.name || golfTournamentMatch.name} golf tournament`,
+            eventDate: startDate.toISOString().split('T')[0],
+            eventDateTimeUTC: startDate.toISOString(),
+            streamingPlatforms: broadcastNames.length > 0 ? broadcastNames : ['CBS', 'ESPN+', 'Golf Channel'],
+          });
+        }
+        
+        if (events.length > 0) {
+          console.log(`Direct ESPN found ${events.length} golf events for ${golfTournamentMatch.name}`);
+          
+          // Enrich with streaming platforms
+          const enrichedEvents = await enrichWithStreamingPlatforms(events, LOVABLE_API_KEY!);
+          
+          return new Response(
+            JSON.stringify({ events: enrichedEvents.events, aiProcessed: true, directESPNLookup: true, golfTournament: golfTournamentMatch.name, streamingDataLastUpdated: enrichedEvents.mappingsLastUpdated }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+      }
+      
+      console.log(`No upcoming events found for ${golfTournamentMatch.name}, falling back to Google PSE`);
+    }
+    
     // Tennis tournament detection with direct ESPN lookup
     const tennisTournamentMap: Record<string, { name: string, espnSlug: string }> = {
       'australian open': { name: 'Australian Open', espnSlug: 'australian-open' },
