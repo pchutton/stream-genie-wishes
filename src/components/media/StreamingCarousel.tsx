@@ -402,7 +402,7 @@ export function StreamingCarousel({ streaming, rent, buy }: StreamingCarouselPro
 
   return (
     <div 
-      className="flex gap-2.5 overflow-x-auto px-1 pb-2 -mx-1 snap-x snap-mandatory"
+      className="flex gap-2.5 overflow-x-auto px-1 pb-2 -mx-1"
       style={{ 
         WebkitOverflowScrolling: 'touch',
         scrollbarWidth: 'none',
@@ -454,7 +454,7 @@ function StreamingCard({ offer }: { offer: StreamingOffer }) {
     </>
   );
 
-  const baseClasses = "shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl bg-zinc-700/60 w-[90px] snap-start active:opacity-70";
+  const baseClasses = "shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-xl bg-zinc-700/60 w-[90px] active:opacity-70";
 
   if (offer.url !== '#') {
     return (
