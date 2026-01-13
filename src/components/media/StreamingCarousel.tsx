@@ -163,43 +163,43 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'FX'
   },
   'tubi': {
-    logo: 'https://images.justwatch.com/icon/59562423/s100/tubi.webp',
+    logo: 'https://image.tmdb.org/t/p/original/gGUoLvMylTHCsq8QgyGWGdJRlvL.jpg',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi'
   },
   'tubi tv': {
-    logo: 'https://images.justwatch.com/icon/59562423/s100/tubi.webp',
+    logo: 'https://image.tmdb.org/t/p/original/gGUoLvMylTHCsq8QgyGWGdJRlvL.jpg',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi TV'
   },
   'the roku channel': {
-    logo: 'https://images.justwatch.com/icon/197561145/s100/therokuchannel.webp',
+    logo: 'https://image.tmdb.org/t/p/original/z0h7mBHwm5KfMB2MKeoQDD2ngEZ.jpg',
     color: '#662D91',
     url: 'https://therokuchannel.roku.com',
     shortName: 'Roku Channel'
   },
   'roku channel': {
-    logo: 'https://images.justwatch.com/icon/197561145/s100/therokuchannel.webp',
+    logo: 'https://image.tmdb.org/t/p/original/z0h7mBHwm5KfMB2MKeoQDD2ngEZ.jpg',
     color: '#662D91',
     url: 'https://therokuchannel.roku.com',
     shortName: 'Roku Channel'
   },
   'plex': {
-    logo: 'https://images.justwatch.com/icon/116305230/s100/plex.webp',
+    logo: 'https://image.tmdb.org/t/p/original/xEbklKNJO87pBOT6RSoXLk1KDno.jpg',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex'
   },
   'plex channel': {
-    logo: 'https://images.justwatch.com/icon/116305230/s100/plex.webp',
+    logo: 'https://image.tmdb.org/t/p/original/xEbklKNJO87pBOT6RSoXLk1KDno.jpg',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex Channel'
   },
   'hoopla': {
-    logo: 'https://images.justwatch.com/icon/129772881/s100/hoopla.webp',
+    logo: 'https://image.tmdb.org/t/p/original/vgMOp1NlwT7PVIfKlI78HIGhyPn.jpg',
     color: '#ED1C24',
     url: 'https://www.hoopladigital.com',
     shortName: 'Hoopla'
