@@ -175,13 +175,13 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Tubi TV'
   },
   'the roku channel': {
-    logo: 'https://image.tmdb.org/t/p/original/z0h7mBHwm5KfMB2MKeoQDD2ngEZ.jpg',
+    logo: '/logos/roku.png',
     color: '#662D91',
     url: 'https://therokuchannel.roku.com',
     shortName: 'Roku Channel'
   },
   'roku channel': {
-    logo: 'https://image.tmdb.org/t/p/original/z0h7mBHwm5KfMB2MKeoQDD2ngEZ.jpg',
+    logo: '/logos/roku.png',
     color: '#662D91',
     url: 'https://therokuchannel.roku.com',
     shortName: 'Roku Channel'
@@ -217,49 +217,49 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Fandango'
   },
   'pluto tv': {
-    logo: 'https://image.tmdb.org/t/p/original/ViPasFzkX0MFj0UVxzSrFd6sQT.jpg',
+    logo: '/logos/pluto-tv.png',
     color: '#282828',
     url: 'https://pluto.tv',
     shortName: 'Pluto TV'
   },
   'kanopy': {
-    logo: 'https://image.tmdb.org/t/p/original/iaMw6nOyxUzXSacrLQ0Au6CfZkc.jpg',
+    logo: '/logos/kanopy.png',
     color: '#5A2D82',
     url: 'https://www.kanopy.com',
     shortName: 'Kanopy'
   },
   'crunchyroll': {
-    logo: 'https://image.tmdb.org/t/p/original/vyBdKCAzrN7R8ZUWuQvVLNjB7BL.jpg',
+    logo: '/logos/crunchyroll.png',
     color: '#F47521',
     url: 'https://www.crunchyroll.com',
     shortName: 'Crunchyroll'
   },
   'starz': {
-    logo: 'https://image.tmdb.org/t/p/original/krqOtYlwBqLWKIx6Vw5OLqs3UMo.jpg',
+    logo: '/logos/starz.png',
     color: '#000000',
     url: 'https://www.starz.com',
     shortName: 'Starz'
   },
   'showtime': {
-    logo: 'https://image.tmdb.org/t/p/original/4kL33LoKd99YFIaSOoOPMQOSw1A.jpg',
+    logo: '/logos/showtime.png',
     color: '#FF0000',
     url: 'https://www.sho.com',
     shortName: 'Showtime'
   },
   'amc plus': {
-    logo: 'https://image.tmdb.org/t/p/original/6qolMvbBvJtxxi4q1hcWz0WMcOO.jpg',
+    logo: '/logos/amc-plus.png',
     color: '#000000',
     url: 'https://www.amcplus.com',
     shortName: 'AMC+'
   },
   'mgm plus': {
-    logo: 'https://image.tmdb.org/t/p/original/vQf9tABrDoIO42oB1rJoVcN6V01.jpg',
+    logo: '/logos/mgm-plus.png',
     color: '#000000',
     url: 'https://www.mgmplus.com',
     shortName: 'MGM+'
   },
   'amazon prime video with ads': {
-    logo: 'https://image.tmdb.org/t/p/original/dQeAar5H991VYporEjUspolDarG.jpg',
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
     color: '#00A8E1',
     url: 'https://www.amazon.com/Prime-Video',
     shortName: 'Prime (Ads)'
