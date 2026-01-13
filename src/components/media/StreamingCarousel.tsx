@@ -187,19 +187,19 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Roku Channel'
   },
   'plex': {
-    logo: 'https://image.tmdb.org/t/p/original/uQmwSBPLMno2kEEwqgLC2J9rSTo.jpg',
+    logo: 'https://image.tmdb.org/t/p/original/xEPXbwbfABzPrUTWbgtDFH1NOa.jpg',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex'
   },
   'plex channel': {
-    logo: 'https://image.tmdb.org/t/p/original/uQmwSBPLMno2kEEwqgLC2J9rSTo.jpg',
+    logo: 'https://image.tmdb.org/t/p/original/xEPXbwbfABzPrUTWbgtDFH1NOa.jpg',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex Channel'
   },
   'hoopla': {
-    logo: 'https://image.tmdb.org/t/p/original/muqPdLlIZWDuWaAnJ6BkkBjzKu3.jpg',
+    logo: 'https://image.tmdb.org/t/p/original/bLuJWbNMd9cZAIuEqI7aT7mOA3z.jpg',
     color: '#ED1C24',
     url: 'https://www.hoopladigital.com',
     shortName: 'Hoopla'
