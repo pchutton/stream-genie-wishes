@@ -199,7 +199,7 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Plex Channel'
   },
   'hoopla': {
-    logo: 'https://image.tmdb.org/t/p/original/vgMOp1NlwT7PVIfKlI78HIGhyPn.jpg',
+    logo: '/logos/hoopla.svg',
     color: '#ED1C24',
     url: 'https://www.hoopladigital.com',
     shortName: 'Hoopla'
@@ -265,7 +265,7 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Prime (Ads)'
   },
   'fawesome': {
-    logo: 'https://image.tmdb.org/t/p/original/dY1TQw4w5mYnQ5c6V1r2C7M2rjt.jpg',
+    logo: 'https://image.tmdb.org/t/p/original/6gQNwlPNeENpPyQCFZWPQzy1Y7N.jpg',
     color: '#00B4D8',
     url: 'https://fawesome.tv',
     shortName: 'Fawesome'
