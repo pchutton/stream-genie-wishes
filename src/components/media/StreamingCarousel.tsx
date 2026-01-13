@@ -205,13 +205,13 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Hoopla'
   },
   'fandango at home': {
-    logo: 'https://logo.clearbit.com/fandango.com',
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
     color: '#3399FF',
     url: 'https://www.fandango.com/vudu',
     shortName: 'Fandango'
   },
   'fandango': {
-    logo: 'https://logo.clearbit.com/fandango.com',
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
     color: '#3399FF',
     url: 'https://www.fandango.com/vudu',
     shortName: 'Fandango'
