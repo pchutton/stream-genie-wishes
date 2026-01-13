@@ -168,6 +168,66 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     url: 'https://tubitv.com',
     shortName: 'Tubi'
   },
+  'tubi tv': {
+    logo: 'https://images.justwatch.com/icon/267599474/s100/tubi.webp',
+    color: '#FA382F',
+    url: 'https://tubitv.com',
+    shortName: 'Tubi TV'
+  },
+  'the roku channel': {
+    logo: 'https://images.justwatch.com/icon/197101108/s100/the-roku-channel.webp',
+    color: '#662D91',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku Channel'
+  },
+  'roku channel': {
+    logo: 'https://images.justwatch.com/icon/197101108/s100/the-roku-channel.webp',
+    color: '#662D91',
+    url: 'https://therokuchannel.roku.com',
+    shortName: 'Roku Channel'
+  },
+  'plex': {
+    logo: 'https://images.justwatch.com/icon/284099011/s100/plex.webp',
+    color: '#E5A00D',
+    url: 'https://www.plex.tv',
+    shortName: 'Plex'
+  },
+  'plex channel': {
+    logo: 'https://images.justwatch.com/icon/284099011/s100/plex.webp',
+    color: '#E5A00D',
+    url: 'https://www.plex.tv',
+    shortName: 'Plex Channel'
+  },
+  'hoopla': {
+    logo: 'https://images.justwatch.com/icon/116304621/s100/hoopla.webp',
+    color: '#ED1C24',
+    url: 'https://www.hoopladigital.com',
+    shortName: 'Hoopla'
+  },
+  'fandango at home': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: '#3399FF',
+    url: 'https://www.fandango.com/vudu',
+    shortName: 'Fandango'
+  },
+  'fandango': {
+    logo: 'https://images.justwatch.com/icon/249324969/s100/vudu.webp',
+    color: '#3399FF',
+    url: 'https://www.fandango.com/vudu',
+    shortName: 'Fandango'
+  },
+  'pluto tv': {
+    logo: 'https://images.justwatch.com/icon/201972279/s100/pluto-tv.webp',
+    color: '#282828',
+    url: 'https://pluto.tv',
+    shortName: 'Pluto TV'
+  },
+  'kanopy': {
+    logo: 'https://images.justwatch.com/icon/116304670/s100/kanopy.webp',
+    color: '#5A2D82',
+    url: 'https://www.kanopy.com',
+    shortName: 'Kanopy'
+  },
   'crunchyroll': {
     logo: 'https://images.justwatch.com/icon/281417901/s100/crunchyroll.webp',
     color: '#F47521',
@@ -197,6 +257,18 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     color: '#000000',
     url: 'https://www.mgmplus.com',
     shortName: 'MGM+'
+  },
+  'amazon prime video with ads': {
+    logo: 'https://images.justwatch.com/icon/52449861/s100/amazon-prime-video.webp',
+    color: '#00A8E1',
+    url: 'https://www.amazon.com/Prime-Video',
+    shortName: 'Prime (Ads)'
+  },
+  'fawesome': {
+    logo: 'https://images.justwatch.com/icon/304279232/s100/fawesome.webp',
+    color: '#00B4D8',
+    url: 'https://fawesome.tv',
+    shortName: 'Fawesome'
   },
 };
 
