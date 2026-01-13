@@ -163,13 +163,13 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'FX'
   },
   'tubi': {
-    logo: 'https://image.tmdb.org/t/p/original/gGUoLvMylTHCsq8QgyGWGdJRlvL.jpg',
+    logo: '/logos/tubi.png',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi'
   },
   'tubi tv': {
-    logo: 'https://image.tmdb.org/t/p/original/gGUoLvMylTHCsq8QgyGWGdJRlvL.jpg',
+    logo: '/logos/tubi.png',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi TV'
@@ -187,13 +187,13 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Roku Channel'
   },
   'plex': {
-    logo: 'https://image.tmdb.org/t/p/original/xEbklKNJO87pBOT6RSoXLk1KDno.jpg',
+    logo: '/logos/plex.png',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex'
   },
   'plex channel': {
-    logo: 'https://image.tmdb.org/t/p/original/xEbklKNJO87pBOT6RSoXLk1KDno.jpg',
+    logo: '/logos/plex.png',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex Channel'
