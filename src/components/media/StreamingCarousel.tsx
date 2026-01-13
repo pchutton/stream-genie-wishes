@@ -163,43 +163,43 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'FX'
   },
   'tubi': {
-    logo: 'https://logo.clearbit.com/tubitv.com',
+    logo: 'https://images.justwatch.com/icon/59562423/s100/tubi.webp',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi'
   },
   'tubi tv': {
-    logo: 'https://logo.clearbit.com/tubitv.com',
+    logo: 'https://images.justwatch.com/icon/59562423/s100/tubi.webp',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi TV'
   },
   'the roku channel': {
-    logo: 'https://image.tmdb.org/t/p/original/z0h7mBHwm5KfMB2MKeoQDD2ngEZ.jpg',
+    logo: 'https://images.justwatch.com/icon/197561145/s100/therokuchannel.webp',
     color: '#662D91',
     url: 'https://therokuchannel.roku.com',
     shortName: 'Roku Channel'
   },
   'roku channel': {
-    logo: 'https://image.tmdb.org/t/p/original/z0h7mBHwm5KfMB2MKeoQDD2ngEZ.jpg',
+    logo: 'https://images.justwatch.com/icon/197561145/s100/therokuchannel.webp',
     color: '#662D91',
     url: 'https://therokuchannel.roku.com',
     shortName: 'Roku Channel'
   },
   'plex': {
-    logo: 'https://logo.clearbit.com/plex.tv',
+    logo: 'https://images.justwatch.com/icon/116305230/s100/plex.webp',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex'
   },
   'plex channel': {
-    logo: 'https://logo.clearbit.com/plex.tv',
+    logo: 'https://images.justwatch.com/icon/116305230/s100/plex.webp',
     color: '#E5A00D',
     url: 'https://www.plex.tv',
     shortName: 'Plex Channel'
   },
   'hoopla': {
-    logo: 'https://logo.clearbit.com/hoopladigital.com',
+    logo: 'https://images.justwatch.com/icon/129772881/s100/hoopla.webp',
     color: '#ED1C24',
     url: 'https://www.hoopladigital.com',
     shortName: 'Hoopla'
