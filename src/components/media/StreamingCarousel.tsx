@@ -163,13 +163,13 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'FX'
   },
   'tubi': {
-    logo: 'https://image.tmdb.org/t/p/original/w2TDH9TRI7pltf5LjN3vXzs7QbN.jpg',
+    logo: 'https://logo.clearbit.com/tubitv.com',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi'
   },
   'tubi tv': {
-    logo: 'https://image.tmdb.org/t/p/original/w2TDH9TRI7pltf5LjN3vXzs7QbN.jpg',
+    logo: 'https://logo.clearbit.com/tubitv.com',
     color: '#FA382F',
     url: 'https://tubitv.com',
     shortName: 'Tubi TV'
@@ -205,13 +205,13 @@ const PLATFORM_DATA: Record<string, { logo: string; color: string; url: string; 
     shortName: 'Hoopla'
   },
   'fandango at home': {
-    logo: 'https://image.tmdb.org/t/p/original/21W6lAFziXwrBMbzYXXczP7VPvX.jpg',
+    logo: 'https://logo.clearbit.com/fandango.com',
     color: '#3399FF',
     url: 'https://www.fandango.com/vudu',
     shortName: 'Fandango'
   },
   'fandango': {
-    logo: 'https://image.tmdb.org/t/p/original/21W6lAFziXwrBMbzYXXczP7VPvX.jpg',
+    logo: 'https://logo.clearbit.com/fandango.com',
     color: '#3399FF',
     url: 'https://www.fandango.com/vudu',
     shortName: 'Fandango'
